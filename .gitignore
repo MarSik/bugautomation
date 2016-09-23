@@ -1,0 +1,8 @@
+test.properties
+target
+.idea
+ovirt-planner.iml
+.DS_store
+*.iml
+*.versionsBackup
+*.rpm
