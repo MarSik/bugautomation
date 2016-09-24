@@ -85,11 +85,13 @@ public class BugzillaRefreshJob implements Job {
             if (bugzillaTeams.isPresent() && !bugzillaTeams.get().trim().isEmpty()) {
                 searchData = new DefaultSearchData();
                 for (String team : splitNames(bugzillaTeams)) {
-                    searchData.add("team", team);
+                    searchData.add("cf_ovirt_team", team);
                 }
                 populateSearchData(searchData);
                 searchAndProcess(session, searchData);
             }
+
+            // TODO Get updates for bugs that were assigned out of the scope
 
             // Close the session
             session.close();
@@ -128,14 +130,16 @@ public class BugzillaRefreshJob implements Job {
                     + "/"
                     + bugzillaBug.getSeverity().getSymbol()
                     + " - "
-                    + issue.getStatus()
+                    + bugzillaBug.getStatus()
                     + " - "
                     + issue.getAssignee().getRealName()
                     + " - " + issue.getSummary());
 
             userMatchingService.getByBugzilla(issue.getAssignee().getId()).ifPresent(
                     u -> {
-                        logger.info("Bug {} assigned to {}", issue.getId(), u.getName());
+                        logger.info("Bug {} ({}) assigned to {}", issue.getId(),
+                                bugzillaBug.getBug().getId(),
+                                u.getName());
                         bugzillaBug.setAssignedTo(u);
                     }
             );
