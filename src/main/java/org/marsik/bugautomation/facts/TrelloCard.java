@@ -1,5 +1,6 @@
 package org.marsik.bugautomation.facts;
 
+import java.util.ArrayList;
 import java.util.List;
 import javax.validation.constraints.NotNull;
 
@@ -10,17 +11,20 @@ import lombok.EqualsAndHashCode;
 @Data
 @Builder
 @EqualsAndHashCode(of = "id")
-public class TrelloCard implements AssignmentTarget {
+public class TrelloCard {
     String id;
 
     @NotNull
     TrelloBoard board;
+
     String status;
     Double pos;
 
     String title;
     String description;
 
-    List<User> user;
+    List<User> assignedTo;
+    List<TrelloLabel> labels;
+
     Bug bug;
 }

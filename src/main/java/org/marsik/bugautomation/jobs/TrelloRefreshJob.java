@@ -1,5 +1,6 @@
 package org.marsik.bugautomation.jobs;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -8,7 +9,6 @@ import java.util.Map;
 import java.util.Optional;
 import javax.inject.Inject;
 
-import org.marsik.bugautomation.facts.Assignment;
 import org.marsik.bugautomation.facts.Bug;
 import org.marsik.bugautomation.facts.TrelloBoard;
 import org.marsik.bugautomation.facts.TrelloCard;
@@ -17,6 +17,7 @@ import org.marsik.bugautomation.facts.User;
 import org.marsik.bugautomation.services.BugMatchingService;
 import org.marsik.bugautomation.services.ConfigurationService;
 import org.marsik.bugautomation.services.FactService;
+import org.marsik.bugautomation.services.TrelloActions;
 import org.marsik.bugautomation.services.UserMatchingService;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.Job;
@@ -25,7 +26,6 @@ import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.trello4j.Trello;
-import org.trello4j.TrelloImpl;
 import org.trello4j.model.Board;
 import org.trello4j.model.Card;
 
@@ -45,20 +45,20 @@ public class TrelloRefreshJob implements Job {
     @Inject
     BugMatchingService bugMatchingService;
 
+    @Inject
+    TrelloActions trelloActions;
+
     @Override
     public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException {
 
-        final Optional<String> trelloAppKey = configurationService.get(ConfigurationService.TRELLO_APP_KEY);
-        final Optional<String> trelloToken = configurationService.get(ConfigurationService.TRELLO_TOKEN);
-
-        if (!trelloAppKey.isPresent() || !trelloToken.isPresent()) {
+        Trello trello = trelloActions.getTrello();
+        if (trello == null) {
             logger.warn("Trello not configured, skipping refresh.");
             return;
         }
 
         Map<String, User> users = new HashMap<>();
 
-        Trello trello = new TrelloImpl(trelloAppKey.get(), trelloToken.get());
         List<String> boards = Arrays.asList(configurationService.get(ConfigurationService.TRELLO_BOARDS)
                 .orElse("").split(" *, *"));
 
@@ -67,8 +67,8 @@ public class TrelloRefreshJob implements Job {
                 .map(trello::getMembersByBoard)
                 .flatMap(Collection::stream)
                 .forEach(user -> {
-                    userMatchingService.getByUsername(user.getUsername()).ifPresent(u -> {
-                        logger.info("Found user {}", user.getFullName());
+                    userMatchingService.getByTrello(user.getId()).ifPresent(u -> {
+                        logger.info("Found user {} ({})", user.getId(), user.getFullName());
                         users.put(user.getId(), u);
                     });
                 });
@@ -76,66 +76,68 @@ public class TrelloRefreshJob implements Job {
 
         // Process boards
         for (String boardId: boards) {
-            Board board = trello.getBoard(boardId);
-            final TrelloBoard trelloBoard = TrelloBoard.builder()
-                    .name(board.getName())
-                    .id(board.getId())
+            Board trBoard = trello.getBoard(boardId);
+            final TrelloBoard kiBoard = TrelloBoard.builder()
+                    .name(trBoard.getName())
+                    .id(trBoard.getId())
                     .build();
-            logger.info("Found board {}", trelloBoard.getName());
-            factService.addOrUpdateFact(trelloBoard);
+            logger.info("Found board {}", kiBoard.getName());
+            factService.addOrUpdateFact(kiBoard);
 
             Map<String, String> idListToStatus = new HashMap<>();
 
             // Process cards
-            for (Card card: trello.getCardsByBoard(boardId)) {
-                String status = idListToStatus.get(card.getIdList());
+            for (Card trCard: trello.getCardsByBoard(boardId)) {
+                String status = idListToStatus.get(trCard.getIdList());
                 if (status == null) {
-                    org.trello4j.model.List list = trello.getList(card.getIdList());
+                    org.trello4j.model.List list = trello.getList(trCard.getIdList());
                     idListToStatus.put(list.getId(), list.getName());
                     status = list.getName();
                 }
 
-                TrelloCard trelloCard = TrelloCard.builder()
-                        .id(card.getId())
-                        .title(card.getName())
-                        .description(card.getDesc())
-                        .board(trelloBoard)
-                        .pos(card.getPos())
+                TrelloCard kiCard = TrelloCard.builder()
+                        .id(trCard.getId())
+                        .title(trCard.getName())
+                        .description(trCard.getDesc())
+                        .board(kiBoard)
+                        .pos(trCard.getPos())
                         .status(status.toLowerCase().replace(" ", ""))
+                        .assignedTo(new ArrayList<>())
+                        .labels(new ArrayList<>())
                         .build();
 
-                logger.info("Found card {} at {}#{}", trelloCard.getTitle(), trelloCard.getStatus(), trelloCard.getPos());
+                logger.info("Found card {} at {}#{}", kiCard.getTitle(), kiCard.getStatus(), kiCard.getPos());
 
                 // Add label facts
-                card.getLabels().stream()
-                        .map(l -> new TrelloLabel(l.getColor().toLowerCase(), l.getName().toLowerCase(), trelloCard))
-                        .forEach(factService::addOrUpdateFact);
+                trCard.getLabels().stream()
+                        .map(l -> new TrelloLabel(kiBoard, l.getColor().toLowerCase(), l.getColor(), l.getName().toLowerCase()))
+                        .forEach(kiCard.getLabels()::add);
 
                 // Add assignment facts
-                card.getIdMembers().stream()
+                trCard.getIdMembers().stream()
                         .map(users::get)
                         .filter(u -> u != null)
                         .distinct()
-                        .map(u -> {
-                            logger.info("Card {} assigned to {}", trelloCard.getTitle(), u.getName());
-                            return Assignment.builder()
-                                    .user(u)
-                                    .target(trelloCard)
-                                    .build();
-                        })
-                        .forEach(factService::addOrUpdateFact);
+                        .forEach(u -> {
+                            logger.info("Card {} assigned to {}", kiCard.getTitle(), u.getName());
+                            kiCard.getAssignedTo().add(u);
+                        });
 
                 // Find bugs
-                Optional<Bug> bug = bugMatchingService.identifyBug(card.getName());
+                Optional<Bug> bug = bugMatchingService.identifyBug(trCard.getName());
                 if (!bug.isPresent()) {
-                    bug = bugMatchingService.identifyBug(card.getDesc());
+                    bug = bugMatchingService.identifyBug(trCard.getDesc());
                 }
 
                 if (bug.isPresent()) {
-                    logger.info("Card {} is tied to virtual bug {} (rhbz#{})", trelloCard.getTitle(), bug.get().getId(), bugMatchingService.getBzBug(bug.get()));
+                    logger.info("Card {} is tied to virtual bug {} (rhbz#{})", kiCard.getTitle(), bug.get().getId(), bugMatchingService.getBzBug(bug.get()));
+                    kiCard.setBug(bug.get());
                 }
-                factService.addOrUpdateFact(trelloCard);
+
+                factService.addOrUpdateFact(kiCard);
             }
         }
     }
+
+
 }

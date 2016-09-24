@@ -1,15 +1,12 @@
 package org.marsik.bugautomation.facts;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Value;
 
-@Data
+@Value
 @AllArgsConstructor
-@Builder
-@EqualsAndHashCode(of = "id")
+@Getter
 public class User {
     String name;
-    Integer id;
 }

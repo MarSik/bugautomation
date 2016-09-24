@@ -5,10 +5,8 @@ import java.net.URL;
 import java.util.Optional;
 import javax.inject.Inject;
 
-import org.marsik.bugautomation.facts.Assignment;
-import org.marsik.bugautomation.facts.Bug;
 import org.marsik.bugautomation.facts.BugzillaBug;
-import org.marsik.bugautomation.facts.User;
+import org.marsik.bugautomation.facts.BugzillaPriorityLevel;
 import org.marsik.bugautomation.services.BugMatchingService;
 import org.marsik.bugautomation.services.ConfigurationService;
 import org.marsik.bugautomation.services.FactService;
@@ -108,31 +106,41 @@ public class BugzillaRefreshJob implements Job {
         searchData.add("bug_status", "ASSIGNED");
         searchData.add("bug_status", "POST");
         searchData.add("bug_status", "MODIFIED");
+        searchData.add("bug_status", "ON_QA");
     }
 
     private void searchAndProcess(BugzillaHttpSession session, SearchData searchData) {
         Iterable<Issue> i = session.searchBugs(searchData, i1 -> logger.info("Loading BZ results.. {}", i1));
         for (Issue issue : i) {
-            System.out.println("Bug found: " + issue.getId() + " - " + issue.getStatus() + " - " + issue.getAssignee().getRealName() + " - " + issue.getSummary());
-
             BugzillaBug bugzillaBug = BugzillaBug.builder()
+                    .id(issue.getId())
                     .title(issue.getSummary())
                     .description(issue.getDescription())
                     .status(issue.getStatus().getName().toLowerCase())
                     .bug(bugMatchingService.getBugByBzId(issue.getId()))
+                    .severity(BugzillaPriorityLevel.valueOf(issue.getSeverity().getName().toUpperCase()))
+                    .priority(BugzillaPriorityLevel.valueOf(issue.getPriority().getName().toUpperCase()))
                     .build();
 
-            factService.addOrUpdateFact(bugzillaBug);
+            System.out.println("Bug found: " + issue.getId()
+                    + " - "
+                    + bugzillaBug.getPriority().getSymbol()
+                    + "/"
+                    + bugzillaBug.getSeverity().getSymbol()
+                    + " - "
+                    + issue.getStatus()
+                    + " - "
+                    + issue.getAssignee().getRealName()
+                    + " - " + issue.getSummary());
 
-            userMatchingService.getByEmail(issue.getAssignee().getId()).ifPresent(
+            userMatchingService.getByBugzilla(issue.getAssignee().getId()).ifPresent(
                     u -> {
                         logger.info("Bug {} assigned to {}", issue.getId(), u.getName());
-                        factService.addOrUpdateFact(Assignment.builder()
-                                .user(u)
-                                .target(bugzillaBug)
-                                .build());
+                        bugzillaBug.setAssignedTo(u);
                     }
             );
+
+            factService.addOrUpdateFact(bugzillaBug);
         }
     }
 }
