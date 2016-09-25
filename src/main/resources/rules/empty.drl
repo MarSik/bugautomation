@@ -16,3 +16,10 @@ rule "newBug"
   then
     trello.createCard($board, "TODO", $bz);
 end
+
+/*
+TODO rules with flag matching like:
+
+BugzillaBug( $flags : flags )
+    BugzillaBugFlag( flag == "blocker+" ) from $flags
+*/

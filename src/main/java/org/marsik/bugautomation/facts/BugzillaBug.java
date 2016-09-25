@@ -1,5 +1,6 @@
 package org.marsik.bugautomation.facts;
 
+import java.time.LocalDateTime;
 import java.util.Set;
 
 import lombok.Builder;
@@ -14,7 +15,9 @@ public class BugzillaBug {
 
     String title;
     String description;
+
     String status;
+    LocalDateTime statusModifiedAt;
 
     BugzillaPriorityLevel priority;
     BugzillaPriorityLevel severity;

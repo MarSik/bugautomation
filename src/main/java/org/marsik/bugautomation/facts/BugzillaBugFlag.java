@@ -9,15 +9,13 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @Data
-@EqualsAndHashCode(of = "name")
+@EqualsAndHashCode(of = "flag")
 public class BugzillaBugFlag {
-    private final String name;
-    private final String value;
+    private final String flag;
     private final LocalDateTime modifiedAt;
 
     public BugzillaBugFlag(Map<String, Object> flag) {
-        name = (String)flag.get("name");
-        value = (String)flag.get("status");
+        this.flag = (String)flag.get("name") + flag.get("status");
         modifiedAt = LocalDateTime.ofInstant(((Date)flag.get("modification_date")).toInstant(), ZoneId.of("UTC"));
     }
 }
