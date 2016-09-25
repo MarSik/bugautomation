@@ -2,9 +2,20 @@ package org.marsik.bugautomation.jobs;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import javax.inject.Inject;
 
+import b4j.core.session.BugzillaRpcSession;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
+import com.sun.org.apache.xpath.internal.operations.Mult;
+import org.marsik.bugautomation.BugzillaClient;
+import org.marsik.bugautomation.bugzilla.BugProxy;
 import org.marsik.bugautomation.facts.BugzillaBug;
 import org.marsik.bugautomation.facts.BugzillaPriorityLevel;
 import org.marsik.bugautomation.services.BugMatchingService;
@@ -18,9 +29,7 @@ import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import b4j.core.DefaultIssue;
 import b4j.core.SearchData;
-import b4j.core.session.BugzillaHttpSession;
 import b4j.core.DefaultSearchData;
 import b4j.core.Issue;
 import rs.baselib.security.AuthorizationCallback;
@@ -57,38 +66,52 @@ public class BugzillaRefreshJob implements Job {
             return;
         }
 
-        BugzillaHttpSession session = new BugzillaHttpSession();
+        BugzillaClient session;
         try {
-            session.setBaseUrl(new URL(bugzillaUrl.get()));
+            session = new BugzillaClient(bugzillaUrl.get());
         } catch (MalformedURLException e) {
             logger.error("Bugzilla url incorrect", e);
             return;
         }
 
-        session.setBugzillaBugClass(DefaultIssue.class);
+        //session.setBugzillaBugClass(DefaultIssue.class);
 
         AuthorizationCallback authCallback = new SimpleAuthorizationCallback(bugzillaUsername.get(), bugzillaPassword.get());
-        session.getHttpSessionParams().setAuthorizationCallback(authCallback);
+        session.setAuthorizationCallback(authCallback);
 
         if (session.open()) {
             // Search bugs by users
-            DefaultSearchData searchData = new DefaultSearchData();
+            Multimap<String, Object> searchData = ArrayListMultimap.create();
             if (bugzillaOwners.isPresent() && !bugzillaOwners.get().trim().isEmpty()) {
                 for (String owner : splitNames(bugzillaOwners)) {
-                    searchData.add("assigned_to", owner);
+                    searchData.put("assigned_to", owner);
                 }
                 populateSearchData(searchData);
-                searchAndProcess(session, searchData);
+                Map<String, BugzillaBug> bugs = searchAndProcess(session, searchData);
+
+                // Load flags
+                for (BugProxy bzExtra: session.getExtra(bugs.keySet())) {
+                    bzExtra.loadFlags(bzExtra);
+                    bugs.get(bzExtra.getId()).setFlags(bzExtra.getFlags());
+                    factService.addOrUpdateFact(bugs.get(bzExtra.getId()));
+                }
             }
 
             // Search bugs by teams
             if (bugzillaTeams.isPresent() && !bugzillaTeams.get().trim().isEmpty()) {
-                searchData = new DefaultSearchData();
+                searchData = ArrayListMultimap.create();
                 for (String team : splitNames(bugzillaTeams)) {
-                    searchData.add("cf_ovirt_team", team);
+                    searchData.put("cf_ovirt_team", team);
                 }
                 populateSearchData(searchData);
-                searchAndProcess(session, searchData);
+                Map<String, BugzillaBug> bugs = searchAndProcess(session, searchData);
+
+                // Load flags
+                for (BugProxy bzExtra: session.getExtra(bugs.keySet())) {
+                    bzExtra.loadFlags(bzExtra);
+                    bugs.get(bzExtra.getId()).setFlags(bzExtra.getFlags());
+                    factService.addOrUpdateFact(bugs.get(bzExtra.getId()));
+                }
             }
 
             // TODO Get updates for bugs that were assigned out of the scope
@@ -103,26 +126,37 @@ public class BugzillaRefreshJob implements Job {
         return commaSeparatedNames.orElse("").split(" *, *");
     }
 
-    private void populateSearchData(SearchData searchData) {
-        searchData.add("bug_status", "NEW");
-        searchData.add("bug_status", "ASSIGNED");
-        searchData.add("bug_status", "POST");
-        searchData.add("bug_status", "MODIFIED");
-        searchData.add("bug_status", "ON_QA");
+    private void populateSearchData(Multimap<String, Object> searchData) {
+        searchData.put("bug_status", "NEW");
+        searchData.put("bug_status", "ASSIGNED");
+        searchData.put("bug_status", "POST");
+        searchData.put("bug_status", "MODIFIED");
+        searchData.put("bug_status", "ON_QA");
     }
 
-    private void searchAndProcess(BugzillaHttpSession session, SearchData searchData) {
-        Iterable<Issue> i = session.searchBugs(searchData, i1 -> logger.info("Loading BZ results.. {}", i1));
-        for (Issue issue : i) {
-            BugzillaBug bugzillaBug = BugzillaBug.builder()
+    private Map<String, BugzillaBug> searchAndProcess(BugzillaClient session, Multimap<String, Object> searchData) {
+        logger.info("Refreshing bugzilla bugs");
+        Map<String, BugzillaBug> kiBugs = new HashMap<>();
+        Iterable<BugProxy> i = session.searchBugs(searchData);
+        for (BugProxy issue : i) {
+             BugzillaBug.BugzillaBugBuilder bugzillaBugBuilder = BugzillaBug.builder()
                     .id(issue.getId())
                     .title(issue.getSummary())
                     .description(issue.getDescription())
-                    .status(issue.getStatus().getName().toLowerCase())
+                    .status(issue.getStatus().toLowerCase())
                     .bug(bugMatchingService.getBugByBzId(issue.getId()))
-                    .severity(BugzillaPriorityLevel.valueOf(issue.getSeverity().getName().toUpperCase()))
-                    .priority(BugzillaPriorityLevel.valueOf(issue.getPriority().getName().toUpperCase()))
-                    .build();
+                    .severity(BugzillaPriorityLevel.valueOf(issue.getSeverity().toUpperCase()))
+                    .priority(BugzillaPriorityLevel.valueOf(issue.getPriority().toUpperCase()));
+
+            if (issue.getTargetMilestone() != null) {
+                bugzillaBugBuilder.targetMilestone(issue.getTargetMilestone());
+            }
+
+            if (issue.getTargetRelease() != null) {
+                bugzillaBugBuilder.targetRelease(issue.getTargetRelease());
+            }
+
+            BugzillaBug bugzillaBug = bugzillaBugBuilder.build();
 
             System.out.println("Bug found: " + issue.getId()
                     + " - "
@@ -132,10 +166,10 @@ public class BugzillaRefreshJob implements Job {
                     + " - "
                     + bugzillaBug.getStatus()
                     + " - "
-                    + issue.getAssignee().getRealName()
+                    + issue.getAssignedTo()
                     + " - " + issue.getSummary());
 
-            userMatchingService.getByBugzilla(issue.getAssignee().getId()).ifPresent(
+            userMatchingService.getByBugzilla(issue.getAssignedTo()).ifPresent(
                     u -> {
                         logger.info("Bug {} ({}) assigned to {}", issue.getId(),
                                 bugzillaBug.getBug().getId(),
@@ -144,7 +178,10 @@ public class BugzillaRefreshJob implements Job {
                     }
             );
 
+            kiBugs.put(bugzillaBug.getId(), bugzillaBug);
             factService.addOrUpdateFact(bugzillaBug);
         }
+
+        return kiBugs;
     }
 }

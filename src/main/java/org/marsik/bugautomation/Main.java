@@ -23,12 +23,14 @@ public class Main {
     QuartzService scheduler;
 
     QuartzService.Timer ruleTimer;
+    QuartzService.Timer bzTimer;
+    QuartzService.Timer trelloTimer;
 
     @PostConstruct
     public void create() {
         ruleTimer = scheduler.createTimer(10, RefreshRulesJob.class);
-        ruleTimer = scheduler.createTimer(300, TrelloRefreshJob.class);
-        ruleTimer = scheduler.createTimer(900, BugzillaRefreshJob.class);
+        //trelloTimer = scheduler.createTimer(300, TrelloRefreshJob.class);
+        bzTimer = scheduler.createTimer(900, BugzillaRefreshJob.class);
     }
 
     @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT")

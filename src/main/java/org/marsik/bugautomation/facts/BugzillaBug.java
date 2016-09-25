@@ -1,5 +1,7 @@
 package org.marsik.bugautomation.facts;
 
+import java.util.Set;
+
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -16,6 +18,13 @@ public class BugzillaBug {
 
     BugzillaPriorityLevel priority;
     BugzillaPriorityLevel severity;
+
+    String targetMilestone;
+    String targetRelease;
+
+    Boolean blocker;
+
+    Set<BugzillaBugFlag> flags;
 
     User assignedTo;
 

@@ -61,7 +61,7 @@ public class UserMatchingService {
             user = createUser("bz:"+email, Collections.emptyList(), Collections.singletonList(email));
         }
 
-        return user == null ? Optional.empty() : Optional.of(user);
+        return Optional.of(user);
     }
 
     public Optional<User> getByTrello(String username) {
@@ -72,7 +72,7 @@ public class UserMatchingService {
             user = createUser("tr:"+username, Collections.singletonList(username), Collections.emptyList());
         }
 
-        return user == null ? Optional.empty() : Optional.of(user);
+        return Optional.of(user);
     }
 
     public Optional<String> getTrello(User user) {
