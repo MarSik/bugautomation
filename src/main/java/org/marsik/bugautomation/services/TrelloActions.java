@@ -2,11 +2,13 @@ package org.marsik.bugautomation.services;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import javax.ws.rs.core.UriBuilder;
 
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 import org.marsik.bugautomation.facts.BugzillaBug;
@@ -17,6 +19,7 @@ import org.marsik.bugautomation.trello.Card;
 import org.marsik.bugautomation.trello.TrelloClient;
 import org.marsik.bugautomation.trello.TrelloClientBuilder;
 import org.marsik.bugautomation.trello.TrelloList;
+import org.omg.CORBA.OBJECT_NOT_EXIST;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,7 +60,9 @@ public class TrelloActions {
         final Optional<String> bugzillaUrl = configurationService.get(ConfigurationService.BUGZILLA_URL);
         String desc = "";
         if (bugzillaUrl.isPresent()) {
-            URI uri = URI.create(bugzillaUrl.get()).resolve(bug.getId());
+            URI uri = UriBuilder.fromUri(bugzillaUrl.get())
+                    .segment(bug.getId())
+                    .build();
             desc = uri.toString();
         }
 
@@ -78,7 +83,7 @@ public class TrelloActions {
                 .labels(new ArrayList<>())
                 .build();
 
-        final HashMap<String, String> attrMap = new HashMap<>();
+        final HashMap<String, Object> attrMap = new HashMap<>();
         userMatchingService.getTrello(assignTo)
                 .ifPresent(trUser -> attrMap.put("idMembers", trUser));
 
@@ -87,5 +92,68 @@ public class TrelloActions {
 
         Card trCard = trello.createCard(trList.get().getId(), attrMap);
         if (trCard != null) factService.addFact(kiCard);
+    }
+
+    public void switchCards(TrelloCard one, TrelloCard two) {
+        TrelloClientBuilder builder = getTrello();
+        if (builder == null) {
+            logger.warn("Trello not configured, can't create card.");
+            return;
+        }
+
+        TrelloClient trello = builder.build();
+
+        double pos0 = one.getPos();
+        one.setPos(two.getPos());
+        two.setPos(pos0);
+
+        logger.info("Switching position of two cards");
+        trello.updateCard(one.getId(), Collections.singletonMap("pos", one.getPos()));
+        trello.updateCard(two.getId(), Collections.singletonMap("pos", two.getPos()));
+
+        factService.addOrUpdateFact(one);
+        factService.addOrUpdateFact(two);
+    }
+
+    public void moveCard(TrelloCard kiCard, TrelloBoard kiBoard, String listName) {
+        TrelloClientBuilder builder = getTrello();
+        if (builder == null) {
+            logger.warn("Trello not configured, can't create card.");
+            return;
+        }
+
+        TrelloClient trello = builder.build();
+
+        java.util.List<TrelloList> trLists = trello.getListByBoard(kiBoard.getId());
+        Optional<TrelloList> trList = trLists.stream().filter(l -> l.getName().equalsIgnoreCase(listName)).findFirst();
+
+        if (!trList.isPresent()) {
+            logger.error("Could not find list {}/{} to move a card {}", kiBoard.getName(), listName, kiCard);
+            return;
+        }
+
+        logger.info("Moving a card {} from {} to {}", kiCard.getTitle(), kiCard.getStatus(), trList.get().getName());
+        trello.moveCard(kiCard.getId(), trList.get().getId());
+
+        kiCard.setBoard(kiBoard);
+        kiCard.setStatus(trList.get().getName().replace(" ", "").toLowerCase());
+        factService.addOrUpdateFact(kiCard);
+    }
+
+    public void assignCard(TrelloCard card, User user) {
+        TrelloClientBuilder builder = getTrello();
+        if (builder == null) {
+            logger.warn("Trello not configured, can't create card.");
+            return;
+        }
+
+        logger.info("Assigning {} to {}", card, user);
+
+        TrelloClient trello = builder.build();
+        userMatchingService.getTrello(user).ifPresent(userId -> {
+            trello.assignCardToUser(card.getId(), userId);
+            card.getAssignedTo().add(user);
+            factService.addOrUpdateFact(card);
+        });
     }
 }

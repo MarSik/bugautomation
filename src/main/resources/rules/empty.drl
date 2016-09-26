@@ -11,10 +11,77 @@ global BugzillaActions bugzilla;
 rule "newBug"
   when
     $bz: BugzillaBug($bug : bug, $user : assignedTo)
-    $board: TrelloBoard(name == "Test BZ sync")
+    $board: TrelloBoard(name == "Test Sprint automation")
     not(exists TrelloCard(bug == $bug, board == $board))
   then
     trello.createCard($board, "TODO", $bz, $user);
+end
+
+rule "orderBacklog"
+  when
+    $bz: BugzillaBug($bug1 : bug, priority != null, $priority : priority)
+    BugzillaBug($bug2 : bug, priority != null, priority > $priority, id != $bz.id)
+
+    $board: TrelloBoard(name == "Test Sprint automation")
+
+    $card1: TrelloCard(bug == $bug1, board == $board, status == "todo", $pos : pos)
+    $card2: TrelloCard(bug == $bug2, board == $board, status == "todo", pos > $pos)
+  then
+    trello.switchCards($card1, $card2);
+end
+
+rule "bugAssignment"
+  when
+    $bz: BugzillaBug($bug : bug, $user : assignedTo)
+    $board: TrelloBoard(name == "Test Sprint automation")
+    $card: TrelloCard(bug == $bug, board == $board, $user not memberOf assignedTo)
+  then
+    trello.assignCard($card, $user);
+end
+
+rule "closedBug"
+  when
+    $bz: BugzillaBug($bug : bug, $user : assignedTo, status == "closed")
+    $board: TrelloBoard(name == "Test Sprint automation")
+    $card: TrelloCard(bug == $bug, board == $board, status != "done")
+  then
+    trello.moveCard($card, $board, "Done");
+end
+
+rule "doneBug"
+  when
+    $bz: BugzillaBug($bug : bug, status == "modified" || status == "on_qe")
+    $board: TrelloBoard(name == "Test Sprint automation")
+    $card: TrelloCard(bug == $bug, board == $board, status != "done", status != "documentation")
+  then
+    trello.moveCard($card, $board, "Documentation");
+end
+
+rule "unknownBug"
+  when
+    $board: TrelloBoard(name == "Test Sprint automation")
+    $card: TrelloCard($bug : bug, bug != null, board == $board, status != "done")
+    not(exists BugzillaBug($bug == bug))
+  then
+    trello.moveCard($card, $board, "Done");
+end
+
+rule "openBug"
+  when
+    $bz: BugzillaBug($bug : bug, $user : assignedTo, status == "new" || status == "assigned" || status == "post")
+    $board: TrelloBoard(name == "Test Sprint automation")
+    $card: TrelloCard(bug == $bug, board == $board, status == "done")
+  then
+    trello.moveCard($card, $board, "TODO");
+end
+
+rule "modifiedBug"
+  when
+    $bz: BugzillaBug($bug : bug, $user : assignedTo, status == "post")
+    $board: TrelloBoard(name == "Test Sprint automation")
+    $card: TrelloCard(bug == $bug, board == $board, status == "todo")
+  then
+    trello.moveCard($card, $board, "In Progress");
 end
 
 /*

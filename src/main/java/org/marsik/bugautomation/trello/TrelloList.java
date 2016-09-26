@@ -13,4 +13,5 @@ import lombok.EqualsAndHashCode;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class TrelloList extends BaseObject{
     String name;
+    String idBoard;
 }
