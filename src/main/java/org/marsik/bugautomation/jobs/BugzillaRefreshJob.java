@@ -1,20 +1,15 @@
 package org.marsik.bugautomation.jobs;
 
 import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import javax.inject.Inject;
 
-import b4j.core.session.BugzillaRpcSession;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
-import com.sun.org.apache.xpath.internal.operations.Mult;
 import org.marsik.bugautomation.BugzillaClient;
+import org.marsik.bugautomation.bugzilla.AuthorizationCallback;
 import org.marsik.bugautomation.bugzilla.BugProxy;
 import org.marsik.bugautomation.facts.BugzillaBug;
 import org.marsik.bugautomation.facts.BugzillaPriorityLevel;
@@ -28,12 +23,6 @@ import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import b4j.core.SearchData;
-import b4j.core.DefaultSearchData;
-import b4j.core.Issue;
-import rs.baselib.security.AuthorizationCallback;
-import rs.baselib.security.SimpleAuthorizationCallback;
 
 @DisallowConcurrentExecution
 public class BugzillaRefreshJob implements Job {
@@ -76,7 +65,7 @@ public class BugzillaRefreshJob implements Job {
 
         //session.setBugzillaBugClass(DefaultIssue.class);
 
-        AuthorizationCallback authCallback = new SimpleAuthorizationCallback(bugzillaUsername.get(), bugzillaPassword.get());
+        AuthorizationCallback authCallback = new AuthorizationCallback(bugzillaUsername.get(), bugzillaPassword.get());
         session.setAuthorizationCallback(authCallback);
 
         if (session.open()) {

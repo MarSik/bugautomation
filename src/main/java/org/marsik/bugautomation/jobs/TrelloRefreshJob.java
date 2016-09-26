@@ -19,15 +19,17 @@ import org.marsik.bugautomation.services.ConfigurationService;
 import org.marsik.bugautomation.services.FactService;
 import org.marsik.bugautomation.services.TrelloActions;
 import org.marsik.bugautomation.services.UserMatchingService;
+import org.marsik.bugautomation.trello.Board;
+import org.marsik.bugautomation.trello.Card;
+import org.marsik.bugautomation.trello.TrelloClient;
+import org.marsik.bugautomation.trello.TrelloClientBuilder;
+import org.marsik.bugautomation.trello.TrelloList;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.trello4j.Trello;
-import org.trello4j.model.Board;
-import org.trello4j.model.Card;
 
 @DisallowConcurrentExecution
 public class TrelloRefreshJob implements Job {
@@ -51,32 +53,22 @@ public class TrelloRefreshJob implements Job {
     @Override
     public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException {
 
-        Trello trello = trelloActions.getTrello();
-        if (trello == null) {
-            logger.warn("Trello not configured, skipping refresh.");
+        TrelloClientBuilder builder = trelloActions.getTrello();
+        if (builder == null) {
+            logger.warn("Trello not configured, can't create card.");
             return;
         }
+
+        TrelloClient trello = builder.build();
 
         Map<String, User> users = new HashMap<>();
 
         List<String> boards = Arrays.asList(configurationService.get(ConfigurationService.TRELLO_BOARDS)
                 .orElse("").split(" *, *"));
 
-        // Load users
-        boards.stream()
-                .map(trello::getMembersByBoard)
-                .flatMap(Collection::stream)
-                .forEach(user -> {
-                    userMatchingService.getByTrello(user.getId()).ifPresent(u -> {
-                        logger.info("Found user {} ({})", user.getId(), user.getFullName());
-                        users.put(user.getId(), u);
-                    });
-                });
-
-
         // Process boards
         for (String boardId: boards) {
-            Board trBoard = trello.getBoard(boardId);
+            Board trBoard = trello.getBoardWithData(boardId, "all", "all", "all");
             final TrelloBoard kiBoard = TrelloBoard.builder()
                     .name(trBoard.getName())
                     .id(trBoard.getId())
@@ -85,12 +77,26 @@ public class TrelloRefreshJob implements Job {
             factService.addOrUpdateFact(kiBoard);
 
             Map<String, String> idListToStatus = new HashMap<>();
+            Map<String, TrelloList> idToListMap = new HashMap<>();
+
+            // Load lists
+            for (TrelloList list: trBoard.getLists()) {
+                idToListMap.put(list.getId(), list);
+            }
+
+            // Load users
+            trBoard.getMembers().forEach(user -> {
+                        userMatchingService.getByTrello(user.getId()).ifPresent(u -> {
+                            logger.info("Found user {} ({})", user.getId(), user.getFullName());
+                            users.put(user.getId(), u);
+                        });
+                    });
 
             // Process cards
-            for (Card trCard: trello.getCardsByBoard(boardId)) {
+            for (Card trCard: trBoard.getCards()) {
                 String status = idListToStatus.get(trCard.getIdList());
                 if (status == null) {
-                    org.trello4j.model.List list = trello.getList(trCard.getIdList());
+                    TrelloList list = idToListMap.get(trCard.getIdList());
                     idListToStatus.put(list.getId(), list.getName());
                     status = list.getName();
                 }

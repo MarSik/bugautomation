@@ -29,7 +29,7 @@ public class Main {
     @PostConstruct
     public void create() {
         ruleTimer = scheduler.createTimer(10, RefreshRulesJob.class);
-        //trelloTimer = scheduler.createTimer(300, TrelloRefreshJob.class);
+        trelloTimer = scheduler.createTimer(300, TrelloRefreshJob.class);
         bzTimer = scheduler.createTimer(900, BugzillaRefreshJob.class);
     }
 

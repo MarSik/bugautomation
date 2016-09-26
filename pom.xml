@@ -110,6 +110,16 @@
             <artifactId>resteasy-undertow</artifactId>
             <version>${resteasy.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpcore</artifactId>
+            <version>4.4.5</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.resteasy</groupId>
+            <artifactId>resteasy-jackson-provider</artifactId>
+            <version>${resteasy.version}</version>
+        </dependency>
 
         <!-- XML-RPC //-->
         <dependency>
@@ -122,24 +132,10 @@
             <artifactId>xmlrpc-client</artifactId>
             <version>${xmlrpc.version}</version>
         </dependency>
-
-        <!-- Trello //-->
-        <dependency>
-            <groupId>org.trello4j</groupId>
-            <artifactId>trello4j</artifactId>
-            <version>1.0-SNAPSHOT</version>
-        </dependency>
-
-        <!-- Bugzilla //-->
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
             <version>2.5</version>
-        </dependency>
-        <dependency>
-            <groupId>eu.ralph-schuster</groupId>
-            <artifactId>b4j</artifactId>
-            <version>2.0.3</version>
         </dependency>
 
         <!-- Gerrit //-->
@@ -218,6 +214,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.5.1</version>
                 <configuration>
                     <source>${java.version}</source>
                     <target>${java.version}</target>

@@ -23,7 +23,10 @@ public class TrelloCard {
     String title;
     String description;
 
+    @NotNull
     List<User> assignedTo;
+
+    @NotNull
     List<TrelloLabel> labels;
 
     Bug bug;

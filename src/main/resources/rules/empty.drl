@@ -10,11 +10,11 @@ global BugzillaActions bugzilla;
 
 rule "newBug"
   when
-    $bz: BugzillaBug($bug : bug)
+    $bz: BugzillaBug($bug : bug, $user : assignedTo)
     $board: TrelloBoard(name == "Test BZ sync")
     not(exists TrelloCard(bug == $bug, board == $board))
   then
-    trello.createCard($board, "TODO", $bz);
+    trello.createCard($board, "TODO", $bz, $user);
 end
 
 /*

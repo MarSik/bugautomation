@@ -15,10 +15,10 @@ import com.google.common.collect.Multimap;
 import org.apache.xmlrpc.XmlRpcException;
 import org.apache.xmlrpc.client.XmlRpcClient;
 import org.apache.xmlrpc.client.XmlRpcClientConfigImpl;
+import org.marsik.bugautomation.bugzilla.AuthorizationCallback;
 import org.marsik.bugautomation.bugzilla.BugProxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import rs.baselib.security.AuthorizationCallback;
 
 public class BugzillaClient {
     private static final Logger logger = LoggerFactory.getLogger(BugzillaClient.class);
