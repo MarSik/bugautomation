@@ -2,7 +2,6 @@ package org.marsik.bugautomation.jobs;
 
 import java.net.MalformedURLException;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -10,7 +9,7 @@ import javax.inject.Inject;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
-import org.marsik.bugautomation.BugzillaClient;
+import org.marsik.bugautomation.bugzilla.BugzillaClient;
 import org.marsik.bugautomation.bugzilla.AuthorizationCallback;
 import org.marsik.bugautomation.bugzilla.BugProxy;
 import org.marsik.bugautomation.facts.BugzillaBug;

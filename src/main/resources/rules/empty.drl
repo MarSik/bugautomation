@@ -10,6 +10,7 @@ import org.marsik.bugautomation.facts.BugzillaBugFlag;
 global TrelloActions trello;
 global BugzillaActions bugzilla;
 
+// A bugzilla bug exists that has no corresponding trello card
 rule "newBug"
   when
     $bz: BugzillaBug($bug : bug, $user : assignedTo)
@@ -19,6 +20,7 @@ rule "newBug"
     trello.createCard($board, "TODO", $bz, $user);
 end
 
+// Sort backlog according to priority (TODO for now, but should really sort backlog board only)
 rule "orderBacklog"
   when
     $bz: BugzillaBug($bug1 : bug, priority != null, $priority : priority)
@@ -32,6 +34,7 @@ rule "orderBacklog"
     trello.switchCards($card1, $card2);
 end
 
+// Make sure the bugzilla assignment is visible in trello
 rule "bugAssignment"
   when
     $bz: BugzillaBug($bug : bug, $user : assignedTo)
@@ -41,6 +44,7 @@ rule "bugAssignment"
     trello.assignCard($card, $user);
 end
 
+// A card for a closed bug should be closed as well
 rule "closedBug"
   when
     $bz: BugzillaBug($bug : bug, $user : assignedTo, status == "closed")
@@ -50,15 +54,18 @@ rule "closedBug"
     trello.moveCard($card, $board, "Done");
 end
 
+// A card for a finished bug (handed over to QE) should move to the Documentation column
 rule "doneBug"
   when
-    $bz: BugzillaBug($bug : bug, status == "modified" || status == "on_qe")
+    $bz: BugzillaBug($bug : bug, status == "modified" || status == "on_qe" || status == "verified")
     $board: TrelloBoard(name == "Test Sprint automation")
     $card: TrelloCard(bug == $bug, board == $board, status != "done", status != "documentation")
   then
     trello.moveCard($card, $board, "Documentation");
 end
 
+// A card with a bug number that has no corresponding bug record in the knowledge db
+// TODO there might be a slight issue here when trello cards are loaded much sooner than bugzilla data
 rule "unknownBug"
   when
     $board: TrelloBoard(name == "Test Sprint automation")
@@ -68,15 +75,19 @@ rule "unknownBug"
     trello.moveCard($card, $board, "Done");
 end
 
+// A card in finished columns (documentation, done) that is linked to unfinished bugzilla entry
+// should move back to TODO (or In Progress?)
 rule "openBug"
   when
     $bz: BugzillaBug($bug : bug, $user : assignedTo, status == "new" || status == "assigned" || status == "post")
     $board: TrelloBoard(name == "Test Sprint automation")
-    $card: TrelloCard(bug == $bug, board == $board, status == "done")
+    $card: TrelloCard(bug == $bug, board == $board, status == "done" || status == "documentation")
   then
     trello.moveCard($card, $board, "TODO");
 end
 
+// A bug with patch activity should move to In Progress column
+// TODO I wonder if we want this, we might want to move the card back to todo even when bz is in post state
 rule "modifiedBug"
   when
     $bz: BugzillaBug($bug : bug, $user : assignedTo, status == "post")
@@ -86,6 +97,7 @@ rule "modifiedBug"
     trello.moveCard($card, $board, "In Progress");
 end
 
+// Add blocker label to all cards with blocker bugs
 rule "blockerBug"
   when
     $bz: BugzillaBug($bug : bug, status != "closed", $flags: flags)
@@ -97,9 +109,21 @@ rule "blockerBug"
     trello.assignLabelToCard($card, "blocker");
 end
 
+// Add blocker label to all cards with regression bugs
+rule "regressionBug"
+  when
+    $bz: BugzillaBug($bug : bug, status != "closed", "regression" memberOf keywords)
+    $board: TrelloBoard(name == "Test Sprint automation")
+    $card: TrelloCard(bug == $bug, board == $board, $labels: labels)
+    not(exists TrelloLabel(name == "blocker") from $labels)
+  then
+    trello.assignLabelToCard($card, "blocker");
+end
+
+// Remove blocker label from all non-regression non-blocker bugs
 rule "notABlockerBug"
   when
-    $bz: BugzillaBug($bug : bug, status != "closed", $flags: flags)
+    $bz: BugzillaBug($bug : bug, status != "closed", $flags: flags, "regression" not memberOf keywords)
     not (exists BugzillaBugFlag(flag == "blocker+") from $flags)
     $board: TrelloBoard(name == "Test Sprint automation")
     $card: TrelloCard(bug == $bug, board == $board, $labels: labels)
@@ -108,6 +132,7 @@ rule "notABlockerBug"
     trello.removeLabelFromCard($card, $label);
 end
 
+// Add failed qe label to all cards with FailedQE bugs
 rule "failedQE"
   when
     $bz: BugzillaBug($bug : bug, status != "closed", "failedqe" memberOf keywords)
@@ -119,6 +144,7 @@ rule "failedQE"
     trello.assignLabelToCard($card, "failedqe");
 end
 
+// Remove failed qe label from all cards where FailedQE keyword was removed
 rule "notFailedQEBug"
   when
     $bz: BugzillaBug($bug : bug, status != "closed", "failedqe" not memberOf keywords)
@@ -130,6 +156,7 @@ rule "notFailedQEBug"
     trello.removeLabelFromCard($card, $label);
 end
 
+// Mark all ZStream cards with insufficient flags
 rule "missingZStreamFlags"
   when
     $bz: BugzillaBug($bug : bug, status != "closed", "zstream" memberOf keywords, $flags: flags)
@@ -145,6 +172,7 @@ rule "missingZStreamFlags"
     trello.assignLabelToCard($card, "flags missing");
 end
 
+// Remove missing flags label when all necessary acks are present on ZStream bug
 rule "okZStreamFlags"
   when
     $bz: BugzillaBug($bug : bug, "zstream" memberOf keywords, $flags: flags)
@@ -160,6 +188,7 @@ rule "okZStreamFlags"
     trello.removeLabelFromCard($card, $label);
 end
 
+// Remove missing flags label when the bug is not targeted to ZStream
 rule "notAZStream"
   when
     $bz: BugzillaBug($bug : bug, "zstream" not memberOf keywords)
