@@ -1,7 +1,9 @@
 package org.marsik.bugautomation.bugzilla;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -80,5 +82,9 @@ public class BugProxy {
 
     public Set<BugzillaBugFlag> getFlags() {
         return Collections.unmodifiableSet(flags);
+    }
+
+    public List<String> getKeywords() {
+        return Arrays.asList(getAs("keywords", String[].class));
     }
 }

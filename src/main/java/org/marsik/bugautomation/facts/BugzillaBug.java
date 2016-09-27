@@ -28,6 +28,7 @@ public class BugzillaBug {
     Boolean blocker;
 
     Set<BugzillaBugFlag> flags;
+    Set<String> keywords;
 
     User assignedTo;
 

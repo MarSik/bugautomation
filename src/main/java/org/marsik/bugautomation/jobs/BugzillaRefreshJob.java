@@ -2,8 +2,10 @@ package org.marsik.bugautomation.jobs;
 
 import java.net.MalformedURLException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import javax.inject.Inject;
 
 import com.google.common.collect.ArrayListMultimap;
@@ -129,13 +131,14 @@ public class BugzillaRefreshJob implements Job {
         Iterable<BugProxy> i = session.searchBugs(searchData);
         for (BugProxy issue : i) {
              BugzillaBug.BugzillaBugBuilder bugzillaBugBuilder = BugzillaBug.builder()
-                    .id(issue.getId())
-                    .title(issue.getSummary())
-                    .description(issue.getDescription())
-                    .status(issue.getStatus().toLowerCase())
-                    .bug(bugMatchingService.getBugByBzId(issue.getId()))
-                    .severity(BugzillaPriorityLevel.valueOf(issue.getSeverity().toUpperCase()))
-                    .priority(BugzillaPriorityLevel.valueOf(issue.getPriority().toUpperCase()));
+                     .id(issue.getId())
+                     .title(issue.getSummary())
+                     .description(issue.getDescription())
+                     .status(issue.getStatus().toLowerCase())
+                     .bug(bugMatchingService.getBugByBzId(issue.getId()))
+                     .severity(BugzillaPriorityLevel.valueOf(issue.getSeverity().toUpperCase()))
+                     .priority(BugzillaPriorityLevel.valueOf(issue.getPriority().toUpperCase()))
+                     .keywords(issue.getKeywords().stream().map(String::toLowerCase).collect(Collectors.toSet()));
 
             if (issue.getTargetMilestone() != null) {
                 bugzillaBugBuilder.targetMilestone(issue.getTargetMilestone());

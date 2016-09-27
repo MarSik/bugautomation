@@ -107,3 +107,66 @@ rule "notABlockerBug"
   then
     trello.removeLabelFromCard($card, $label);
 end
+
+rule "failedQE"
+  when
+    $bz: BugzillaBug($bug : bug, status != "closed", "failedqe" memberOf keywords)
+
+    $board: TrelloBoard(name == "Test Sprint automation")
+    $card: TrelloCard(bug == $bug, board == $board, $labels: labels)
+    not(exists TrelloLabel(name == "failedqe") from $labels)
+  then
+    trello.assignLabelToCard($card, "failedqe");
+end
+
+rule "notFailedQEBug"
+  when
+    $bz: BugzillaBug($bug : bug, status != "closed", "failedqe" not memberOf keywords)
+
+    $board: TrelloBoard(name == "Test Sprint automation")
+    $card: TrelloCard(bug == $bug, board == $board, $labels: labels)
+    $label: TrelloLabel(name == "failedqe") from $labels
+  then
+    trello.removeLabelFromCard($card, $label);
+end
+
+rule "missingZStreamFlags"
+  when
+    $bz: BugzillaBug($bug : bug, status != "closed", "zstream" memberOf keywords, $flags: flags)
+    not(exists BugzillaBugFlag(flag == "ovirt-4.0.z+") from $flags)
+    not(exists BugzillaBugFlag(flag == "ovirt-3.6.z+") from $flags)
+    not(exists BugzillaBugFlag(flag == "rhevm-4.0.z+") from $flags)
+    not(exists BugzillaBugFlag(flag == "rhevm-3.6.z+") from $flags)
+
+    $board: TrelloBoard(name == "Test Sprint automation")
+    $card: TrelloCard(bug == $bug, board == $board, $labels: labels)
+    not(exists TrelloLabel(name == "flags missing") from $labels)
+  then
+    trello.assignLabelToCard($card, "flags missing");
+end
+
+rule "okZStreamFlags"
+  when
+    $bz: BugzillaBug($bug : bug, "zstream" memberOf keywords, $flags: flags)
+    ((BugzillaBugFlag(flag == "ovirt-4.0.z+") from $flags)
+    || (BugzillaBugFlag(flag == "ovirt-3.6.z+") from $flags)
+    || (BugzillaBugFlag(flag == "rhevm-4.0.z+") from $flags)
+    || (BugzillaBugFlag(flag == "rhevm-3.6.z+") from $flags))
+
+    $board: TrelloBoard(name == "Test Sprint automation")
+    $card: TrelloCard(bug == $bug, board == $board, $labels: labels)
+    $label: TrelloLabel(name == "flags missing") from $labels
+  then
+    trello.removeLabelFromCard($card, $label);
+end
+
+rule "notAZStream"
+  when
+    $bz: BugzillaBug($bug : bug, "zstream" not memberOf keywords)
+
+    $board: TrelloBoard(name == "Test Sprint automation")
+    $card: TrelloCard(bug == $bug, board == $board, $labels: labels)
+    $label: TrelloLabel(name == "flags missing") from $labels
+  then
+    trello.removeLabelFromCard($card, $label);
+end
