@@ -136,7 +136,7 @@ public class TrelloRefreshJob implements Job {
                 }
 
                 if (bug.isPresent()) {
-                    logger.debug("Card {} is tied to virtual bug {} (rhbz#{})", kiCard.getTitle(), bug.get().getId(), bugMatchingService.getBzBug(bug.get()));
+                    logger.debug("Card {} is tied to virtual bug {}", kiCard.getTitle(), bug.get().getId());
                     kiCard.setBug(bug.get());
                 }
 

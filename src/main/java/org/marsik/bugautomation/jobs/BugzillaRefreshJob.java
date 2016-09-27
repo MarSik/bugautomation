@@ -2,8 +2,10 @@ package org.marsik.bugautomation.jobs;
 
 import java.net.MalformedURLException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 
@@ -69,6 +71,8 @@ public class BugzillaRefreshJob implements Job {
         AuthorizationCallback authCallback = new AuthorizationCallback(bugzillaUsername.get(), bugzillaPassword.get());
         session.setAuthorizationCallback(authCallback);
 
+        Set<String> retrievedBugs = new HashSet<>();
+
         if (session.open()) {
             // Search bugs by users
             Multimap<String, Object> searchData = ArrayListMultimap.create();
@@ -78,6 +82,7 @@ public class BugzillaRefreshJob implements Job {
                 }
                 populateSearchData(searchData);
                 Map<String, BugzillaBug> bugs = searchAndProcess(session, searchData);
+                retrievedBugs.addAll(bugs.keySet());
 
                 // Load flags
                 for (BugProxy bzExtra: session.getExtra(bugs.keySet())) {
@@ -95,6 +100,7 @@ public class BugzillaRefreshJob implements Job {
                 }
                 populateSearchData(searchData);
                 Map<String, BugzillaBug> bugs = searchAndProcess(session, searchData);
+                retrievedBugs.addAll(bugs.keySet());
 
                 // Load flags
                 for (BugProxy bzExtra: session.getExtra(bugs.keySet())) {
@@ -104,7 +110,13 @@ public class BugzillaRefreshJob implements Job {
                 }
             }
 
-            // TODO Get updates for bugs that were assigned out of the scope
+            // Forget about bugs that were assigned out of scope
+            Set<String> bugsToRemove = new HashSet<>(bugMatchingService.getKnownBugs());
+            bugsToRemove.removeAll(retrievedBugs);
+
+            bugsToRemove.stream()
+                    .map(bugMatchingService::getBugByBzId)
+                    .forEach(factService::removeFact);
 
             // Close the session
             session.close();

@@ -1,6 +1,8 @@
 package org.marsik.bugautomation.services;
 
+import java.lang.ref.WeakReference;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -14,7 +16,7 @@ import com.google.common.collect.HashBiMap;
 @Singleton
 public class BugMatchingService {
     AtomicInteger nextId = new AtomicInteger();
-    BiMap<String, Bug> bzIdToBug = HashBiMap.create();
+    BiMap<String, WeakReference<Bug>> bzIdToBug = HashBiMap.create();
 
     private static final Pattern RE_RHBZ = Pattern.compile("\\[?(bug *#?|show_bug.cgi?id=|(rh)?(bz)?#?)?(?<id>[1-9][0-9]{5,6})\\]?");
 
@@ -31,15 +33,23 @@ public class BugMatchingService {
     }
 
     public Bug getBugByBzId(String bugId) {
-        Bug bug = bzIdToBug.get(bugId);
+        WeakReference<Bug> weakBug = bzIdToBug.get(bugId);
+        Bug bug = weakBug == null ? null : weakBug.get();
+
         if (bug == null) {
             bug = new Bug(nextId.getAndIncrement());
-            bzIdToBug.put(bugId, bug);
+            weakBug = new WeakReference<>(bug);
+            bzIdToBug.put(bugId, weakBug);
         }
+
         return bug;
     }
 
-    public String getBzBug(Bug bug) {
+    /*public String getBzBug(Bug bug) {
         return bzIdToBug.inverse().get(bug);
+    }*/
+
+    public Set<String> getKnownBugs() {
+        return bzIdToBug.keySet();
     }
 }

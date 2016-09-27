@@ -33,8 +33,10 @@ public class FactService {
     }
 
     public void removeFact(Object o) {
-        kSession.delete(handles.get(o));
-        handles.remove(o);
+        if (handles.containsKey(o)) {
+            kSession.delete(handles.get(o));
+            handles.remove(o);
+        }
     }
 
     public void updateFact(Object oldValue, Object newValue) {

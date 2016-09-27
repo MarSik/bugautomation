@@ -23,8 +23,95 @@ end
 // Sort backlog according to priority (TODO for now, but should really sort backlog board only)
 rule "orderBacklog"
   when
-    $bz: BugzillaBug($bug1 : bug, priority != null, $priority : priority)
-    BugzillaBug($bug2 : bug, priority != null, priority > $priority, id != $bz.id)
+    $bz: BugzillaBug($bug1 : bug, priority != null, $priority : priority, $tm : targetMilestone)
+    BugzillaBug($bug2 : bug, priority != null, priority > $priority, id != $bz.id, $tm == targetMilestone)
+
+    $board: TrelloBoard(name == "Test Sprint automation")
+
+    $card1: TrelloCard(bug == $bug1, board == $board, status == "todo", $pos : pos)
+    $card2: TrelloCard(bug == $bug2, board == $board, status == "todo", pos > $pos)
+  then
+    trello.switchCards($card1, $card2);
+end
+
+// Sort backlog according to release priority
+//
+
+// Bugs with target release are more important than bugs without it
+rule "releasePriorityNone"
+  when
+    $bz: BugzillaBug($bug1 : bug, targetMilestone == null)
+    BugzillaBug($bug2 : bug, id != $bz.id, targetMilestone != null)
+
+    $board: TrelloBoard(name == "Test Sprint automation")
+
+    $card1: TrelloCard(bug == $bug1, board == $board, status == "todo", $pos : pos)
+    $card2: TrelloCard(bug == $bug2, board == $board, status == "todo", pos > $pos)
+  then
+    trello.switchCards($card1, $card2);
+end
+
+// 3.6.10 has higher prio than 4.0.6
+rule "releasePriority406a"
+  when
+    $bz: BugzillaBug($bug1 : bug, targetMilestone == "ovirt-4.0.6")
+    BugzillaBug($bug2 : bug, id != $bz.id, targetMilestone == "ovirt-3.6.10")
+
+    $board: TrelloBoard(name == "Test Sprint automation")
+
+    $card1: TrelloCard(bug == $bug1, board == $board, status == "todo", $pos : pos)
+    $card2: TrelloCard(bug == $bug2, board == $board, status == "todo", pos > $pos)
+  then
+    trello.switchCards($card1, $card2);
+end
+
+// 4.0.5 has higher prio than 3.6.10
+rule "releasePriority3610vs405"
+  when
+    $bz: BugzillaBug($bug1 : bug, targetMilestone == "ovirt-3.6.10")
+    BugzillaBug($bug2 : bug, id != $bz.id, targetMilestone == "ovirt-4.0.5")
+
+    $board: TrelloBoard(name == "Test Sprint automation")
+
+    $card1: TrelloCard(bug == $bug1, board == $board, status == "todo", $pos : pos)
+    $card2: TrelloCard(bug == $bug2, board == $board, status == "todo", pos > $pos)
+  then
+    trello.switchCards($card1, $card2);
+end
+
+// 3.6.9 has higher priority than 3.6.10
+rule "releasePriority369vs3610"
+  when
+    $bz: BugzillaBug($bug1 : bug, targetMilestone == "ovirt-3.6.10")
+    BugzillaBug($bug2 : bug, id != $bz.id, targetMilestone == "ovirt-3.6.9")
+
+    $board: TrelloBoard(name == "Test Sprint automation")
+
+    $card1: TrelloCard(bug == $bug1, board == $board, status == "todo", $pos : pos)
+    $card2: TrelloCard(bug == $bug2, board == $board, status == "todo", pos > $pos)
+  then
+    trello.switchCards($card1, $card2);
+end
+
+// 3.6.1x has higher priority than 3.6.1(x+1)
+rule "releasePriority3610"
+  when
+    $bz: BugzillaBug($bug1 : bug, targetMilestone str[startsWith] "ovirt-3.6.1", $tm : targetMilestone)
+    BugzillaBug($bug2 : bug, id != $bz.id, targetMilestone str[startsWith] "ovirt-3.6.1", targetMilestone < $tm)
+
+    $board: TrelloBoard(name == "Test Sprint automation")
+
+    $card1: TrelloCard(bug == $bug1, board == $board, status == "todo", $pos : pos)
+    $card2: TrelloCard(bug == $bug2, board == $board, status == "todo", pos > $pos)
+  then
+    trello.switchCards($card1, $card2);
+end
+
+// 4.0.x has higher priority than 4.0.x+1
+rule "releasePriority40"
+  when
+    $bz: BugzillaBug($bug1 : bug, targetMilestone str[startsWith] "ovirt-4.", $tm : targetMilestone)
+    BugzillaBug($bug2 : bug, id != $bz.id, targetMilestone str[startsWith] "ovirt-4.", targetMilestone < $tm)
 
     $board: TrelloBoard(name == "Test Sprint automation")
 
@@ -57,7 +144,7 @@ end
 // A card for a finished bug (handed over to QE) should move to the Documentation column
 rule "doneBug"
   when
-    $bz: BugzillaBug($bug : bug, status == "modified" || status == "on_qe" || status == "verified")
+    $bz: BugzillaBug($bug : bug, status == "modified" || status == "on_qa" || status == "verified")
     $board: TrelloBoard(name == "Test Sprint automation")
     $card: TrelloCard(bug == $bug, board == $board, status != "done", status != "documentation")
   then
