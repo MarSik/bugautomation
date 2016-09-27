@@ -73,7 +73,7 @@ public class TrelloRefreshJob implements Job {
                     .name(trBoard.getName())
                     .id(trBoard.getId())
                     .build();
-            logger.info("Found board {}", kiBoard.getName());
+            logger.debug("Found board {}", kiBoard.getName());
             factService.addOrUpdateFact(kiBoard);
 
             Map<String, String> idListToStatus = new HashMap<>();
@@ -87,7 +87,7 @@ public class TrelloRefreshJob implements Job {
             // Load users
             trBoard.getMembers().forEach(user -> {
                         userMatchingService.getByTrello(user.getId()).ifPresent(u -> {
-                            logger.info("Found user {} ({})", user.getId(), user.getFullName());
+                            logger.debug("Found user {} ({})", user.getId(), user.getFullName());
                             users.put(user.getId(), u);
                         });
                     });
@@ -112,11 +112,11 @@ public class TrelloRefreshJob implements Job {
                         .labels(new ArrayList<>())
                         .build();
 
-                logger.info("Found card {} at {}#{}", kiCard.getTitle(), kiCard.getStatus(), kiCard.getPos());
+                logger.debug("Found card {} at {}#{}", kiCard.getTitle(), kiCard.getStatus(), kiCard.getPos());
 
                 // Add label facts
                 trCard.getLabels().stream()
-                        .map(l -> new TrelloLabel(kiBoard, l.getColor().toLowerCase(), l.getColor(), l.getName().toLowerCase()))
+                        .map(l -> new TrelloLabel(kiBoard, l.getId(), l.getColor().toLowerCase(), l.getName().toLowerCase()))
                         .forEach(kiCard.getLabels()::add);
 
                 // Add assignment facts
@@ -125,7 +125,7 @@ public class TrelloRefreshJob implements Job {
                         .filter(u -> u != null)
                         .distinct()
                         .forEach(u -> {
-                            logger.info("Card {} assigned to {}", kiCard.getTitle(), u.getName());
+                            logger.debug("Card {} assigned to {}", kiCard.getTitle(), u.getName());
                             kiCard.getAssignedTo().add(u);
                         });
 
@@ -136,7 +136,7 @@ public class TrelloRefreshJob implements Job {
                 }
 
                 if (bug.isPresent()) {
-                    logger.info("Card {} is tied to virtual bug {} (rhbz#{})", kiCard.getTitle(), bug.get().getId(), bugMatchingService.getBzBug(bug.get()));
+                    logger.debug("Card {} is tied to virtual bug {} (rhbz#{})", kiCard.getTitle(), bug.get().getId(), bugMatchingService.getBzBug(bug.get()));
                     kiCard.setBug(bug.get());
                 }
 

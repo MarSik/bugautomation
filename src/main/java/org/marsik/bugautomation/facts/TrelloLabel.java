@@ -9,11 +9,10 @@ import lombok.Value;
 @Data
 @AllArgsConstructor
 @Builder
-@EqualsAndHashCode(of = {"board", "color"})
+@EqualsAndHashCode(of = {"board", "id"})
 public class TrelloLabel {
     TrelloBoard board;
-    String color;
-
     String id;
+    String color;
     String name;
 }

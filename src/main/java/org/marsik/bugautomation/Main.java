@@ -28,9 +28,9 @@ public class Main {
 
     @PostConstruct
     public void create() {
-        ruleTimer = scheduler.createTimer(10, RefreshRulesJob.class);
-        trelloTimer = scheduler.createTimer(300, TrelloRefreshJob.class);
-        bzTimer = scheduler.createTimer(900, BugzillaRefreshJob.class);
+        ruleTimer = scheduler.createTimer(30, RefreshRulesJob.class);
+        trelloTimer = scheduler.createTimer(120, TrelloRefreshJob.class);
+        bzTimer = scheduler.createTimer(600, BugzillaRefreshJob.class);
     }
 
     @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT")

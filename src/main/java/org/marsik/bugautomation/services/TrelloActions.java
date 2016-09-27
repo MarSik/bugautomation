@@ -14,8 +14,11 @@ import java.util.Optional;
 import org.marsik.bugautomation.facts.BugzillaBug;
 import org.marsik.bugautomation.facts.TrelloBoard;
 import org.marsik.bugautomation.facts.TrelloCard;
+import org.marsik.bugautomation.facts.TrelloLabel;
 import org.marsik.bugautomation.facts.User;
+import org.marsik.bugautomation.trello.Board;
 import org.marsik.bugautomation.trello.Card;
+import org.marsik.bugautomation.trello.Label;
 import org.marsik.bugautomation.trello.TrelloClient;
 import org.marsik.bugautomation.trello.TrelloClientBuilder;
 import org.marsik.bugautomation.trello.TrelloList;
@@ -155,5 +158,49 @@ public class TrelloActions {
             card.getAssignedTo().add(user);
             factService.addOrUpdateFact(card);
         });
+    }
+
+    public void assignLabelToCard(TrelloCard kiCard, String labelName) {
+        TrelloClientBuilder builder = getTrello();
+        if (builder == null) {
+            logger.warn("Trello not configured, can't assign label.");
+            return;
+        }
+
+        logger.info("Assigning {} to {}", labelName, kiCard);
+
+        TrelloClient trello = builder.build();
+
+        Optional<Label> trLabel = trello.getBoardLabels(kiCard.getBoard().getId()).stream()
+                .filter(l -> l.getName().equalsIgnoreCase(labelName))
+                .findFirst();
+
+        if (!trLabel.isPresent()) {
+            logger.error("Could not find label {} to add to a card {}", labelName, kiCard);
+            return;
+        }
+
+        trello.addLabelToCard(kiCard.getId(), trLabel.get().getId());
+        kiCard.getLabels().add(TrelloLabel.builder()
+                .id(trLabel.get().getId())
+                .name(trLabel.get().getName().toLowerCase())
+                .color(trLabel.get().getColor().toLowerCase())
+                .build());
+        factService.addOrUpdateFact(kiCard);
+    }
+
+    public void removeLabelFromCard(TrelloCard kiCard, TrelloLabel kiLabel) {
+        TrelloClientBuilder builder = getTrello();
+        if (builder == null) {
+            logger.warn("Trello not configured, can't remove label.");
+            return;
+        }
+
+        logger.info("Removing {} from {}", kiLabel, kiCard);
+
+        TrelloClient trello = builder.build();
+        trello.removeLabelFromCard(kiCard.getId(), kiLabel.getId());
+        kiCard.getLabels().remove(kiLabel);
+        factService.addOrUpdateFact(kiCard);
     }
 }

@@ -18,4 +18,5 @@ public class Board extends BaseObject {
     List<Card> cards;
     List<Member> members;
     List<TrelloList> lists;
+    List<Label> labels;
 }

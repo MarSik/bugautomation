@@ -147,20 +147,17 @@ public class BugzillaRefreshJob implements Job {
 
             BugzillaBug bugzillaBug = bugzillaBugBuilder.build();
 
-            System.out.println("Bug found: " + issue.getId()
-                    + " - "
-                    + bugzillaBug.getPriority().getSymbol()
-                    + "/"
-                    + bugzillaBug.getSeverity().getSymbol()
-                    + " - "
-                    + bugzillaBug.getStatus()
-                    + " - "
-                    + issue.getAssignedTo()
-                    + " - " + issue.getSummary());
+            logger.debug("Bug found: {} - {}/{} - {} - {} - {}",
+                    issue.getId(),
+                    bugzillaBug.getPriority().getSymbol(),
+                    bugzillaBug.getSeverity().getSymbol(),
+                    bugzillaBug.getStatus(),
+                    issue.getAssignedTo(),
+                    issue.getSummary());
 
             userMatchingService.getByBugzilla(issue.getAssignedTo()).ifPresent(
                     u -> {
-                        logger.info("Bug {} ({}) assigned to {}", issue.getId(),
+                        logger.debug("Bug {} ({}) assigned to {}", issue.getId(),
                                 bugzillaBug.getBug().getId(),
                                 u.getName());
                         bugzillaBug.setAssignedTo(u);
