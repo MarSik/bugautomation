@@ -19,7 +19,7 @@ rule "newBug"
     $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
     not(exists TrelloCard(bug == $bug, board == $board))
   then
-    trello.createCard($board, "TODO", $bz, $user);
+    trello.createCard($board, config.getCached("cfg.backlog"), $bz, $user);
 end
 
 // Sort backlog according to priority (TODO for now, but should really sort backlog board only)
@@ -30,8 +30,8 @@ rule "orderBacklog"
 
     $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
 
-    $card1: TrelloCard(bug == $bug1, board == $board, status == "todo", $pos : pos)
-    $card2: TrelloCard(bug == $bug2, board == $board, status == "todo", pos > $pos)
+    $card1: TrelloCard(bug == $bug1, board == $board, status == config.getCached("cfg.backlog"), $pos : pos)
+    $card2: TrelloCard(bug == $bug2, board == $board, status == config.getCached("cfg.backlog"), pos > $pos)
   then
     trello.switchCards($card1, $card2);
 end
@@ -42,13 +42,13 @@ end
 // Bugs with target release are more important than bugs without it
 rule "releasePriorityNone"
   when
-    $bz: BugzillaBug($bug1 : bug, targetMilestone == null)
-    BugzillaBug($bug2 : bug, id != $bz.id, targetMilestone != null)
+    $bz: BugzillaBug($bug1 : bug, targetMilestone == null || targetMilestone == "")
+    BugzillaBug($bug2 : bug, id != $bz.id, targetMilestone != null, targetMilestone != "")
 
     $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
 
-    $card1: TrelloCard(bug == $bug1, board == $board, status == "todo", $pos : pos)
-    $card2: TrelloCard(bug == $bug2, board == $board, status == "todo", pos > $pos)
+    $card1: TrelloCard(bug == $bug1, board == $board, status == config.getCached("cfg.backlog"), $pos : pos)
+    $card2: TrelloCard(bug == $bug2, board == $board, status == config.getCached("cfg.backlog"), pos > $pos)
   then
     trello.switchCards($card1, $card2);
 end
@@ -61,8 +61,8 @@ rule "releasePriority406a"
 
     $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
 
-    $card1: TrelloCard(bug == $bug1, board == $board, status == "todo", $pos : pos)
-    $card2: TrelloCard(bug == $bug2, board == $board, status == "todo", pos > $pos)
+    $card1: TrelloCard(bug == $bug1, board == $board, status == config.getCached("cfg.backlog"), $pos : pos)
+    $card2: TrelloCard(bug == $bug2, board == $board, status == config.getCached("cfg.backlog"), pos > $pos)
   then
     trello.switchCards($card1, $card2);
 end
@@ -75,8 +75,8 @@ rule "releasePriority3610vs405"
 
     $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
 
-    $card1: TrelloCard(bug == $bug1, board == $board, status == "todo", $pos : pos)
-    $card2: TrelloCard(bug == $bug2, board == $board, status == "todo", pos > $pos)
+    $card1: TrelloCard(bug == $bug1, board == $board, status == config.getCached("cfg.backlog"), $pos : pos)
+    $card2: TrelloCard(bug == $bug2, board == $board, status == config.getCached("cfg.backlog"), pos > $pos)
   then
     trello.switchCards($card1, $card2);
 end
@@ -89,8 +89,8 @@ rule "releasePriority369vs3610"
 
     $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
 
-    $card1: TrelloCard(bug == $bug1, board == $board, status == "todo", $pos : pos)
-    $card2: TrelloCard(bug == $bug2, board == $board, status == "todo", pos > $pos)
+    $card1: TrelloCard(bug == $bug1, board == $board, status == config.getCached("cfg.backlog"), $pos : pos)
+    $card2: TrelloCard(bug == $bug2, board == $board, status == config.getCached("cfg.backlog"), pos > $pos)
   then
     trello.switchCards($card1, $card2);
 end
@@ -103,8 +103,8 @@ rule "releasePriority3610"
 
     $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
 
-    $card1: TrelloCard(bug == $bug1, board == $board, status == "todo", $pos : pos)
-    $card2: TrelloCard(bug == $bug2, board == $board, status == "todo", pos > $pos)
+    $card1: TrelloCard(bug == $bug1, board == $board, status == config.getCached("cfg.backlog"), $pos : pos)
+    $card2: TrelloCard(bug == $bug2, board == $board, status == config.getCached("cfg.backlog"), pos > $pos)
   then
     trello.switchCards($card1, $card2);
 end
@@ -117,8 +117,8 @@ rule "releasePriority40"
 
     $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
 
-    $card1: TrelloCard(bug == $bug1, board == $board, status == "todo", $pos : pos)
-    $card2: TrelloCard(bug == $bug2, board == $board, status == "todo", pos > $pos)
+    $card1: TrelloCard(bug == $bug1, board == $board, status == config.getCached("cfg.backlog"), $pos : pos)
+    $card2: TrelloCard(bug == $bug2, board == $board, status == config.getCached("cfg.backlog"), pos > $pos)
   then
     trello.switchCards($card1, $card2);
 end
@@ -172,7 +172,7 @@ rule "openBug"
     $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
     $card: TrelloCard(bug == $bug, board == $board, status == "done" || status == "documentation")
   then
-    trello.moveCard($card, $board, "TODO");
+    trello.moveCard($card, $board, config.getCached("cfg.backlog"));
 end
 
 // A bug with patch activity should move to In Progress column
@@ -181,7 +181,7 @@ rule "modifiedBug"
   when
     $bz: BugzillaBug($bug : bug, $user : assignedTo, status == "post")
     $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
-    $card: TrelloCard(bug == $bug, board == $board, status == "todo")
+    $card: TrelloCard(bug == $bug, board == $board, status == config.getCached("cfg.backlog"))
   then
     trello.moveCard($card, $board, "In Progress");
 end
@@ -221,26 +221,26 @@ rule "notABlockerBug"
     trello.removeLabelFromCard($card, $label);
 end
 
-// Add failed qe label to all cards with FailedQE bugs
-rule "failedQE"
+// Add failed qa label to all cards with FailedQA bugs
+rule "failedQA"
   when
-    $bz: BugzillaBug($bug : bug, status != "closed", "failedqe" memberOf keywords)
+    $bz: BugzillaBug($bug : bug, status != "closed", "failedqa" memberOf keywords || "failedqa" memberOf verified)
 
     $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
     $card: TrelloCard(bug == $bug, board == $board, $labels: labels)
-    not(exists TrelloLabel(name == "failedqe") from $labels)
+    not(exists TrelloLabel(name == "failedqa") from $labels)
   then
-    trello.assignLabelToCard($card, "failedqe");
+    trello.assignLabelToCard($card, "failedqa");
 end
 
-// Remove failed qe label from all cards where FailedQE keyword was removed
-rule "notFailedQEBug"
+// Remove failed qa label from all cards where FailedQA keyword was removed
+rule "notFailedQABug"
   when
-    $bz: BugzillaBug($bug : bug, status != "closed", "failedqe" not memberOf keywords)
+    $bz: BugzillaBug($bug : bug, status != "closed", "failedqa" not memberOf keywords, "failedqa" not memberOf verified)
 
     $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
     $card: TrelloCard(bug == $bug, board == $board, $labels: labels)
-    $label: TrelloLabel(name == "failedqe") from $labels
+    $label: TrelloLabel(name == "failedqa") from $labels
   then
     trello.removeLabelFromCard($card, $label);
 end

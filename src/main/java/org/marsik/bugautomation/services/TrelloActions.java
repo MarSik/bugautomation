@@ -150,10 +150,9 @@ public class TrelloActions {
             return;
         }
 
-        logger.info("Assigning {} to {}", card, user);
-
         TrelloClient trello = builder.build();
         userMatchingService.getTrello(user).ifPresent(userId -> {
+            logger.info("Assigning {} to {}", card, user);
             trello.assignCardToUser(card.getId(), userId);
             card.getAssignedTo().add(user);
             factService.addOrUpdateFact(card);

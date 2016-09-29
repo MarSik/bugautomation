@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 
@@ -30,6 +31,7 @@ import org.slf4j.LoggerFactory;
 @DisallowConcurrentExecution
 public class BugzillaRefreshJob implements Job {
     private static final Logger logger = LoggerFactory.getLogger(BugzillaRefreshJob.class);
+    private static final AtomicBoolean finished = new AtomicBoolean(false);
 
     @Inject
     FactService factService;
@@ -120,6 +122,8 @@ public class BugzillaRefreshJob implements Job {
 
             // Close the session
             session.close();
+
+            finished.set(true);
         }
 
     }
@@ -149,6 +153,7 @@ public class BugzillaRefreshJob implements Job {
                      .bug(bugMatchingService.getBugByBzId(issue.getId()))
                      .severity(BugzillaPriorityLevel.valueOf(issue.getSeverity().toUpperCase()))
                      .priority(BugzillaPriorityLevel.valueOf(issue.getPriority().toUpperCase()))
+                     .verified(issue.getVerified().stream().map(String::toLowerCase).collect(Collectors.toSet()))
                      .keywords(issue.getKeywords().stream().map(String::toLowerCase).collect(Collectors.toSet()));
 
             if (issue.getTargetMilestone() != null) {
@@ -183,5 +188,9 @@ public class BugzillaRefreshJob implements Job {
         }
 
         return kiBugs;
+    }
+
+    public static AtomicBoolean getFinished() {
+        return finished;
     }
 }

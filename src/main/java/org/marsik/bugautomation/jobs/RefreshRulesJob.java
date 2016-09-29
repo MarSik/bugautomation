@@ -33,6 +33,12 @@ public class RefreshRulesJob implements Job {
 
     @Override
     public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException {
+        if (!BugzillaRefreshJob.getFinished().get()
+                || !TrelloRefreshJob.getFinished().get()) {
+            logger.info("Delaying rules until the initial data collection finishes.");
+            return;
+        }
+
         logger.info("Triggering rules...");
         kSession.setGlobal("bugzilla", bugzillaActions);
         kSession.setGlobal("trello", trelloActions);

@@ -2,11 +2,11 @@ package org.marsik.bugautomation.jobs;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 import javax.inject.Inject;
 
 import org.marsik.bugautomation.facts.Bug;
@@ -34,6 +34,7 @@ import org.slf4j.LoggerFactory;
 @DisallowConcurrentExecution
 public class TrelloRefreshJob implements Job {
     private static final Logger logger = LoggerFactory.getLogger(TrelloRefreshJob.class);
+    private static final AtomicBoolean finished = new AtomicBoolean(false);
 
     @Inject
     FactService factService;
@@ -143,7 +144,11 @@ public class TrelloRefreshJob implements Job {
                 factService.addOrUpdateFact(kiCard);
             }
         }
+
+        finished.set(true);
     }
 
-
+    public static AtomicBoolean getFinished() {
+        return finished;
+    }
 }

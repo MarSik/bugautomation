@@ -41,6 +41,10 @@ public class BugProxy {
         return (String)map.get("priority");
     }
 
+    public List<String> getVerified() {
+        return Arrays.asList(getAs("cf_verified", String[].class));
+    }
+
     public String get(String key) {
         return (String)map.get(key);
     }
