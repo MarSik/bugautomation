@@ -6,15 +6,17 @@ import org.marsik.bugautomation.facts.Bug;
 import org.marsik.bugautomation.services.BugzillaActions;
 import org.marsik.bugautomation.services.TrelloActions;
 import org.marsik.bugautomation.facts.BugzillaBugFlag;
+import org.marsik.bugautomation.services.ConfigurationService;
 
 global TrelloActions trello;
 global BugzillaActions bugzilla;
+global ConfigurationService config;
 
 // A bugzilla bug exists that has no corresponding trello card
 rule "newBug"
   when
     $bz: BugzillaBug($bug : bug, $user : assignedTo)
-    $board: TrelloBoard(name == "Test Sprint automation")
+    $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
     not(exists TrelloCard(bug == $bug, board == $board))
   then
     trello.createCard($board, "TODO", $bz, $user);
@@ -26,7 +28,7 @@ rule "orderBacklog"
     $bz: BugzillaBug($bug1 : bug, priority != null, $priority : priority, $tm : targetMilestone)
     BugzillaBug($bug2 : bug, priority != null, priority > $priority, id != $bz.id, $tm == targetMilestone)
 
-    $board: TrelloBoard(name == "Test Sprint automation")
+    $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
 
     $card1: TrelloCard(bug == $bug1, board == $board, status == "todo", $pos : pos)
     $card2: TrelloCard(bug == $bug2, board == $board, status == "todo", pos > $pos)
@@ -43,7 +45,7 @@ rule "releasePriorityNone"
     $bz: BugzillaBug($bug1 : bug, targetMilestone == null)
     BugzillaBug($bug2 : bug, id != $bz.id, targetMilestone != null)
 
-    $board: TrelloBoard(name == "Test Sprint automation")
+    $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
 
     $card1: TrelloCard(bug == $bug1, board == $board, status == "todo", $pos : pos)
     $card2: TrelloCard(bug == $bug2, board == $board, status == "todo", pos > $pos)
@@ -57,7 +59,7 @@ rule "releasePriority406a"
     $bz: BugzillaBug($bug1 : bug, targetMilestone == "ovirt-4.0.6")
     BugzillaBug($bug2 : bug, id != $bz.id, targetMilestone == "ovirt-3.6.10")
 
-    $board: TrelloBoard(name == "Test Sprint automation")
+    $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
 
     $card1: TrelloCard(bug == $bug1, board == $board, status == "todo", $pos : pos)
     $card2: TrelloCard(bug == $bug2, board == $board, status == "todo", pos > $pos)
@@ -71,7 +73,7 @@ rule "releasePriority3610vs405"
     $bz: BugzillaBug($bug1 : bug, targetMilestone == "ovirt-3.6.10")
     BugzillaBug($bug2 : bug, id != $bz.id, targetMilestone == "ovirt-4.0.5")
 
-    $board: TrelloBoard(name == "Test Sprint automation")
+    $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
 
     $card1: TrelloCard(bug == $bug1, board == $board, status == "todo", $pos : pos)
     $card2: TrelloCard(bug == $bug2, board == $board, status == "todo", pos > $pos)
@@ -85,7 +87,7 @@ rule "releasePriority369vs3610"
     $bz: BugzillaBug($bug1 : bug, targetMilestone == "ovirt-3.6.10")
     BugzillaBug($bug2 : bug, id != $bz.id, targetMilestone == "ovirt-3.6.9")
 
-    $board: TrelloBoard(name == "Test Sprint automation")
+    $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
 
     $card1: TrelloCard(bug == $bug1, board == $board, status == "todo", $pos : pos)
     $card2: TrelloCard(bug == $bug2, board == $board, status == "todo", pos > $pos)
@@ -99,7 +101,7 @@ rule "releasePriority3610"
     $bz: BugzillaBug($bug1 : bug, targetMilestone str[startsWith] "ovirt-3.6.1", $tm : targetMilestone)
     BugzillaBug($bug2 : bug, id != $bz.id, targetMilestone str[startsWith] "ovirt-3.6.1", targetMilestone < $tm)
 
-    $board: TrelloBoard(name == "Test Sprint automation")
+    $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
 
     $card1: TrelloCard(bug == $bug1, board == $board, status == "todo", $pos : pos)
     $card2: TrelloCard(bug == $bug2, board == $board, status == "todo", pos > $pos)
@@ -113,7 +115,7 @@ rule "releasePriority40"
     $bz: BugzillaBug($bug1 : bug, targetMilestone str[startsWith] "ovirt-4.", $tm : targetMilestone)
     BugzillaBug($bug2 : bug, id != $bz.id, targetMilestone str[startsWith] "ovirt-4.", targetMilestone < $tm)
 
-    $board: TrelloBoard(name == "Test Sprint automation")
+    $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
 
     $card1: TrelloCard(bug == $bug1, board == $board, status == "todo", $pos : pos)
     $card2: TrelloCard(bug == $bug2, board == $board, status == "todo", pos > $pos)
@@ -125,7 +127,7 @@ end
 rule "bugAssignment"
   when
     $bz: BugzillaBug($bug : bug, $user : assignedTo)
-    $board: TrelloBoard(name == "Test Sprint automation")
+    $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
     $card: TrelloCard(bug == $bug, board == $board, $user not memberOf assignedTo)
   then
     trello.assignCard($card, $user);
@@ -135,7 +137,7 @@ end
 rule "closedBug"
   when
     $bz: BugzillaBug($bug : bug, $user : assignedTo, status == "closed")
-    $board: TrelloBoard(name == "Test Sprint automation")
+    $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
     $card: TrelloCard(bug == $bug, board == $board, status != "done")
   then
     trello.moveCard($card, $board, "Done");
@@ -145,7 +147,7 @@ end
 rule "doneBug"
   when
     $bz: BugzillaBug($bug : bug, status == "modified" || status == "on_qa" || status == "verified")
-    $board: TrelloBoard(name == "Test Sprint automation")
+    $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
     $card: TrelloCard(bug == $bug, board == $board, status != "done", status != "documentation")
   then
     trello.moveCard($card, $board, "Documentation");
@@ -155,7 +157,7 @@ end
 // TODO there might be a slight issue here when trello cards are loaded much sooner than bugzilla data
 rule "unknownBug"
   when
-    $board: TrelloBoard(name == "Test Sprint automation")
+    $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
     $card: TrelloCard($bug : bug, bug != null, board == $board, status != "done")
     not(exists BugzillaBug($bug == bug))
   then
@@ -167,7 +169,7 @@ end
 rule "openBug"
   when
     $bz: BugzillaBug($bug : bug, $user : assignedTo, status == "new" || status == "assigned" || status == "post")
-    $board: TrelloBoard(name == "Test Sprint automation")
+    $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
     $card: TrelloCard(bug == $bug, board == $board, status == "done" || status == "documentation")
   then
     trello.moveCard($card, $board, "TODO");
@@ -178,7 +180,7 @@ end
 rule "modifiedBug"
   when
     $bz: BugzillaBug($bug : bug, $user : assignedTo, status == "post")
-    $board: TrelloBoard(name == "Test Sprint automation")
+    $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
     $card: TrelloCard(bug == $bug, board == $board, status == "todo")
   then
     trello.moveCard($card, $board, "In Progress");
@@ -189,7 +191,7 @@ rule "blockerBug"
   when
     $bz: BugzillaBug($bug : bug, status != "closed", $flags: flags)
     BugzillaBugFlag(flag == "blocker+") from $flags
-    $board: TrelloBoard(name == "Test Sprint automation")
+    $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
     $card: TrelloCard(bug == $bug, board == $board, $labels: labels)
     not(exists TrelloLabel(name == "blocker") from $labels)
   then
@@ -200,7 +202,7 @@ end
 rule "regressionBug"
   when
     $bz: BugzillaBug($bug : bug, status != "closed", "regression" memberOf keywords)
-    $board: TrelloBoard(name == "Test Sprint automation")
+    $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
     $card: TrelloCard(bug == $bug, board == $board, $labels: labels)
     not(exists TrelloLabel(name == "blocker") from $labels)
   then
@@ -212,7 +214,7 @@ rule "notABlockerBug"
   when
     $bz: BugzillaBug($bug : bug, status != "closed", $flags: flags, "regression" not memberOf keywords)
     not (exists BugzillaBugFlag(flag == "blocker+") from $flags)
-    $board: TrelloBoard(name == "Test Sprint automation")
+    $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
     $card: TrelloCard(bug == $bug, board == $board, $labels: labels)
     $label: TrelloLabel(name == "blocker") from $labels
   then
@@ -224,7 +226,7 @@ rule "failedQE"
   when
     $bz: BugzillaBug($bug : bug, status != "closed", "failedqe" memberOf keywords)
 
-    $board: TrelloBoard(name == "Test Sprint automation")
+    $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
     $card: TrelloCard(bug == $bug, board == $board, $labels: labels)
     not(exists TrelloLabel(name == "failedqe") from $labels)
   then
@@ -236,7 +238,7 @@ rule "notFailedQEBug"
   when
     $bz: BugzillaBug($bug : bug, status != "closed", "failedqe" not memberOf keywords)
 
-    $board: TrelloBoard(name == "Test Sprint automation")
+    $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
     $card: TrelloCard(bug == $bug, board == $board, $labels: labels)
     $label: TrelloLabel(name == "failedqe") from $labels
   then
@@ -252,7 +254,7 @@ rule "missingZStreamFlags"
     not(exists BugzillaBugFlag(flag == "rhevm-4.0.z+") from $flags)
     not(exists BugzillaBugFlag(flag == "rhevm-3.6.z+") from $flags)
 
-    $board: TrelloBoard(name == "Test Sprint automation")
+    $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
     $card: TrelloCard(bug == $bug, board == $board, $labels: labels)
     not(exists TrelloLabel(name == "flags missing") from $labels)
   then
@@ -268,7 +270,7 @@ rule "okZStreamFlags"
     || (BugzillaBugFlag(flag == "rhevm-4.0.z+") from $flags)
     || (BugzillaBugFlag(flag == "rhevm-3.6.z+") from $flags))
 
-    $board: TrelloBoard(name == "Test Sprint automation")
+    $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
     $card: TrelloCard(bug == $bug, board == $board, $labels: labels)
     $label: TrelloLabel(name == "flags missing") from $labels
   then
@@ -280,7 +282,7 @@ rule "notAZStream"
   when
     $bz: BugzillaBug($bug : bug, "zstream" not memberOf keywords)
 
-    $board: TrelloBoard(name == "Test Sprint automation")
+    $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
     $card: TrelloCard(bug == $bug, board == $board, $labels: labels)
     $label: TrelloLabel(name == "flags missing") from $labels
   then

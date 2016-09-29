@@ -5,6 +5,7 @@ import javax.inject.Inject;
 import org.kie.api.cdi.KSession;
 import org.kie.api.runtime.KieSession;
 import org.marsik.bugautomation.services.BugzillaActions;
+import org.marsik.bugautomation.services.ConfigurationService;
 import org.marsik.bugautomation.services.TrelloActions;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.Job;
@@ -27,11 +28,15 @@ public class RefreshRulesJob implements Job {
     @Inject
     TrelloActions trelloActions;
 
+    @Inject
+    ConfigurationService configurationService;
+
     @Override
     public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException {
         logger.info("Triggering rules...");
         kSession.setGlobal("bugzilla", bugzillaActions);
         kSession.setGlobal("trello", trelloActions);
+        kSession.setGlobal("config", configurationService);
         kSession.fireAllRules();
     }
 }
