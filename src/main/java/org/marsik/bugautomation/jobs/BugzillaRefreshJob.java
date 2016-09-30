@@ -73,7 +73,7 @@ public class BugzillaRefreshJob implements Job {
         AuthorizationCallback authCallback = new AuthorizationCallback(bugzillaUsername.get(), bugzillaPassword.get());
         session.setAuthorizationCallback(authCallback);
 
-        Set<String> retrievedBugs = new HashSet<>();
+        Map<String, BugzillaBug> retrievedBugs = new HashMap<>();
 
         if (session.open()) {
             // Search bugs by users
@@ -84,14 +84,7 @@ public class BugzillaRefreshJob implements Job {
                 }
                 populateSearchData(searchData);
                 Map<String, BugzillaBug> bugs = searchAndProcess(session, searchData);
-                retrievedBugs.addAll(bugs.keySet());
-
-                // Load flags
-                for (BugProxy bzExtra: session.getExtra(bugs.keySet())) {
-                    bzExtra.loadFlags(bzExtra);
-                    bugs.get(bzExtra.getId()).setFlags(bzExtra.getFlags());
-                    factService.addOrUpdateFact(bugs.get(bzExtra.getId()));
-                }
+                retrievedBugs.putAll(bugs);
             }
 
             // Search bugs by teams
@@ -102,19 +95,19 @@ public class BugzillaRefreshJob implements Job {
                 }
                 populateSearchData(searchData);
                 Map<String, BugzillaBug> bugs = searchAndProcess(session, searchData);
-                retrievedBugs.addAll(bugs.keySet());
+                retrievedBugs.putAll(bugs);
+            }
 
-                // Load flags
-                for (BugProxy bzExtra: session.getExtra(bugs.keySet())) {
-                    bzExtra.loadFlags(bzExtra);
-                    bugs.get(bzExtra.getId()).setFlags(bzExtra.getFlags());
-                    factService.addOrUpdateFact(bugs.get(bzExtra.getId()));
-                }
+            // Load flags
+            for (BugProxy bzExtra: session.getExtra(retrievedBugs.keySet())) {
+                bzExtra.loadFlags(bzExtra);
+                retrievedBugs.get(bzExtra.getId()).setFlags(bzExtra.getFlags());
+                factService.addOrUpdateFact(retrievedBugs.get(bzExtra.getId()));
             }
 
             // Forget about bugs that were assigned out of scope
             Set<String> bugsToRemove = new HashSet<>(bugMatchingService.getKnownBugs());
-            bugsToRemove.removeAll(retrievedBugs);
+            bugsToRemove.removeAll(retrievedBugs.keySet());
 
             bugsToRemove.stream()
                     .map(bugMatchingService::getBugByBzId)
