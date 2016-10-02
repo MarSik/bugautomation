@@ -56,8 +56,8 @@ end
 // 3.6.10 has higher prio than 4.0.6
 rule "releasePriority406a"
   when
-    $bz: BugzillaBug($bug1 : bug, targetMilestone == "ovirt-4.0.6")
-    BugzillaBug($bug2 : bug, id != $bz.id, targetMilestone == "ovirt-3.6.10")
+    $bz: BugzillaBug($bug1 : bug, targetMilestone != null, targetMilestone == "ovirt-4.0.6")
+    BugzillaBug($bug2 : bug, id != $bz.id, targetMilestone != null, targetMilestone == "ovirt-3.6.10")
 
     $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
 
@@ -70,8 +70,8 @@ end
 // 4.0.5 has higher prio than 3.6.10
 rule "releasePriority3610vs405"
   when
-    $bz: BugzillaBug($bug1 : bug, targetMilestone == "ovirt-3.6.10")
-    BugzillaBug($bug2 : bug, id != $bz.id, targetMilestone == "ovirt-4.0.5")
+    $bz: BugzillaBug($bug1 : bug, targetMilestone != null, targetMilestone == "ovirt-3.6.10")
+    BugzillaBug($bug2 : bug, id != $bz.id, targetMilestone != null, targetMilestone == "ovirt-4.0.5")
 
     $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
 
@@ -84,8 +84,8 @@ end
 // 3.6.9 has higher priority than 3.6.10
 rule "releasePriority369vs3610"
   when
-    $bz: BugzillaBug($bug1 : bug, targetMilestone == "ovirt-3.6.10")
-    BugzillaBug($bug2 : bug, id != $bz.id, targetMilestone == "ovirt-3.6.9")
+    $bz: BugzillaBug($bug1 : bug, targetMilestone != null, targetMilestone == "ovirt-3.6.10")
+    BugzillaBug($bug2 : bug, id != $bz.id, targetMilestone != null, targetMilestone == "ovirt-3.6.9")
 
     $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
 
@@ -98,8 +98,8 @@ end
 // 3.6.1x has higher priority than 3.6.1(x+1)
 rule "releasePriority3610"
   when
-    $bz: BugzillaBug($bug1 : bug, targetMilestone str[startsWith] "ovirt-3.6.1", $tm : targetMilestone)
-    BugzillaBug($bug2 : bug, id != $bz.id, targetMilestone str[startsWith] "ovirt-3.6.1", targetMilestone < $tm)
+    $bz: BugzillaBug($bug1 : bug, targetMilestone != null, targetMilestone str[startsWith] "ovirt-3.6.1", $tm : targetMilestone)
+    BugzillaBug($bug2 : bug, id != $bz.id, targetMilestone != null, targetMilestone str[startsWith] "ovirt-3.6.1", targetMilestone < $tm)
 
     $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
 
@@ -112,8 +112,8 @@ end
 // 4.0.x has higher priority than 4.0.x+1
 rule "releasePriority40"
   when
-    $bz: BugzillaBug($bug1 : bug, targetMilestone str[startsWith] "ovirt-4.", $tm : targetMilestone)
-    BugzillaBug($bug2 : bug, id != $bz.id, targetMilestone str[startsWith] "ovirt-4.", targetMilestone < $tm)
+    $bz: BugzillaBug($bug1 : bug, targetMilestone != null, targetMilestone str[startsWith] "ovirt-4.", $tm : targetMilestone)
+    BugzillaBug($bug2 : bug, id != $bz.id, targetMilestone != null, targetMilestone str[startsWith] "ovirt-4.", targetMilestone < $tm)
 
     $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
 

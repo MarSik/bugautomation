@@ -1,6 +1,12 @@
 package org.marsik.bugautomation.services;
 
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import java.util.HashSet;
+import java.util.Optional;
+import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 
 import org.junit.Before;
@@ -33,9 +39,14 @@ public class FactServiceTest {
     @Mock
     ConfigurationService configurationService;
 
+    private static final String TRELLO_BOARD = "Sprint";
+    private static final String TRELLO_BACKLOG = "todo";
+
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
+        when(configurationService.getCached("cfg.board.sprint")).thenReturn(TRELLO_BOARD);
+        when(configurationService.getCached("cfg.backlog")).thenReturn(TRELLO_BACKLOG);
     }
 
     private void trigger() {
@@ -50,31 +61,32 @@ public class FactServiceTest {
         BugzillaBug bug1 = BugzillaBug.builder()
                 .id("1")
                 .targetMilestone(null)
+                .bug(Bug.builder().id(1).build())
                 .build();
 
         BugzillaBug bug2 = BugzillaBug.builder()
                 .id("2")
                 .targetMilestone("ovirt-2.0.0")
-                .bug(Bug.builder().id(1).build())
+                .bug(Bug.builder().id(2).build())
                 .build();
 
         TrelloBoard board = TrelloBoard.builder()
                 .id("sprint")
-                .name("Sprint")
+                .name(TRELLO_BOARD)
                 .build();
 
         TrelloCard card1 = TrelloCard.builder()
                 .id("a")
                 .board(board)
-                .status("todo")
+                .status(TRELLO_BACKLOG)
                 .pos(1.0)
                 .bug(bug1.getBug())
                 .build();
 
         TrelloCard card2 = TrelloCard.builder()
-                .id("a")
+                .id("b")
                 .board(board)
-                .status("todo")
+                .status(TRELLO_BACKLOG)
                 .pos(2.0)
                 .bug(bug2.getBug())
                 .build();
@@ -85,6 +97,8 @@ public class FactServiceTest {
         kSession.insert(card1);
         kSession.insert(card2);
 
-        kSession.fireAllRules();
+        trigger();
+
+        verify(trelloActions).switchCards(card1, card2);
     }
 }

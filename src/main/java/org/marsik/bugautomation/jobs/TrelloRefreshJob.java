@@ -17,7 +17,7 @@ import org.marsik.bugautomation.facts.User;
 import org.marsik.bugautomation.services.BugMatchingService;
 import org.marsik.bugautomation.services.ConfigurationService;
 import org.marsik.bugautomation.services.FactService;
-import org.marsik.bugautomation.services.TrelloActions;
+import org.marsik.bugautomation.services.TrelloActionsImpl;
 import org.marsik.bugautomation.services.UserMatchingService;
 import org.marsik.bugautomation.trello.Board;
 import org.marsik.bugautomation.trello.Card;
@@ -49,7 +49,7 @@ public class TrelloRefreshJob implements Job {
     BugMatchingService bugMatchingService;
 
     @Inject
-    TrelloActions trelloActions;
+    TrelloActionsImpl trelloActions;
 
     @Override
     public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException {
