@@ -4,17 +4,16 @@ import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.servlet.ServletException;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.jboss.weld.environment.se.Weld;
 import org.jboss.weld.environment.se.WeldContainer;
 import org.marsik.bugautomation.jobs.BugzillaRefreshJob;
-import org.marsik.bugautomation.jobs.TrelloRefreshJob;
-import org.marsik.bugautomation.services.QuartzService;
 import org.marsik.bugautomation.jobs.RefreshRulesJob;
+import org.marsik.bugautomation.jobs.TrelloRefreshJob;
 import org.marsik.bugautomation.server.RestServer;
+import org.marsik.bugautomation.services.QuartzService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 public class Main {
     private static final Logger logger = LoggerFactory.getLogger(Main.class);

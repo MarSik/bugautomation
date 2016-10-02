@@ -1,12 +1,11 @@
 package org.marsik.bugautomation.server;
 
-import io.undertow.Undertow;
-import io.undertow.servlet.Servlets;
-import io.undertow.servlet.api.DeploymentInfo;
-
 import javax.servlet.ServletException;
 import javax.ws.rs.core.Application;
 
+import io.undertow.Undertow;
+import io.undertow.servlet.Servlets;
+import io.undertow.servlet.api.DeploymentInfo;
 import org.jboss.resteasy.plugins.server.undertow.UndertowJaxrsServer;
 import org.jboss.resteasy.spi.ResteasyDeployment;
 import org.marsik.bugautomation.rest.RestApplication;

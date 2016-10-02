@@ -2,10 +2,9 @@ package org.marsik.bugautomation.trello;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
-import org.codehaus.jackson.annotate.JsonIgnoreProperties;
-
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 
 @Data
 @EqualsAndHashCode(callSuper = true)

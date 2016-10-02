@@ -1,7 +1,5 @@
 package org.marsik.bugautomation.cdi;
 
-import java.util.HashSet;
-import java.util.Set;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
 import javax.enterprise.inject.spi.AfterDeploymentValidation;
@@ -9,10 +7,11 @@ import javax.enterprise.inject.spi.Bean;
 import javax.enterprise.inject.spi.BeanManager;
 import javax.enterprise.inject.spi.Extension;
 import javax.enterprise.inject.spi.ProcessBean;
-
-import org.slf4j.Logger;
+import java.util.HashSet;
+import java.util.Set;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import org.slf4j.Logger;
 
 /**
  * Extension for the CDI mechanism that instantiates

@@ -1,17 +1,16 @@
 package org.marsik.bugautomation.services;
 
+import javax.inject.Singleton;
 import java.lang.ref.WeakReference;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.inject.Singleton;
-
-import org.marsik.bugautomation.facts.Bug;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
+import org.marsik.bugautomation.facts.Bug;
 
 @Singleton
 public class BugMatchingService {

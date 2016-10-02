@@ -1,19 +1,18 @@
 package org.marsik.bugautomation.services;
 
+import javax.inject.Singleton;
+import javax.validation.constraints.NotNull;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
-import javax.inject.Singleton;
-import javax.validation.constraints.NotNull;
-
-import org.apache.commons.io.IOUtils;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import org.apache.commons.io.IOUtils;
 
 @Singleton
 public class ConfigurationServiceProperties implements ConfigurationService {

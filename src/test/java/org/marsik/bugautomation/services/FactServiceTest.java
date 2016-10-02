@@ -1,20 +1,14 @@
 package org.marsik.bugautomation.services;
 
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.HashSet;
-import java.util.Optional;
-import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.kie.api.KieServices;
 import org.kie.api.cdi.KSession;
-import org.kie.api.runtime.KieContainer;
 import org.kie.api.runtime.KieSession;
 import org.marsik.bugautomation.cdi.WeldJUnit4Runner;
 import org.marsik.bugautomation.facts.Bug;

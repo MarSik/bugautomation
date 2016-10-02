@@ -1,5 +1,6 @@
 package org.marsik.bugautomation.jobs;
 
+import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -7,7 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
-import javax.inject.Inject;
 
 import org.marsik.bugautomation.facts.Bug;
 import org.marsik.bugautomation.facts.TrelloBoard;

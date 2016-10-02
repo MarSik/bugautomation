@@ -1,10 +1,10 @@
 package org.marsik.bugautomation.services;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
-import javax.inject.Inject;
-import javax.inject.Singleton;
 
 import org.kie.api.cdi.KSession;
 import org.kie.api.runtime.KieSession;

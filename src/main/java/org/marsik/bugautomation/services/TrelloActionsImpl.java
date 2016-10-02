@@ -3,7 +3,6 @@ package org.marsik.bugautomation.services;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.ws.rs.core.UriBuilder;
-
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;

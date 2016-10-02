@@ -1,8 +1,7 @@
 package org.marsik.bugautomation.facts;
 
-import java.util.ArrayList;
-import java.util.List;
 import javax.validation.constraints.NotNull;
+import java.util.List;
 
 import lombok.Builder;
 import lombok.Data;
