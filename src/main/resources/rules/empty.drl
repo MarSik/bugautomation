@@ -143,18 +143,29 @@ rule "closedBug"
     trello.moveCard($card, $board, "Done");
 end
 
-// A card for a finished bug (handed over to QE) should move to the Documentation column
-rule "doneBug"
+// A card for a finished bug (handed over to QE) should move to the Documentation column (unless requires_doc_text- is set)
+rule "documentBug"
   when
-    $bz: BugzillaBug($bug : bug, status == "modified" || status == "on_qa" || status == "verified")
+    $bz: BugzillaBug($bug : bug, status == "modified" || status == "on_qa" || status == "verified", $flags: flags)
+    not(exists BugzillaBugFlag(flag == "requires_doc_text-") from $flags)
     $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
     $card: TrelloCard(bug == $bug, board == $board, status != "done", status != "documentation")
   then
-    trello.moveCard($card, $board, "Documentation");
+    trello.moveCard($card, $board, "documentation");
+end
+
+// A card for a finished bug (handed over to QE) should move to the Done column when no documentation is needed
+rule "doneBug"
+  when
+    $bz: BugzillaBug($bug : bug, status == "modified" || status == "on_qa" || status == "verified", $flags: flags)
+    BugzillaBugFlag(flag == "requires_doc_text-") from $flags
+    $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
+    $card: TrelloCard(bug == $bug, board == $board, status != "done")
+  then
+    trello.moveCard($card, $board, "done");
 end
 
 // A card with a bug number that has no corresponding bug record in the knowledge db
-// TODO there might be a slight issue here when trello cards are loaded much sooner than bugzilla data
 rule "unknownBug"
   when
     $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))

@@ -5,6 +5,8 @@ import static org.mockito.Mockito.when;
 
 import javax.inject.Inject;
 
+import java.util.Collections;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -13,6 +15,7 @@ import org.kie.api.runtime.KieSession;
 import org.marsik.bugautomation.cdi.WeldJUnit4Runner;
 import org.marsik.bugautomation.facts.Bug;
 import org.marsik.bugautomation.facts.BugzillaBug;
+import org.marsik.bugautomation.facts.BugzillaBugFlag;
 import org.marsik.bugautomation.facts.TrelloBoard;
 import org.marsik.bugautomation.facts.TrelloCard;
 import org.mockito.Mock;
@@ -36,11 +39,22 @@ public class FactServiceTest {
     private static final String TRELLO_BOARD = "Sprint";
     private static final String TRELLO_BACKLOG = "todo";
 
+    private TrelloBoard board;
+
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
         when(configurationService.getCached("cfg.board.sprint")).thenReturn(TRELLO_BOARD);
         when(configurationService.getCached("cfg.backlog")).thenReturn(TRELLO_BACKLOG);
+
+        board = TrelloBoard.builder()
+                .id("sprint")
+                .name(TRELLO_BOARD)
+                .build();
+
+        // Clear session and populate with board fact
+        kSession.getFactHandles().stream().forEach(kSession::delete);
+        kSession.insert(board);
     }
 
     private void trigger() {
@@ -64,11 +78,6 @@ public class FactServiceTest {
                 .bug(Bug.builder().id(2).build())
                 .build();
 
-        TrelloBoard board = TrelloBoard.builder()
-                .id("sprint")
-                .name(TRELLO_BOARD)
-                .build();
-
         TrelloCard card1 = TrelloCard.builder()
                 .id("a")
                 .board(board)
@@ -87,12 +96,64 @@ public class FactServiceTest {
 
         kSession.insert(bug1);
         kSession.insert(bug2);
-        kSession.insert(board);
         kSession.insert(card1);
         kSession.insert(card2);
 
         trigger();
 
         verify(trelloActions).switchCards(card1, card2);
+    }
+
+    @Test
+    public void testDoneBugNoFlags() throws Exception {
+        BugzillaBug bug1 = BugzillaBug.builder()
+                .id("1")
+                .targetMilestone(null)
+                .bug(Bug.builder().id(1).build())
+                .status("modified")
+                .build();
+
+        TrelloCard card1 = TrelloCard.builder()
+                .id("a")
+                .board(board)
+                .status(TRELLO_BACKLOG)
+                .pos(1.0)
+                .bug(bug1.getBug())
+                .build();
+
+
+        kSession.insert(bug1);
+        kSession.insert(card1);
+
+        trigger();
+
+        verify(trelloActions).moveCard(card1, board, "documentation");
+    }
+
+    @Test
+    public void testDoneBugNoDocFlag() throws Exception {
+        BugzillaBug bug1 = BugzillaBug.builder()
+                .id("1")
+                .targetMilestone(null)
+                .bug(Bug.builder().id(1).build())
+                .status("modified")
+                .flags(Collections.singleton(new BugzillaBugFlag("requires_doc_text-")))
+                .build();
+
+        TrelloCard card1 = TrelloCard.builder()
+                .id("a")
+                .board(board)
+                .status(TRELLO_BACKLOG)
+                .pos(1.0)
+                .bug(bug1.getBug())
+                .build();
+
+
+        kSession.insert(bug1);
+        kSession.insert(card1);
+
+        trigger();
+
+        verify(trelloActions).moveCard(card1, board, "done");
     }
 }

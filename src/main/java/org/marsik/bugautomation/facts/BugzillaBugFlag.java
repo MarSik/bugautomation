@@ -18,4 +18,9 @@ public class BugzillaBugFlag {
         this.flag = (String)flag.get("name") + flag.get("status");
         modifiedAt = LocalDateTime.ofInstant(((Date)flag.get("modification_date")).toInstant(), ZoneId.of("UTC"));
     }
+
+    public BugzillaBugFlag(final String flag) {
+        this.flag = flag;
+        modifiedAt = LocalDateTime.now();
+    }
 }
