@@ -43,7 +43,7 @@ public class Main {
 
         // Start REST server
         try {
-            RestServer.build(8080);
+            RestServer.build(8080, wc.getBeanManager());
         } catch (ServletException ex) {
             logger.error("Server failed", ex);
         }

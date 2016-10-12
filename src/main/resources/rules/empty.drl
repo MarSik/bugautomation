@@ -7,10 +7,12 @@ import org.marsik.bugautomation.services.BugzillaActions;
 import org.marsik.bugautomation.services.TrelloActions;
 import org.marsik.bugautomation.facts.BugzillaBugFlag;
 import org.marsik.bugautomation.services.ConfigurationService;
+import org.marsik.bugautomation.stats.Stats;
 
 global TrelloActions trello;
 global BugzillaActions bugzilla;
 global ConfigurationService config;
+global Stats stats;
 
 // A bugzilla bug exists that has no corresponding trello card
 rule "newBug"

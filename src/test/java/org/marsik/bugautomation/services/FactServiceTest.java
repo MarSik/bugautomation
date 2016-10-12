@@ -18,6 +18,7 @@ import org.marsik.bugautomation.facts.BugzillaBug;
 import org.marsik.bugautomation.facts.BugzillaBugFlag;
 import org.marsik.bugautomation.facts.TrelloBoard;
 import org.marsik.bugautomation.facts.TrelloCard;
+import org.marsik.bugautomation.stats.Stats;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -61,6 +62,7 @@ public class FactServiceTest {
         kSession.setGlobal("bugzilla", bugzillaActions);
         kSession.setGlobal("trello", trelloActions);
         kSession.setGlobal("config", configurationService);
+        kSession.setGlobal("stats", new Stats());
         kSession.fireAllRules();
     }
 

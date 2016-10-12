@@ -1,5 +1,6 @@
 package org.marsik.bugautomation.server;
 
+import javax.enterprise.inject.spi.BeanManager;
 import javax.servlet.ServletException;
 import javax.ws.rs.core.Application;
 
@@ -8,6 +9,8 @@ import io.undertow.servlet.Servlets;
 import io.undertow.servlet.api.DeploymentInfo;
 import org.jboss.resteasy.plugins.server.undertow.UndertowJaxrsServer;
 import org.jboss.resteasy.spi.ResteasyDeployment;
+import org.jboss.weld.environment.servlet.Listener;
+import org.jboss.weld.environment.servlet.WeldServletLifecycle;
 import org.marsik.bugautomation.rest.RestApplication;
 
 public class RestServer {
@@ -29,13 +32,13 @@ public class RestServer {
         server.deploy(deploymentInfo);
     }
 
-    public static RestServer build(int port) throws ServletException {
+    public static RestServer build(int port, BeanManager beanManager) throws ServletException {
         RestServer myServer = new RestServer(port, "0.0.0.0");
-        DeploymentInfo di = myServer.deployApplication("/", RestApplication.class)
-                .setClassLoader(RestServer.class.getClassLoader())
-                .setContextPath("/")
+        DeploymentInfo di = myServer.deployApplication(null, RestApplication.class)
+                .setClassLoader(ClassLoader.getSystemClassLoader())
+                .setContextPath("")
                 .setDeploymentName("Bug automation")
-                //.addServlets(Servlets.servlet("helloServlet", org.viddu.poc.HelloServlet.class).addMapping("/hello"))
+                .addServletContextAttribute(WeldServletLifecycle.BEAN_MANAGER_ATTRIBUTE_NAME, beanManager)
                 .addListeners(Servlets.listener(org.jboss.weld.environment.servlet.Listener.class));
         myServer.deploy(di);
         return myServer;

@@ -6,7 +6,10 @@ import org.kie.api.cdi.KSession;
 import org.kie.api.runtime.KieSession;
 import org.marsik.bugautomation.services.BugzillaActions;
 import org.marsik.bugautomation.services.ConfigurationService;
+import org.marsik.bugautomation.services.StatsService;
 import org.marsik.bugautomation.services.TrelloActions;
+import org.marsik.bugautomation.stats.SingleStat;
+import org.marsik.bugautomation.stats.Stats;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
@@ -31,6 +34,9 @@ public class RefreshRulesJob implements Job {
     @Inject
     ConfigurationService configurationService;
 
+    @Inject
+    StatsService statsService;
+
     @Override
     public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException {
         if (!BugzillaRefreshJob.getFinished().get()
@@ -43,6 +49,19 @@ public class RefreshRulesJob implements Job {
         kSession.setGlobal("bugzilla", bugzillaActions);
         kSession.setGlobal("trello", trelloActions);
         kSession.setGlobal("config", configurationService);
+
+        final Stats stats = new Stats(statsService.getStats());
+        stats.add(SingleStat.TRIGGER_COUNT)
+                .value(1f);
+
+        kSession.setGlobal("stats", stats);
+
+        long startTime = System.nanoTime();
         kSession.fireAllRules();
+        long elapsedTime = System.nanoTime() - startTime;
+        stats.add(SingleStat.TRIGGER_TIME)
+                .value((float) elapsedTime);
+
+        statsService.setStats(stats);
     }
 }
