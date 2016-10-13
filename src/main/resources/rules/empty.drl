@@ -7,6 +7,7 @@ import org.marsik.bugautomation.services.BugzillaActions;
 import org.marsik.bugautomation.services.TrelloActions;
 import org.marsik.bugautomation.facts.BugzillaBugFlag;
 import org.marsik.bugautomation.services.ConfigurationService;
+import org.marsik.bugautomation.stats.SingleStat;
 import org.marsik.bugautomation.stats.Stats;
 
 global TrelloActions trello;
@@ -300,4 +301,13 @@ rule "notAZStream"
     $label: TrelloLabel(name == "flags missing") from $labels
   then
     trello.removeLabelFromCard($card, $label);
+end
+
+// Compute card stats
+rule "cardStats"
+  when
+    $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
+    $card: TrelloCard(board == $board, $status : status)
+  then
+    stats.add(SingleStat.SPRINT_CONTENT).label("status", $status).value(1f);
 end

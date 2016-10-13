@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 public class Stats {
-    Map<SingleStatWLabels, Float> values = new HashMap<>();
+    Map<SingleStatWLabels, Double> values = new HashMap<>();
 
     public class ValueBuilder {
         private SingleStat base;
@@ -25,14 +25,22 @@ public class Stats {
             return this;
         }
 
-        public void value(Float value) {
+        public void value(int value) {
+            value((double) value);
+        }
+
+        public void value(float value) {
+            value((double) value);
+        }
+
+        public void value(Double value) {
             SingleStatWLabels statKey = SingleStatWLabels.builder()
                     .stat(base)
                     .build();
 
             labels.forEach((k, v) -> statKey.getLabels().add(new LabelValue(k, v)));
-            values.putIfAbsent(statKey, 0f);
-            Float v = values.get(statKey) + value;
+            values.putIfAbsent(statKey, 0d);
+            Double v = values.get(statKey) + value;
             values.put(statKey, v);
         }
     }

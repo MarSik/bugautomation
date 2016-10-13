@@ -50,7 +50,7 @@ public class StatsTest {
 
         String result = stats.toPrometheusString();
         assertThat(result)
-                .isEqualTo("sprint_content {host = \"one\",status = \"done\"} 10.0");
+                .isEqualTo("sprint_content{host=\"one\",status=\"done\"} 10.0");
     }
 
     @Test
@@ -68,7 +68,7 @@ public class StatsTest {
 
         String result = stats.toPrometheusString();
         assertThat(result)
-                .isEqualTo("sprint_content {host = \"one\",status = \"done\"} 5.0\n" +
-                        "sprint_content {host = \"one\",status = \"in_progress\"} 5.0");
+                .isEqualTo("sprint_content{host=\"one\",status=\"done\"} 5.0\n" +
+                        "sprint_content{host=\"one\",status=\"in_progress\"} 5.0");
     }
 }

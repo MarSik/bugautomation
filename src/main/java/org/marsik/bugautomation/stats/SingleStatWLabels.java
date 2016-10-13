@@ -17,12 +17,12 @@ public class SingleStatWLabels {
 
     public String toString() {
         String strLabels = labels.stream()
-                .map(v -> v.getName() + " = \"" + v.getValue() + "\"")
+                .map(v -> v.getName() + "=\"" + v.getValue() + "\"")
                 .sorted()
                 .collect(Collectors.joining(","));
 
         if (!strLabels.isEmpty()) {
-            strLabels = " {" +strLabels+ "}";
+            strLabels = "{" +strLabels+ "}";
         }
 
         return stat.getName() + strLabels;
