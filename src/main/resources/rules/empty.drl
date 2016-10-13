@@ -129,7 +129,7 @@ end
 rule "bugAssignment"
   when
     $bz: BugzillaBug($bug : bug, $user : assignedTo)
-    $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
+    $board: TrelloBoard(name == config.getCached("cfg.board.sprint"), $user memberOf members)
     $card: TrelloCard(bug == $bug, board == $board, $user not memberOf assignedTo)
   then
     trello.assignCard($card, $user);

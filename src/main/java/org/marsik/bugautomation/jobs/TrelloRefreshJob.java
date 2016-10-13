@@ -4,6 +4,7 @@ import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -73,6 +74,7 @@ public class TrelloRefreshJob implements Job {
             final TrelloBoard kiBoard = TrelloBoard.builder()
                     .name(trBoard.getName())
                     .id(trBoard.getId())
+                    .members(new HashSet<>())
                     .build();
             logger.debug("Found board {}", kiBoard.getName());
             factService.addOrUpdateFact(kiBoard);
@@ -90,6 +92,7 @@ public class TrelloRefreshJob implements Job {
                         userMatchingService.getByTrello(user.getId()).ifPresent(u -> {
                             logger.debug("Found user {} ({})", user.getId(), user.getFullName());
                             users.put(user.getId(), u);
+                            kiBoard.getMembers().add(u);
                         });
                     });
 

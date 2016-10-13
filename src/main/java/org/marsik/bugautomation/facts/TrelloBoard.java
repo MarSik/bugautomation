@@ -1,5 +1,7 @@
 package org.marsik.bugautomation.facts;
 
+import java.util.Set;
+
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -10,4 +12,5 @@ import lombok.EqualsAndHashCode;
 public class TrelloBoard {
     String id;
     String name;
+    Set<User> members;
 }
