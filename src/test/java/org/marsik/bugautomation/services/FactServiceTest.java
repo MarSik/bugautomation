@@ -1,5 +1,8 @@
 package org.marsik.bugautomation.services;
 
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -37,6 +40,12 @@ public class FactServiceTest {
     @Mock
     ConfigurationService configurationService;
 
+    @Inject
+    InternalActions internalActions;
+
+    @Inject
+    FactService factService;
+
     private static final String TRELLO_BOARD = "Sprint";
     private static final String TRELLO_BACKLOG = "todo";
 
@@ -54,11 +63,12 @@ public class FactServiceTest {
                 .build();
 
         // Clear session and populate with board fact
-        kSession.getFactHandles().stream().forEach(kSession::delete);
-        kSession.insert(board);
+        factService.clear();
+        factService.addFact(board);
     }
 
     private void trigger() {
+        kSession.setGlobal("internal", internalActions);
         kSession.setGlobal("bugzilla", bugzillaActions);
         kSession.setGlobal("trello", trelloActions);
         kSession.setGlobal("config", configurationService);
@@ -76,7 +86,7 @@ public class FactServiceTest {
 
         BugzillaBug bug2 = BugzillaBug.builder()
                 .id("2")
-                .targetMilestone("ovirt-2.0.0")
+                .targetMilestone("ovirt-4.0.6")
                 .bug(Bug.builder().id(2).build())
                 .build();
 
@@ -96,10 +106,10 @@ public class FactServiceTest {
                 .bug(bug2.getBug())
                 .build();
 
-        kSession.insert(bug1);
-        kSession.insert(bug2);
-        kSession.insert(card1);
-        kSession.insert(card2);
+        factService.addFact(bug1);
+        factService.addFact(bug2);
+        factService.addFact(card1);
+        factService.addFact(card2);
 
         trigger();
 
@@ -124,8 +134,8 @@ public class FactServiceTest {
                 .build();
 
 
-        kSession.insert(bug1);
-        kSession.insert(card1);
+        factService.addFact(bug1);
+        factService.addFact(card1);
 
         trigger();
 
@@ -151,8 +161,8 @@ public class FactServiceTest {
                 .build();
 
 
-        kSession.insert(bug1);
-        kSession.insert(card1);
+        factService.addFact(bug1);
+        factService.addFact(card1);
 
         trigger();
 

@@ -4,12 +4,14 @@ import org.marsik.bugautomation.facts.TrelloCard;
 import org.marsik.bugautomation.facts.TrelloLabel;
 import org.marsik.bugautomation.facts.Bug;
 import org.marsik.bugautomation.services.BugzillaActions;
+import org.marsik.bugautomation.services.InternalActions;
 import org.marsik.bugautomation.services.TrelloActions;
 import org.marsik.bugautomation.facts.BugzillaBugFlag;
 import org.marsik.bugautomation.services.ConfigurationService;
 import org.marsik.bugautomation.stats.SingleStat;
 import org.marsik.bugautomation.stats.Stats;
 
+global InternalActions internal;
 global TrelloActions trello;
 global BugzillaActions bugzilla;
 global ConfigurationService config;
@@ -28,102 +30,89 @@ end
 // Sort backlog according to priority (TODO for now, but should really sort backlog board only)
 rule "orderBacklog"
   when
-    $bz: BugzillaBug($bug1 : bug, priority != null, $priority : priority, $tm : targetMilestone)
-    BugzillaBug($bug2 : bug, priority != null, priority > $priority, id != $bz.id, $tm == targetMilestone)
+    $bz: BugzillaBug($bug1 : bug, priority != null, $priority : priority)
+    BugzillaBug($bug2 : bug, priority != null, priority > $priority, id != $bz.id)
 
     $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
 
-    $card1: TrelloCard(bug == $bug1, board == $board, status == config.getCached("cfg.backlog"), $pos : pos)
-    $card2: TrelloCard(bug == $bug2, board == $board, status == config.getCached("cfg.backlog"), pos > $pos)
+    $card1: TrelloCard(bug == $bug1, board == $board, status == config.getCached("cfg.backlog"), $score : score, $pos : pos)
+    $card2: TrelloCard(bug == $bug2, board == $board, status == config.getCached("cfg.backlog"), $score == score, pos > $pos)
   then
     trello.switchCards($card1, $card2);
 end
 
-// Sort backlog according to release priority
+rule "orderBacklogByScore"
+  when
+    $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
+
+    $card1: TrelloCard(board == $board, status == config.getCached("cfg.backlog"), score != null, $score : score, $pos : pos)
+    $card2: TrelloCard(board == $board, status == config.getCached("cfg.backlog"), score != null, score > $score, pos > $pos)
+  then
+    trello.switchCards($card1, $card2);
+end
+
+// Assign score according to release priority
 //
 
 // Bugs with target release are more important than bugs without it
 rule "releasePriorityNone"
   when
     $bz: BugzillaBug($bug1 : bug, targetMilestone == null || targetMilestone == "")
-    BugzillaBug($bug2 : bug, id != $bz.id, targetMilestone != null, targetMilestone != "")
 
     $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
-
-    $card1: TrelloCard(bug == $bug1, board == $board, status == config.getCached("cfg.backlog"), $pos : pos)
-    $card2: TrelloCard(bug == $bug2, board == $board, status == config.getCached("cfg.backlog"), pos > $pos)
+    $card1: TrelloCard(bug == $bug1, board == $board, status == config.getCached("cfg.backlog"))
   then
-    trello.switchCards($card1, $card2);
+    internal.setScore($card1, 0);
 end
 
-// 3.6.10 has higher prio than 4.0.6
-rule "releasePriority406a"
+rule "releasePriority406"
   when
     $bz: BugzillaBug($bug1 : bug, targetMilestone != null, targetMilestone == "ovirt-4.0.6")
-    BugzillaBug($bug2 : bug, id != $bz.id, targetMilestone != null, targetMilestone == "ovirt-3.6.10")
 
     $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
-
     $card1: TrelloCard(bug == $bug1, board == $board, status == config.getCached("cfg.backlog"), $pos : pos)
-    $card2: TrelloCard(bug == $bug2, board == $board, status == config.getCached("cfg.backlog"), pos > $pos)
   then
-    trello.switchCards($card1, $card2);
+    internal.setScore($card1, 100);
 end
 
-// 4.0.5 has higher prio than 3.6.10
-rule "releasePriority3610vs405"
+rule "releasePriority369"
   when
-    $bz: BugzillaBug($bug1 : bug, targetMilestone != null, targetMilestone == "ovirt-3.6.10")
-    BugzillaBug($bug2 : bug, id != $bz.id, targetMilestone != null, targetMilestone == "ovirt-4.0.5")
+    $bz: BugzillaBug($bug1 : bug, targetMilestone != null, targetMilestone == "ovirt-3.6.9")
 
     $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
-
     $card1: TrelloCard(bug == $bug1, board == $board, status == config.getCached("cfg.backlog"), $pos : pos)
-    $card2: TrelloCard(bug == $bug2, board == $board, status == config.getCached("cfg.backlog"), pos > $pos)
   then
-    trello.switchCards($card1, $card2);
+    internal.setScore($card1, 200);
 end
 
-// 3.6.9 has higher priority than 3.6.10
-rule "releasePriority369vs3610"
-  when
-    $bz: BugzillaBug($bug1 : bug, targetMilestone != null, targetMilestone == "ovirt-3.6.10")
-    BugzillaBug($bug2 : bug, id != $bz.id, targetMilestone != null, targetMilestone == "ovirt-3.6.9")
-
-    $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
-
-    $card1: TrelloCard(bug == $bug1, board == $board, status == config.getCached("cfg.backlog"), $pos : pos)
-    $card2: TrelloCard(bug == $bug2, board == $board, status == config.getCached("cfg.backlog"), pos > $pos)
-  then
-    trello.switchCards($card1, $card2);
-end
-
-// 3.6.1x has higher priority than 3.6.1(x+1)
 rule "releasePriority3610"
   when
-    $bz: BugzillaBug($bug1 : bug, targetMilestone != null, targetMilestone str[startsWith] "ovirt-3.6.1", $tm : targetMilestone)
-    BugzillaBug($bug2 : bug, id != $bz.id, targetMilestone != null, targetMilestone str[startsWith] "ovirt-3.6.1", targetMilestone < $tm)
+    $bz: BugzillaBug($bug1 : bug, targetMilestone != null, targetMilestone == "ovirt-3.6.10")
 
     $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
-
     $card1: TrelloCard(bug == $bug1, board == $board, status == config.getCached("cfg.backlog"), $pos : pos)
-    $card2: TrelloCard(bug == $bug2, board == $board, status == config.getCached("cfg.backlog"), pos > $pos)
   then
-    trello.switchCards($card1, $card2);
+    internal.setScore($card1, 90);
 end
 
-// 4.0.x has higher priority than 4.0.x+1
-rule "releasePriority40"
+rule "releasePriority407"
   when
-    $bz: BugzillaBug($bug1 : bug, targetMilestone != null, targetMilestone str[startsWith] "ovirt-4.", $tm : targetMilestone)
-    BugzillaBug($bug2 : bug, id != $bz.id, targetMilestone != null, targetMilestone str[startsWith] "ovirt-4.", targetMilestone < $tm)
+    $bz: BugzillaBug($bug1 : bug, targetMilestone != null, targetMilestone == "ovirt-4.0.7")
 
     $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
-
     $card1: TrelloCard(bug == $bug1, board == $board, status == config.getCached("cfg.backlog"), $pos : pos)
-    $card2: TrelloCard(bug == $bug2, board == $board, status == config.getCached("cfg.backlog"), pos > $pos)
   then
-    trello.switchCards($card1, $card2);
+    internal.setScore($card1, 50);
+end
+
+rule "releasePriority41"
+  when
+    $bz: BugzillaBug($bug1 : bug, targetMilestone != null, targetMilestone str[startsWith] "ovirt-4.1.")
+
+    $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
+    $card1: TrelloCard(bug == $bug1, board == $board, status == config.getCached("cfg.backlog"), $pos : pos)
+  then
+    internal.setScore($card1, 50);
 end
 
 // Make sure the bugzilla assignment is visible in trello

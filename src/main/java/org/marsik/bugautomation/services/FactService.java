@@ -45,4 +45,9 @@ public class FactService {
             handles.remove(oldValue);
         }
     }
+
+    public void clear() {
+        kSession.getFactHandles().stream().forEach(kSession::delete);
+        handles.clear();
+    }
 }

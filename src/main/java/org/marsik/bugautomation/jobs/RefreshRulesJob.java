@@ -6,6 +6,7 @@ import org.kie.api.cdi.KSession;
 import org.kie.api.runtime.KieSession;
 import org.marsik.bugautomation.services.BugzillaActions;
 import org.marsik.bugautomation.services.ConfigurationService;
+import org.marsik.bugautomation.services.InternalActions;
 import org.marsik.bugautomation.services.StatsService;
 import org.marsik.bugautomation.services.TrelloActions;
 import org.marsik.bugautomation.stats.SingleStat;
@@ -24,6 +25,9 @@ public class RefreshRulesJob implements Job {
     @Inject
     @KSession("bug-rules")
     KieSession kSession;
+
+    @Inject
+    InternalActions internalActions;
 
     @Inject
     BugzillaActions bugzillaActions;
@@ -49,6 +53,7 @@ public class RefreshRulesJob implements Job {
         kSession.setGlobal("bugzilla", bugzillaActions);
         kSession.setGlobal("trello", trelloActions);
         kSession.setGlobal("config", configurationService);
+        kSession.setGlobal("internal", internalActions);
 
         final Stats stats = new Stats(statsService.getStats());
         stats.add(SingleStat.TRIGGER_COUNT)

@@ -29,4 +29,11 @@ public class TrelloCard {
     List<TrelloLabel> labels;
 
     Bug bug;
+
+    /**
+     * This field holds the importance of the card. Higher numbers are more important.
+     *
+     * This field can be set from DRL rules.
+     */
+    Integer score;
 }
