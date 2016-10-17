@@ -68,5 +68,6 @@ public class RefreshRulesJob implements Job {
                 .value((float) elapsedTime);
 
         statsService.setStats(stats);
+        logger.info("All rules processed in {} ms", (float)elapsedTime/1000000);
     }
 }
