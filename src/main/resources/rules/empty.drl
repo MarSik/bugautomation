@@ -15,7 +15,6 @@ global InternalActions internal;
 global TrelloActions trello;
 global BugzillaActions bugzilla;
 global ConfigurationService config;
-global Stats stats;
 
 // A bugzilla bug exists that has no corresponding trello card
 rule "newBug"
@@ -228,13 +227,20 @@ rule "notAZStream"
     trello.removeLabelFromCard($card, $label);
 end
 
+/**
+ * Statistics section, the rules have to be fired during every
+ * rule evaluation cycle. That is why they depend on the stats
+ * object.
+ */
+
 // Compute card stats
 rule "cardStats"
   when
+    $stats: Stats()
     $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
     $card: TrelloCard(board == $board, $status : status)
   then
-    stats.add(SingleStat.SPRINT_CONTENT).label("status", $status).value(1f);
+    $stats.add(SingleStat.SPRINT_CONTENT).label("status", $status).value(1f);
 end
 
 

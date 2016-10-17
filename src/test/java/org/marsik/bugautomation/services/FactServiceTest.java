@@ -17,6 +17,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.kie.api.cdi.KSession;
 import org.kie.api.runtime.KieSession;
+import org.kie.api.runtime.rule.FactHandle;
 import org.marsik.bugautomation.cdi.WeldJUnit4Runner;
 import org.marsik.bugautomation.facts.Bug;
 import org.marsik.bugautomation.facts.BugzillaBug;
@@ -74,7 +75,7 @@ public class FactServiceTest {
         kSession.setGlobal("bugzilla", bugzillaActions);
         kSession.setGlobal("trello", trelloActions);
         kSession.setGlobal("config", configurationService);
-        kSession.setGlobal("stats", new Stats());
+        kSession.insert(new Stats());
         kSession.fireAllRules();
     }
 

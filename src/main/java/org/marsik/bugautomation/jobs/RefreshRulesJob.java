@@ -4,6 +4,7 @@ import javax.inject.Inject;
 
 import org.kie.api.cdi.KSession;
 import org.kie.api.runtime.KieSession;
+import org.kie.api.runtime.rule.FactHandle;
 import org.marsik.bugautomation.services.BugzillaActions;
 import org.marsik.bugautomation.services.ConfigurationService;
 import org.marsik.bugautomation.services.InternalActions;
@@ -58,8 +59,7 @@ public class RefreshRulesJob implements Job {
         final Stats stats = new Stats(statsService.getStats());
         stats.add(SingleStat.TRIGGER_COUNT)
                 .value(1f);
-
-        kSession.setGlobal("stats", stats);
+        FactHandle statsHandle = kSession.insert(stats);
 
         long startTime = System.nanoTime();
         kSession.fireAllRules();
@@ -67,6 +67,7 @@ public class RefreshRulesJob implements Job {
         stats.add(SingleStat.TRIGGER_TIME)
                 .value((float) elapsedTime);
 
+        kSession.delete(statsHandle);
         statsService.setStats(stats);
         logger.info("All rules processed in {} ms", (float)elapsedTime/1000000);
     }
