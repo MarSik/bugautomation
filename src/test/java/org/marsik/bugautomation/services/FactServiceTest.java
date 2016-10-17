@@ -22,6 +22,7 @@ import org.marsik.bugautomation.cdi.WeldJUnit4Runner;
 import org.marsik.bugautomation.facts.Bug;
 import org.marsik.bugautomation.facts.BugzillaBug;
 import org.marsik.bugautomation.facts.BugzillaBugFlag;
+import org.marsik.bugautomation.facts.BugzillaPriorityLevel;
 import org.marsik.bugautomation.facts.TrelloBoard;
 import org.marsik.bugautomation.facts.TrelloCard;
 import org.marsik.bugautomation.stats.Stats;
@@ -170,6 +171,33 @@ public class FactServiceTest {
         trigger();
 
         verify(trelloActions).moveCard(card1, board, "done");
+    }
+
+    @Test
+    public void testNeedsTriage() throws Exception {
+        BugzillaBug bug1 = BugzillaBug.builder()
+                .id("1")
+                .targetMilestone(null)
+                .bug(Bug.builder().id(1).build())
+                .priority(BugzillaPriorityLevel.UNSPECIFIED)
+                .status("modified")
+                .build();
+
+        TrelloCard card1 = TrelloCard.builder()
+                .id("a")
+                .board(board)
+                .status(TRELLO_BACKLOG)
+                .pos(1.0)
+                .bug(bug1.getBug())
+                .build();
+
+
+        factService.addFact(bug1);
+        factService.addFact(card1);
+
+        trigger();
+
+        verify(trelloActions).assignLabelToCard(card1, "triage");
     }
 
     @Test
