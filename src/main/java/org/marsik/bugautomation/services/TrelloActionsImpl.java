@@ -91,7 +91,10 @@ public class TrelloActionsImpl implements TrelloActions {
         attrMap.put("desc", kiCard.getDescription());
 
         Card trCard = trello.createCard(trList.get().getId(), attrMap);
-        if (trCard != null) factService.addFact(kiCard);
+        if (trCard != null) {
+            kiCard.setId(trCard.getId());
+            factService.addFact(kiCard);
+        }
     }
 
     @Override
