@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.marsik.bugautomation.facts.BugzillaBugFlag;
 
@@ -90,5 +91,10 @@ public class BugProxy {
 
     public List<String> getKeywords() {
         return Arrays.asList(getAs("keywords", String[].class));
+    }
+
+    public List<String> getBlocks() {
+        return Arrays.asList(getAs("blocks", Integer[].class)).stream()
+                .map(String::valueOf).collect(Collectors.toList());
     }
 }

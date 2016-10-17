@@ -31,6 +31,8 @@ public class BugzillaBug {
     Set<BugzillaBugFlag> flags;
     Set<String> keywords;
 
+    Set<String> blocks;
+
     User assignedTo;
 
     Bug bug;

@@ -147,7 +147,8 @@ public class BugzillaRefreshJob implements Job {
                      .severity(BugzillaPriorityLevel.valueOf(issue.getSeverity().toUpperCase()))
                      .priority(BugzillaPriorityLevel.valueOf(issue.getPriority().toUpperCase()))
                      .verified(issue.getVerified().stream().map(String::toLowerCase).collect(Collectors.toSet()))
-                     .keywords(issue.getKeywords().stream().map(String::toLowerCase).collect(Collectors.toSet()));
+                     .keywords(issue.getKeywords().stream().map(String::toLowerCase).collect(Collectors.toSet()))
+                     .blocks(new HashSet<>(issue.getBlocks()));
 
             if (issue.getTargetMilestone() != null) {
                 bugzillaBugBuilder.targetMilestone(issue.getTargetMilestone());

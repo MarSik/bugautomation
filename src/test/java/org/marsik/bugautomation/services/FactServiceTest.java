@@ -1,5 +1,6 @@
 package org.marsik.bugautomation.services;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.doCallRealMethod;
@@ -9,6 +10,7 @@ import static org.mockito.Mockito.when;
 import javax.inject.Inject;
 
 import java.util.Collections;
+import java.util.HashSet;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -167,5 +169,49 @@ public class FactServiceTest {
         trigger();
 
         verify(trelloActions).moveCard(card1, board, "done");
+    }
+
+    @Test
+    public void testOrderWithBlocking() throws Exception {
+        BugzillaBug bug1 = BugzillaBug.builder()
+                .id("1")
+                .targetMilestone(null)
+                .blocks(new HashSet<>(Collections.singletonList("2")))
+                .bug(Bug.builder().id(1).build())
+                .build();
+
+        BugzillaBug bug2 = BugzillaBug.builder()
+                .id("2")
+                .targetMilestone("ovirt-4.0.6")
+                .bug(Bug.builder().id(2).build())
+                .build();
+
+        TrelloCard card1 = TrelloCard.builder()
+                .id("a")
+                .board(board)
+                .status(TRELLO_BACKLOG)
+                .pos(1.0)
+                .bug(bug1.getBug())
+                .build();
+
+        TrelloCard card2 = TrelloCard.builder()
+                .id("b")
+                .board(board)
+                .status(TRELLO_BACKLOG)
+                .pos(2.0)
+                .bug(bug2.getBug())
+                .score(200)
+                .build();
+
+        factService.addFact(bug1);
+        factService.addFact(bug2);
+        factService.addFact(card1);
+        factService.addFact(card2);
+
+        trigger();
+
+        assertThat(card2.getScore())
+                .isNotNull()
+                .isEqualTo(card1.getScore());
     }
 }
