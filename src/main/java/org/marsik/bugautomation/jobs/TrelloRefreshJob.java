@@ -117,9 +117,10 @@ public class TrelloRefreshJob implements Job {
                         .board(kiBoard)
                         .pos(trCard.getPos())
                         .status(status.toLowerCase().replace(" ", ""))
-                        .assignedTo(new ArrayList<>())
-                        .labels(new ArrayList<>())
+                        .assignedTo(new HashSet<>())
+                        .labels(new HashSet<>())
                         .fields(new HashMap<>())
+                        .blocks(new HashSet<>())
                         .build();
 
                 logger.debug("Found card {} at {}#{}", kiCard.getTitle(), kiCard.getStatus(), kiCard.getPos());
@@ -142,7 +143,8 @@ public class TrelloRefreshJob implements Job {
                 // Find bugs
                 Optional<Bug> bug = bugMatchingService.identifyBug(trCard.getName());
                 if (!bug.isPresent()) {
-                    bug = bugMatchingService.identifyBug(trCard.getDesc());
+                    // Description lookup has to ignore the field sections
+                    bug = bugMatchingService.identifyBug(kiCard.getCleanDesc());
                 }
 
                 if (bug.isPresent()) {
@@ -152,14 +154,29 @@ public class TrelloRefreshJob implements Job {
 
                 // Process custom flags from description
                 Map<String,String> fields = getCustomFields(trCard.getDesc());
+                kiCard.getFields().putAll(fields);
+
+                // Use score if provided
                 if (fields.containsKey("score")) {
                     try {
                         kiCard.setScore(Integer.valueOf(fields.get("score")));
                     } catch (NumberFormatException ex) {
-                        logger.error("Card {} contains invalid score value {}", kiCard, fields.get("score"));
+                        logger.warn("Card {} contains invalid score value {}", kiCard, fields.get("score"));
                     }
                 }
-                kiCard.getFields().putAll(fields);
+
+                // Add all blocking bugs
+                if (fields.containsKey("blocks")) {
+                    String[] blocksList = fields.get("blocks").split(",");
+                    for (String blocks: blocksList) {
+                        bug = bugMatchingService.identifyBug(blocks);
+                        if (bug.isPresent()) {
+                            kiCard.getBlocks().add(bug.get());
+                        } else {
+                            logger.warn("Card {} contains invalid blocking bug id {}", kiCard, blocks);
+                        }
+                    }
+                }
 
                 factService.addOrUpdateFact(kiCard);
             }

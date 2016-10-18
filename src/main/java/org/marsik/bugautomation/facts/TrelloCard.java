@@ -3,6 +3,7 @@ package org.marsik.bugautomation.facts;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import lombok.Builder;
 import lombok.Data;
@@ -24,12 +25,13 @@ public class TrelloCard {
     String description;
 
     @NotNull
-    List<User> assignedTo;
+    Set<User> assignedTo;
 
     @NotNull
-    List<TrelloLabel> labels;
+    Set<TrelloLabel> labels;
 
     Bug bug;
+    Set<Bug> blocks;
 
     /**
      * This field holds the importance of the card. Higher numbers are more important.
@@ -39,4 +41,8 @@ public class TrelloCard {
     Integer score;
 
     Map<String, String> fields;
+
+    public String getCleanDesc() {
+        return description.replaceAll("\\{\\{[^}]*\\}\\}", " ");
+    }
 }

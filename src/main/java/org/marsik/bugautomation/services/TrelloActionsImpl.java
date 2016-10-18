@@ -7,6 +7,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Optional;
 
 import org.marsik.bugautomation.facts.BugzillaBug;
@@ -79,8 +80,8 @@ public class TrelloActionsImpl implements TrelloActions {
                 .description(desc)
                 .bug(bug.getBug())
                 .board(kiBoard)
-                .assignedTo(Collections.singletonList(assignTo))
-                .labels(new ArrayList<>())
+                .assignedTo(new HashSet<>(Collections.singletonList(assignTo)))
+                .labels(new HashSet<>())
                 .build();
 
         final HashMap<String, Object> attrMap = new HashMap<>();

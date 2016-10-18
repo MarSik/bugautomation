@@ -253,4 +253,35 @@ public class FactServiceTest {
                 .isNotNull()
                 .isEqualTo(card1.getScore());
     }
+
+    @Test
+    public void testOrderWithBlockingCard() throws Exception {
+        Bug bug = new Bug(1);
+
+        TrelloCard card1 = TrelloCard.builder()
+                .id("a")
+                .board(board)
+                .status(TRELLO_BACKLOG)
+                .pos(1.0)
+                .blocks(new HashSet<>(Collections.singletonList(bug)))
+                .build();
+
+        TrelloCard card2 = TrelloCard.builder()
+                .id("b")
+                .board(board)
+                .status(TRELLO_BACKLOG)
+                .pos(2.0)
+                .bug(bug)
+                .score(200)
+                .build();
+
+        factService.addFact(card1);
+        factService.addFact(card2);
+
+        trigger();
+
+        assertThat(card2.getScore())
+                .isNotNull()
+                .isEqualTo(card1.getScore());
+    }
 }

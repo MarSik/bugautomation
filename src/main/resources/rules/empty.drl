@@ -309,6 +309,17 @@ end
      internal.setScore($card2, $score);
  end
 
+ // Cards that block something with a higher priority have high priority too
+ // (card2 blocks card1 bug in this rule)
+ rule "blockingCardPriority"
+   salience 100
+   when
+     $card1: TrelloCard($bug : bug, $score : score)
+     $card2: TrelloCard($bug memberOf blocks, score == null || $score > score)
+   then
+     internal.setScore($card2, $score);
+ end
+
  // Bugs with target release are more important than bugs without it
  rule "releasePriorityNone"
    salience 100
