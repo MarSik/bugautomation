@@ -282,6 +282,19 @@ rule "cardStats"
       .value(1f);
 end
 
+// Compute bug stats
+rule "bugStats"
+  when
+    $stats: Stats()
+    $bug: BugzillaBug()
+  then
+    $stats.add(SingleStat.BUGS)
+      .label("status", $bug.getStatus())
+      .label("target_milestone", $bug.getTargetMilestone())
+      .label("assigned_to", $bug.getAssignedTo().getName())
+      .value(1f);
+end
+
 
 /**
  * This section is used to pre-populate the card score prior to sorting.
@@ -363,7 +376,7 @@ end
      $bz: BugzillaBug($bug1 : bug, targetMilestone != null, targetMilestone == "ovirt-3.6.10")
      $card1: TrelloCard(bug == $bug1, score == null)
    then
-     internal.setScore($card1, 200 + 10 * $bz.getPriority().ordinal() + $bz.getSeverity().ordinal());
+     internal.setScore($card1, 300 + 10 * $bz.getPriority().ordinal() + $bz.getSeverity().ordinal());
  end
 
  rule "releasePriority407"
@@ -375,11 +388,32 @@ end
      internal.setScore($card1, 100 + 10 * $bz.getPriority().ordinal() + $bz.getSeverity().ordinal());
  end
 
+// Release score fallbacks for other versions we are not interested in
+// keep the salience lower than 100
+
  rule "releasePriority41"
-   salience 100
+   salience 99
    when
      $bz: BugzillaBug($bug1 : bug, targetMilestone != null, targetMilestone str[startsWith] "ovirt-4.1.")
      $card1: TrelloCard(bug == $bug1, score == null)
    then
-     internal.setScore($card1, 100 + 10 * $bz.getPriority().ordinal() + $bz.getSeverity().ordinal());
+     internal.setScore($card1, 200 + 10 * $bz.getPriority().ordinal() + $bz.getSeverity().ordinal());
+ end
+
+ rule "releasePriority3Fallback"
+   salience 98
+   when
+     $bz: BugzillaBug($bug1 : bug, targetMilestone != null, targetMilestone str[startsWith] "ovirt-3.")
+     $card1: TrelloCard(bug == $bug1, score == null)
+   then
+     internal.setScore($card1, 0 + 10 * $bz.getPriority().ordinal() + $bz.getSeverity().ordinal());
+ end
+
+ rule "releasePriority4Fallback"
+   salience 98
+   when
+     $bz: BugzillaBug($bug1 : bug, targetMilestone != null, targetMilestone str[startsWith] "ovirt-4.")
+     $card1: TrelloCard(bug == $bug1, score == null)
+   then
+     internal.setScore($card1, 0 + 10 * $bz.getPriority().ordinal() + $bz.getSeverity().ordinal());
  end
