@@ -25,7 +25,6 @@ public class BugzillaBug {
     String targetMilestone;
     String targetRelease;
 
-    Boolean blocker;
     Set<String> verified;
 
     Set<BugzillaBugFlag> flags;

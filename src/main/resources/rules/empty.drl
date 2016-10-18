@@ -314,7 +314,7 @@ end
  rule "blockingCardPriority"
    salience 100
    when
-     $card1: TrelloCard($bug : bug, $score : score)
+     $card1: TrelloCard(bug != null, $bug : bug, score != null, $score : score)
      $card2: TrelloCard($bug memberOf blocks, score == null || $score > score)
    then
      internal.setScore($card2, $score);

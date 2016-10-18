@@ -2,6 +2,7 @@ package org.marsik.bugautomation.services;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.UriBuilder;
 import java.net.URI;
 import java.util.ArrayList;
@@ -94,6 +95,7 @@ public class TrelloActionsImpl implements TrelloActions {
         Card trCard = trello.createCard(trList.get().getId(), attrMap);
         if (trCard != null) {
             kiCard.setId(trCard.getId());
+            kiCard.setPos(trCard.getPos());
             factService.addFact(kiCard);
         }
     }
@@ -113,11 +115,21 @@ public class TrelloActionsImpl implements TrelloActions {
         two.setPos(pos0);
 
         logger.info("Switching position of two cards");
-        trello.updateCard(one.getId(), Collections.singletonMap("pos", one.getPos()));
-        trello.updateCard(two.getId(), Collections.singletonMap("pos", two.getPos()));
+        try {
+            trello.updateCard(one.getId(), Collections.singletonMap("pos", one.getPos()));
+            factService.addOrUpdateFact(one);
+        } catch (NotFoundException ex) {
+            logger.warn("Card {} not found, removing from facts");
+            factService.removeFact(one);
+        }
 
-        factService.addOrUpdateFact(one);
-        factService.addOrUpdateFact(two);
+        try {
+            trello.updateCard(two.getId(), Collections.singletonMap("pos", two.getPos()));
+            factService.addOrUpdateFact(two);
+        } catch (NotFoundException ex) {
+            logger.warn("Card {} not found, removing from facts");
+            factService.removeFact(two);
+        }
     }
 
     @Override
@@ -138,12 +150,20 @@ public class TrelloActionsImpl implements TrelloActions {
             return;
         }
 
-        logger.info("Moving a card {} from {} to {}", kiCard.getTitle(), kiCard.getStatus(), trList.get().getName());
-        trello.moveCard(kiCard.getId(), trList.get().getId());
+        try {
+            logger.info("Moving a card {} from {} to {}",
+                    kiCard.getTitle(),
+                    kiCard.getStatus(),
+                    trList.get().getName());
+            trello.moveCard(kiCard.getId(), trList.get().getId());
 
-        kiCard.setBoard(kiBoard);
-        kiCard.setStatus(trList.get().getName().replace(" ", "").toLowerCase());
-        factService.addOrUpdateFact(kiCard);
+            kiCard.setBoard(kiBoard);
+            kiCard.setStatus(trList.get().getName().replace(" ", "").toLowerCase());
+            factService.addOrUpdateFact(kiCard);
+        }  catch (NotFoundException ex) {
+            logger.warn("Card {} not found, removing from facts");
+            factService.removeFact(kiCard);
+        }
     }
 
     @Override

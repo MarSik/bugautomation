@@ -75,6 +75,7 @@ public class TrelloRefreshJob implements Job {
 
         // Process boards
         for (String boardId: boards) {
+            logger.info("Refreshing trello board {}", boardId);
             Board trBoard = trello.getBoardWithData(boardId, "open", "open", "all");
             final TrelloBoard kiBoard = TrelloBoard.builder()
                     .name(trBoard.getName())
@@ -182,6 +183,7 @@ public class TrelloRefreshJob implements Job {
             }
         }
 
+        logger.info("Trello refresh finished");
         finished.set(true);
     }
 
