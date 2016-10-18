@@ -70,12 +70,11 @@ public class BugProxy {
 
     private Object firstValue(Object value) {
         if (value instanceof Object[]) {
-            final Object o = ((Object[]) value)[0];
-            if (o.toString().equals("---")) return null;
-            else return o;
-        } else {
-            return value;
+            value = ((Object[]) value)[0];
         }
+
+        if (value.toString().trim().equals("---")) return null;
+        else return value;
     }
 
     public void loadFlags(BugProxy data) {
