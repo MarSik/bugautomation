@@ -18,7 +18,7 @@ public class StatsTest {
 
         String result = stats.toPrometheusString();
         assertThat(result)
-                .isEqualTo("trigger_count 10.0");
+                .isEqualTo("bug_automation_trigger_count 10.0\n");
     }
 
     @Test
@@ -32,7 +32,7 @@ public class StatsTest {
 
         String result = stats.toPrometheusString();
         assertThat(result)
-                .isEqualTo("sprint_content 10.0");
+                .isEqualTo("bug_automation_sprint_content 10.0\n");
     }
 
     @Test
@@ -50,7 +50,7 @@ public class StatsTest {
 
         String result = stats.toPrometheusString();
         assertThat(result)
-                .isEqualTo("sprint_content{host=\"one\",status=\"done\"} 10.0");
+                .isEqualTo("bug_automation_sprint_content{host=\"one\",status=\"done\"} 10.0\n");
     }
 
     @Test
@@ -68,7 +68,7 @@ public class StatsTest {
 
         String result = stats.toPrometheusString();
         assertThat(result)
-                .isEqualTo("sprint_content{host=\"one\",status=\"done\"} 5.0\n" +
-                        "sprint_content{host=\"one\",status=\"in_progress\"} 5.0");
+                .isEqualTo("bug_automation_sprint_content{host=\"one\",status=\"done\"} 5.0\n" +
+                        "bug_automation_sprint_content{host=\"one\",status=\"in_progress\"} 5.0\n");
     }
 }

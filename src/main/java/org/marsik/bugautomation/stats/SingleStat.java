@@ -1,9 +1,9 @@
 package org.marsik.bugautomation.stats;
 
 public enum SingleStat {
-    TRIGGER_COUNT("trigger_count", StatType.COUNTER),
-    TRIGGER_TIME("trigger_run_time", StatType.GAUGE),
-    SPRINT_CONTENT("sprint_content", StatType.GAUGE);
+    TRIGGER_COUNT("bug_automation_trigger_count", StatType.COUNTER),
+    TRIGGER_TIME("bug_automation_trigger_run_time", StatType.GAUGE),
+    SPRINT_CONTENT("bug_automation_sprint_content", StatType.GAUGE);
 
     private final String name;
     private final StatType type;
