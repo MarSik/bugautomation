@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.marsik.bugautomation.facts.Bug;
 import org.marsik.bugautomation.facts.TrelloBoard;
@@ -51,6 +53,9 @@ public class TrelloRefreshJob implements Job {
 
     @Inject
     TrelloActionsImpl trelloActions;
+
+    private static final Pattern CUSTOM_FIELDS_GROUP_RE = Pattern.compile("\\{\\{ *(([a-zA-Z0-9]+=[a-zA-Z0-9@.:/_=?-]*) *)* *\\}\\}");
+    private static final Pattern CUSTOM_FIELDS_RE = Pattern.compile("([a-zA-Z0-9]+)=([a-zA-Z0-9@.:/_=?-]*)");
 
     @Override
     public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException {
@@ -144,6 +149,16 @@ public class TrelloRefreshJob implements Job {
                     kiCard.setBug(bug.get());
                 }
 
+                // Process custom flags from description
+                Map<String,String> fields = getCustomFields(trCard.getDesc());
+                if (fields.containsKey("score")) {
+                    try {
+                        kiCard.setScore(Integer.valueOf(fields.get("score")));
+                    } catch (NumberFormatException ex) {
+                        logger.error("Card {} contains invalid score value {}", kiCard, fields.get("score"));
+                    }
+                }
+
                 factService.addOrUpdateFact(kiCard);
             }
         }
@@ -153,5 +168,18 @@ public class TrelloRefreshJob implements Job {
 
     public static AtomicBoolean getFinished() {
         return finished;
+    }
+
+    public static Map<String, String> getCustomFields(String text) {
+        Map<String, String> values = new HashMap<>();
+        Matcher matcher = CUSTOM_FIELDS_GROUP_RE.matcher(text);
+        while (matcher.find()) {
+            Matcher fieldsMatcher = CUSTOM_FIELDS_RE.matcher(matcher.group(0));
+            while (fieldsMatcher.find()) {
+                values.put(fieldsMatcher.group(1), fieldsMatcher.group(2));
+            }
+        }
+
+        return values;
     }
 }
