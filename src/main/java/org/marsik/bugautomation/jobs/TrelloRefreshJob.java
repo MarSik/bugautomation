@@ -119,6 +119,7 @@ public class TrelloRefreshJob implements Job {
                         .status(status.toLowerCase().replace(" ", ""))
                         .assignedTo(new ArrayList<>())
                         .labels(new ArrayList<>())
+                        .fields(new HashMap<>())
                         .build();
 
                 logger.debug("Found card {} at {}#{}", kiCard.getTitle(), kiCard.getStatus(), kiCard.getPos());
@@ -158,6 +159,7 @@ public class TrelloRefreshJob implements Job {
                         logger.error("Card {} contains invalid score value {}", kiCard, fields.get("score"));
                     }
                 }
+                kiCard.getFields().putAll(fields);
 
                 factService.addOrUpdateFact(kiCard);
             }

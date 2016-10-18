@@ -2,6 +2,7 @@ package org.marsik.bugautomation.facts;
 
 import javax.validation.constraints.NotNull;
 import java.util.List;
+import java.util.Map;
 
 import lombok.Builder;
 import lombok.Data;
@@ -36,4 +37,6 @@ public class TrelloCard {
      * This field can be set from DRL rules.
      */
     Integer score;
+
+    Map<String, String> fields;
 }
