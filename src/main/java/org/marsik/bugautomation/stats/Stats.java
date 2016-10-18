@@ -59,6 +59,6 @@ public class Stats {
         return values.entrySet().stream()
                 .map(e -> e.getKey().toString() + " " + String.valueOf(e.getValue()))
                 .sorted()
-                .collect(Collectors.joining("\n"));
+                .collect(Collectors.joining("\n"))+"\n";
     }
 }
