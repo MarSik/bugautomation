@@ -1,0 +1,19 @@
+import org.marsik.bugautomation.facts.BugzillaBug;
+import org.marsik.bugautomation.facts.BugzillaPriorityLevel;
+import org.marsik.bugautomation.facts.TrelloBoard;
+import org.marsik.bugautomation.facts.TrelloCard;
+import org.marsik.bugautomation.facts.TrelloLabel;
+import org.marsik.bugautomation.facts.Bug;
+import org.marsik.bugautomation.services.BugzillaActions;
+import org.marsik.bugautomation.services.InternalActions;
+import org.marsik.bugautomation.services.TrelloActions;
+import org.marsik.bugautomation.facts.BugzillaBugFlag;
+import org.marsik.bugautomation.services.ConfigurationService;
+import org.marsik.bugautomation.stats.SingleStat;
+import org.marsik.bugautomation.stats.Stats;
+
+query "getBugInfo" (String bugId)
+  bug: BugzillaBug(id == bugId, $bug : bug)
+  card: TrelloCard(bug == $bug)
+end
+

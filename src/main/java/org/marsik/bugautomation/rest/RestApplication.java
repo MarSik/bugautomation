@@ -12,6 +12,7 @@ public class RestApplication extends Application {
     public Set<Class<?>> getClasses() {
         final HashSet<Class<?>> classes = new HashSet<>();
         classes.add(MetricsEndpoint.class);
+        classes.add(InfoEndpoint.class);
         return classes;
     }
 }

@@ -8,6 +8,7 @@ import org.kie.api.runtime.rule.FactHandle;
 import org.marsik.bugautomation.services.BugzillaActions;
 import org.marsik.bugautomation.services.ConfigurationService;
 import org.marsik.bugautomation.services.InternalActions;
+import org.marsik.bugautomation.services.RuleGlobalsService;
 import org.marsik.bugautomation.services.StatsService;
 import org.marsik.bugautomation.services.TrelloActions;
 import org.marsik.bugautomation.stats.SingleStat;
@@ -28,16 +29,7 @@ public class RefreshRulesJob implements Job {
     KieSession kSession;
 
     @Inject
-    InternalActions internalActions;
-
-    @Inject
-    BugzillaActions bugzillaActions;
-
-    @Inject
-    TrelloActions trelloActions;
-
-    @Inject
-    ConfigurationService configurationService;
+    RuleGlobalsService ruleGlobalsService;
 
     @Inject
     StatsService statsService;
@@ -51,11 +43,6 @@ public class RefreshRulesJob implements Job {
         }
 
         logger.info("Triggering rules...");
-        kSession.setGlobal("bugzilla", bugzillaActions);
-        kSession.setGlobal("trello", trelloActions);
-        kSession.setGlobal("config", configurationService);
-        kSession.setGlobal("internal", internalActions);
-
         final Stats stats = new Stats(statsService.getStats());
         stats.add(SingleStat.TRIGGER_COUNT)
                 .value(1f);
