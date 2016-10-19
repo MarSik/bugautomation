@@ -165,6 +165,7 @@ public class BugzillaClient {
 
                 .argument("include_fields", "id")
                 .argument("include_fields", "flags")
+                .argument("include_fields", "external_bugs")
                 .call();
 
         Collection<Map<String,Object>> bugs = Arrays.asList((Object[]) ret.get("bugs"))

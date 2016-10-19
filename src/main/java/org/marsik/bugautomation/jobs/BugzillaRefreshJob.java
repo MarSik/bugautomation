@@ -102,8 +102,10 @@ public class BugzillaRefreshJob implements Job {
             for (BugProxy bzExtra: session.getExtra(retrievedBugs.keySet())) {
                 bzExtra.loadFlags(bzExtra);
                 retrievedBugs.get(bzExtra.getId()).setFlags(bzExtra.getFlags());
-                factService.addOrUpdateFact(retrievedBugs.get(bzExtra.getId()));
             }
+
+            // Update fact database
+            retrievedBugs.values().stream().forEach(factService::addOrUpdateFact);
 
             // Forget about bugs that were assigned out of scope
             Set<String> bugsToRemove = new HashSet<>(bugMatchingService.getKnownBugs());
@@ -178,7 +180,6 @@ public class BugzillaRefreshJob implements Job {
             );
 
             kiBugs.put(bugzillaBug.getId(), bugzillaBug);
-            factService.addOrUpdateFact(bugzillaBug);
         }
 
         return kiBugs;
