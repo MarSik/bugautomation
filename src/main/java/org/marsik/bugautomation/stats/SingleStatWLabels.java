@@ -17,7 +17,7 @@ public class SingleStatWLabels {
 
     public String toString() {
         String strLabels = labels.stream()
-                .map(v -> v.getName() + "=\"" + v.getValue() + "\"")
+                .map(v -> v.getName() + "=\"" + v.getSafeValue() + "\"")
                 .sorted()
                 .collect(Collectors.joining(","));
 

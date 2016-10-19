@@ -19,4 +19,8 @@ public class LabelValue implements Comparable<LabelValue> {
                 .compare(this.value, other.value)
                 .result();
     }
+
+    public String getSafeValue() {
+        return (value == null || value.isEmpty()) ? "none" : value;
+    }
 }
