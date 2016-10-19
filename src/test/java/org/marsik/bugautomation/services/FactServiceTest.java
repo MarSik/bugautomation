@@ -82,7 +82,7 @@ public class FactServiceTest {
     public void testOrderWithAndWithoutRelease() throws Exception {
         BugzillaBug bug1 = BugzillaBug.builder()
                 .id("1")
-                .targetMilestone(null)
+                .targetMilestone("")
                 .bug(Bug.builder().id(1).build())
                 .priority(BugzillaPriorityLevel.UNSPECIFIED)
                 .severity(BugzillaPriorityLevel.UNSPECIFIED)
@@ -121,14 +121,15 @@ public class FactServiceTest {
 
         trigger();
 
-        verify(trelloActions).switchCards(card1, card2);
+        assertThat(card1.getScore())
+                .isLessThan(card2.getScore());
     }
 
     @Test
     public void testDoneBugNoFlags() throws Exception {
         BugzillaBug bug1 = BugzillaBug.builder()
                 .id("1")
-                .targetMilestone(null)
+                .targetMilestone("")
                 .priority(BugzillaPriorityLevel.UNSPECIFIED)
                 .severity(BugzillaPriorityLevel.UNSPECIFIED)
                 .bug(Bug.builder().id(1).build())
@@ -157,7 +158,7 @@ public class FactServiceTest {
     public void testDoneBugNoDocFlag() throws Exception {
         BugzillaBug bug1 = BugzillaBug.builder()
                 .id("1")
-                .targetMilestone(null)
+                .targetMilestone("")
                 .bug(Bug.builder().id(1).build())
                 .priority(BugzillaPriorityLevel.UNSPECIFIED)
                 .severity(BugzillaPriorityLevel.UNSPECIFIED)
@@ -187,7 +188,7 @@ public class FactServiceTest {
     public void testNeedsTriage() throws Exception {
         BugzillaBug bug1 = BugzillaBug.builder()
                 .id("1")
-                .targetMilestone(null)
+                .targetMilestone("")
                 .priority(BugzillaPriorityLevel.UNSPECIFIED)
                 .severity(BugzillaPriorityLevel.UNSPECIFIED)
                 .bug(Bug.builder().id(1).build())
@@ -217,7 +218,7 @@ public class FactServiceTest {
     public void testOrderWithBlocking() throws Exception {
         BugzillaBug bug1 = BugzillaBug.builder()
                 .id("1")
-                .targetMilestone(null)
+                .targetMilestone("")
                 .priority(BugzillaPriorityLevel.UNSPECIFIED)
                 .severity(BugzillaPriorityLevel.UNSPECIFIED)
                 .blocks(new HashSet<>(Collections.singletonList("2")))
@@ -292,5 +293,118 @@ public class FactServiceTest {
         assertThat(card2.getScore())
                 .isNotNull()
                 .isEqualTo(card1.getScore());
+    }
+
+    @Test
+    public void testZStreamScore1() throws Exception {
+        assertThat(performReleaseAndFlagTest("ovirt-4.0.6", "ovirt-4.0.6+"))
+                .isNotNull()
+                .isGreaterThan(100);
+    }
+
+    @Test
+    public void testZStreamScore2() throws Exception {
+        assertThat(performReleaseAndFlagTest("ovirt-4.0.6", "rhevm-4.0.6+"))
+                .isNotNull()
+                .isGreaterThan(100);
+    }
+
+    @Test
+    public void testZStreamScore3() throws Exception {
+        assertThat(performReleaseAndFlagTest("ovirt-4.0.6", "ovirt-4.0.z+"))
+                .isNotNull()
+                .isGreaterThan(100);
+    }
+
+    @Test
+    public void testZStreamScore4() throws Exception {
+        assertThat(performReleaseAndFlagTest("ovirt-4.0.6", "rhevm-4.0.z+"))
+                .isNotNull()
+                .isGreaterThan(100);
+    }
+
+    @Test
+    public void testZStreamScore1neg() throws Exception {
+        assertThat(performReleaseAndFlagTest("ovirt-4.0.6", "ovirt-4.0.6-"))
+                .isNotNull()
+                .isLessThan(100);
+    }
+
+    @Test
+    public void testZStreamScore2neg() throws Exception {
+        assertThat(performReleaseAndFlagTest("ovirt-4.0.6", "rhevm-4.0.6-"))
+                .isNotNull()
+                .isLessThan(100);
+    }
+
+    @Test
+    public void testZStreamScore3neg() throws Exception {
+        assertThat(performReleaseAndFlagTest("ovirt-4.0.6", "ovirt-4.0.z-"))
+                .isNotNull()
+                .isLessThan(100);
+    }
+
+    @Test
+    public void testZStreamScore4neg() throws Exception {
+        assertThat(performReleaseAndFlagTest("ovirt-4.0.6", "rhevm-4.0.z-"))
+                .isNotNull()
+                .isLessThan(100);
+    }
+
+    @Test
+    public void testZStreamScore1waiting() throws Exception {
+        assertThat(performReleaseAndFlagTest("ovirt-4.0.6", "ovirt-4.0.6?"))
+                .isNotNull()
+                .isLessThan(100);
+    }
+
+    @Test
+    public void testZStreamScore2waiting() throws Exception {
+        assertThat(performReleaseAndFlagTest("ovirt-4.0.6", "rhevm-4.0.6?"))
+                .isNotNull()
+                .isLessThan(100);
+    }
+
+    @Test
+    public void testZStreamScore3waiting() throws Exception {
+        assertThat(performReleaseAndFlagTest("ovirt-4.0.6", "ovirt-4.0.z?"))
+                .isNotNull()
+                .isLessThan(100);
+    }
+
+    @Test
+    public void testZStreamScore4waiting() throws Exception {
+        assertThat(performReleaseAndFlagTest("ovirt-4.0.6", "rhevm-4.0.z?"))
+                .isNotNull()
+                .isLessThan(100);
+    }
+
+    private Integer performReleaseAndFlagTest(String release, String flag) {
+        BugzillaBug bug1 = BugzillaBug.builder()
+                .id("1")
+                .targetMilestone(release)
+                .priority(BugzillaPriorityLevel.UNSPECIFIED)
+                .severity(BugzillaPriorityLevel.UNSPECIFIED)
+                .bug(Bug.builder().id(1).build())
+                .priority(BugzillaPriorityLevel.UNSPECIFIED)
+                .status("modified")
+                .assignedTo(user)
+                .flags(new HashSet<>(Collections.singletonList(new BugzillaBugFlag(flag))))
+                .build();
+
+        TrelloCard card1 = TrelloCard.builder()
+                .id("a")
+                .board(board)
+                .status(TRELLO_BACKLOG)
+                .pos(1.0)
+                .bug(bug1.getBug())
+                .build();
+
+        factService.addFact(bug1);
+        factService.addFact(card1);
+
+        trigger();
+
+        return card1.getScore();
     }
 }

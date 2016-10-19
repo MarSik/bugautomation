@@ -73,7 +73,7 @@ public class BugProxy {
             value = ((Object[]) value)[0];
         }
 
-        if (value.toString().trim().equals("---")) return null;
+        if (value.toString().trim().equals("---")) return "";
         else return value;
     }
 
