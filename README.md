@@ -33,9 +33,9 @@ cfg.backlog=todo
 
 ```
 
-Start the server using:
+Unpack the archive and start the server form the unpacked directory using:
 
 ```
-java -jar server-<version>.jar -Dbug.config=config.properties
+java -cp '*' -Dbug.config=path/to/config.properties org.marsik.bugautomation.Main
 ```
 
