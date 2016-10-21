@@ -13,7 +13,11 @@ import org.marsik.bugautomation.stats.SingleStat;
 import org.marsik.bugautomation.stats.Stats;
 
 query "getBugInfo" (String bugId)
-  bug: BugzillaBug(id == bugId, $bug : bug)
-  card: TrelloCard(bug == $bug)
+  bug: BugzillaBug(id str[startsWith] bugId, $bug : bug)
+  card: TrelloCard(bug == $bug || $bug memberOf blocks, $board : board, $status : status, $pos : pos)
+  order: Long() from accumulate(
+    TrelloCard(this != card, board == $board, $status == status, pos < $pos),
+    count(1)
+  )
 end
 
