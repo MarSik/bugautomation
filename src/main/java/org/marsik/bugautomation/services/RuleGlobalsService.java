@@ -46,6 +46,7 @@ public class RuleGlobalsService {
             Map<String, Object> dtoRow = new HashMap<>();
             dtoRow.put("bug", row.get("bug"));
             dtoRow.put("card", row.get("card"));
+            dtoRow.put("order", row.get("order"));
             dtos.add(dtoRow);
         }
         return dtos;

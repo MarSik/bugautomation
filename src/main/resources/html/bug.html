@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Bug status</title>
+    <script src="https://unpkg.com/react@15.3.2/dist/react.js"></script>
+    <script src="https://unpkg.com/react-dom@15.3.2/dist/react-dom.js"></script>
+    <script src="https://unpkg.com/babel-standalone@6.15.0/babel.min.js"></script>
+    <script src="https://unpkg.com/jquery@3.1.0/dist/jquery.min.js"></script>
+    <script src="https://unpkg.com/remarkable@1.7.1/dist/remarkable.min.js"></script>
+</head>
+<body>
+<div id="content"></div>
+
+<script type="text/babel">
+var BugBox = React.createClass({
+  getInitialState: function() {
+    return {bugId: ''};
+  },
+  handleBugChange: function(e) {
+    this.setState({bugId: e.target.value.trim()});
+  },
+  render: function() {
+    return (
+      <div className="bugBox">
+        <input type="text" value={this.state.bugId} onChange={this.handleBugChange} placeholder="BugId"/>
+
+        <BugInfo bug={this.state.bugId} />
+      </div>
+    );
+  }
+});
+
+var BugInfo = React.createClass({
+  getInitialState: function() {
+    return {data: [], bug: null};
+  },
+  refresh: function() {
+    if (this.props.bug == null || this.props.bug.trim() == "") return;
+
+    $.ajax({
+      url: "/bug/" + this.props.bug,
+      dataType: 'json',
+      cache: false,
+      success: function(data) {
+        this.setState({data: data, bug: this.props.bug});
+      }.bind(this),
+      error: function(xhr, status, err) {
+        console.error(this.props.url, status, err.toString());
+      }.bind(this)
+    });
+  },
+  componentDidMount: function() {
+    this.setState({data: this.state.data, bug: this.props.bug});
+    this.refresh();
+  },
+  componentDidUpdate: function() {
+    if (this.props.bug == this.state.bug) return;
+    this.setState({data: this.state.data, bug: this.props.bug});
+    this.refresh();
+  },
+  singleBugAndCard: function(entry) {
+    return (
+      <tr>
+        <td><a href={"https://bugzilla.redhat.com/" + entry.bug.id}>{entry.bug.id}</a></td>
+        <td>{entry.bug.status}</td>
+        <td>{entry.bug.assignedTo.name}</td>
+        <td>{entry.bug.title}</td>
+        <td>{entry.bug.targetMilestone}</td>
+        <td>{entry.bug.priority}</td>
+        <td>{entry.bug.severity}</td>
+        <td>{entry.bug.flags.map((f) => (<span>{f.flag}</span>))}</td>
+        <td>&nbsp;</td>
+        <td><a href={"https://trello.com/c/" + entry.card.id}>{entry.card.title}</a></td>
+        <td>{entry.card.status}</td>
+        <td>{entry.card.assignedTo.map((user) => (<span>{user.name}</span>))}</td>
+        <td>{entry.order}</td>
+        <td>{entry.card.pos}</td>
+        <td>{entry.card.score}</td>
+        <td>{entry.card.labels.map((f) => (<span>{f.name}</span>))}</td>
+      </tr>
+    );
+  },
+  render: function() {
+    return (
+      <table>
+        {this.state.data.map((entry) => this.singleBugAndCard(entry))}
+      </table>
+    );
+  }
+});
+
+ReactDOM.render(
+  <BugBox />,
+  document.getElementById('content')
+);
+</script>
+</body>
+</html>

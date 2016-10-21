@@ -13,6 +13,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.kie.api.cdi.KSession;
+import org.kie.api.event.rule.DebugAgendaEventListener;
 import org.kie.api.runtime.KieSession;
 import org.marsik.bugautomation.cdi.WeldJUnit4Runner;
 import org.marsik.bugautomation.facts.Bug;
@@ -75,6 +76,7 @@ public class FactServiceTest {
         kSession.setGlobal("trello", trelloActions);
         kSession.setGlobal("config", configurationService);
         kSession.insert(new Stats());
+        kSession.addEventListener(new DebugAgendaEventListener());
         kSession.fireAllRules();
     }
 
