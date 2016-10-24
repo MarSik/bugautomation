@@ -1,7 +1,8 @@
 package org.marsik.bugautomation.jobs;
 
 import javax.inject.Inject;
-import java.util.ArrayList;
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -126,6 +127,19 @@ public class TrelloRefreshJob implements Job {
 
                 logger.debug("Found card {} at {}#{}", kiCard.getTitle(), kiCard.getStatus(), kiCard.getPos());
 
+                // Process custom flags from description
+                Map<String,String> fields = getCustomFields(trCard.getDesc());
+                kiCard.getFields().putAll(fields);
+
+                // Ignore when ignore flag is present!
+                if (fields.containsKey("ignore")) {
+                    continue;
+                }
+
+                if (trCard.getDue() != null) {
+                    kiCard.setDueDate(Instant.parse(trCard.getDue()));
+                }
+
                 // Add label facts
                 trCard.getLabels().stream()
                         .map(l -> new TrelloLabel(kiBoard, l.getId(), l.getColor().toLowerCase(), l.getName().toLowerCase()))
@@ -152,10 +166,6 @@ public class TrelloRefreshJob implements Job {
                     logger.debug("Card {} is tied to virtual bug {}", kiCard.getTitle(), bug.get().getId());
                     kiCard.setBug(bug.get());
                 }
-
-                // Process custom flags from description
-                Map<String,String> fields = getCustomFields(trCard.getDesc());
-                kiCard.getFields().putAll(fields);
 
                 // Use score if provided
                 if (fields.containsKey("score")) {

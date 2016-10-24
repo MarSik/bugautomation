@@ -21,5 +21,8 @@ public class Card extends BaseObject {
 
     private double pos;
 
+    // Due date, we parse it later
+    private String due;
+
     private List<Label> labels;
 }

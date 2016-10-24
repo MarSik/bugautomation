@@ -1,9 +1,14 @@
 package org.marsik.bugautomation.facts;
 
 import javax.validation.constraints.NotNull;
-import java.util.List;
+import java.time.Instant;
 import java.util.Map;
 import java.util.Set;
+
+import org.codehaus.jackson.map.annotate.JsonDeserialize;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
+import org.codehaus.jackson.map.ext.JodaDeserializers;
+import org.codehaus.jackson.map.ext.JodaSerializers;
 
 import lombok.Builder;
 import lombok.Data;
@@ -44,6 +49,8 @@ public class TrelloCard {
      * Describes the target milestone. Used for non-bug related cards.
      */
     String targetMilestone;
+
+    Instant dueDate;
 
     Map<String, String> fields;
 
