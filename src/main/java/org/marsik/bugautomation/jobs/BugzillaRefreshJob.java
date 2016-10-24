@@ -142,6 +142,7 @@ public class BugzillaRefreshJob implements Job {
         for (BugProxy issue : i) {
              BugzillaBug.BugzillaBugBuilder bugzillaBugBuilder = BugzillaBug.builder()
                      .id(issue.getId())
+                     .community(issue.getCommunity().toLowerCase().trim().replace(" ", ""))
                      .title(issue.getSummary())
                      .description(issue.getDescription())
                      .status(issue.getStatus().toLowerCase())

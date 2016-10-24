@@ -40,6 +40,11 @@ public class TrelloCard {
      */
     Integer score;
 
+    /**
+     * Describes the target milestone. Used for non-bug related cards.
+     */
+    String targetMilestone;
+
     Map<String, String> fields;
 
     public String getCleanDesc() {

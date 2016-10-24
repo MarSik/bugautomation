@@ -194,7 +194,7 @@ end
 // Mark all ZStream cards with insufficient flags
 rule "missingZStreamFlags"
   when
-    $bz: BugzillaBug($bug : bug, $flags: flags,
+    $bz: BugzillaBug($bug : bug, $flags: flags, community == "redhat",
       targetMilestone str[startsWith] "ovirt-3." || targetMilestone str[startsWith] "ovirt-4.0.")
     not(exists BugzillaBugFlag(approves($bz.getTargetMilestone())) from $flags)
 
@@ -219,12 +219,22 @@ rule "okZStreamFlags"
 end
 
 // Remove missing flags label when the bug is not targeted to ZStream
-rule "notAZStream"
+rule "zStreamFlagsNotNeededRelease"
   when
     $bz: BugzillaBug($bug : bug,
       targetMilestone not str[startsWith] "ovirt-3.",
       targetMilestone not str[startsWith] "ovirt-4.0.")
 
+    $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
+    $card: TrelloCard(bug == $bug, board == $board, $labels: labels)
+    $label: TrelloLabel(name == "flags missing") from $labels
+  then
+    trello.removeLabelFromCard($card, $label);
+end
+
+rule "zStreamFlagsNotNeededCommunity"
+  when
+    $bz: BugzillaBug($bug : bug, community != "redhat")
     $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
     $card: TrelloCard(bug == $bug, board == $board, $labels: labels)
     $label: TrelloLabel(name == "flags missing") from $labels
@@ -292,7 +302,6 @@ rule "bugStats"
       .value(1f);
 end
 
-
 /**
  * This section is used to pre-populate the card score prior to sorting.
  *
@@ -330,89 +339,47 @@ end
      internal.setScore($card2, $score);
  end
 
-// Z stream release priorities, only set them when all flags are ready
-
- rule "releasePriority405"
-   salience 100
-   when
-     $bz: BugzillaBug($bug1 : bug, targetMilestone != null, targetMilestone == "ovirt-4.0.5", $flags : flags)
-     BugzillaBugFlag(approves($bz.getTargetMilestone())) from $flags
-     $card1: TrelloCard(bug == $bug1, score == null)
-   then
-     internal.setScore($card1, 400 + 10 * $bz.getPriority().ordinal() + $bz.getSeverity().ordinal());
- end
-
- rule "releasePriority406"
-   salience 100
-   when
-     $bz: BugzillaBug($bug1 : bug, targetMilestone != null, targetMilestone == "ovirt-4.0.6", $flags: flags)
-     BugzillaBugFlag(approves($bz.getTargetMilestone())) from $flags
-     $card1: TrelloCard(bug == $bug1, score == null)
-   then
-     internal.setScore($card1, 200 + 10 * $bz.getPriority().ordinal() + $bz.getSeverity().ordinal());
- end
-
- rule "releasePriority369"
-   salience 100
-   when
-     $bz: BugzillaBug($bug1 : bug, targetMilestone != null, targetMilestone == "ovirt-3.6.9", $flags: flags)
-     BugzillaBugFlag(approves($bz.getTargetMilestone())) from $flags
-     $card1: TrelloCard(bug == $bug1, score == null)
-   then
-     internal.setScore($card1, 300 + 10 * $bz.getPriority().ordinal() + $bz.getSeverity().ordinal());
- end
-
- rule "releasePriority3610"
-   salience 100
-   when
-     $bz: BugzillaBug($bug1 : bug, targetMilestone != null, targetMilestone == "ovirt-3.6.10", $flags: flags)
-     BugzillaBugFlag(approves($bz.getTargetMilestone())) from $flags
-     $card1: TrelloCard(bug == $bug1, score == null)
-   then
-     internal.setScore($card1, 300 + 10 * $bz.getPriority().ordinal() + $bz.getSeverity().ordinal());
- end
-
- rule "releasePriority407"
-   salience 100
-   when
-     $bz: BugzillaBug($bug1 : bug, targetMilestone != null, targetMilestone == "ovirt-4.0.7", $flags : flags)
-     BugzillaBugFlag(approves($bz.getTargetMilestone())) from $flags
-     $card1: TrelloCard(bug == $bug1, score == null)
-   then
-     internal.setScore($card1, 100 + 10 * $bz.getPriority().ordinal() + $bz.getSeverity().ordinal());
- end
-
-// Release score fallbacks for other versions we are not interested in
-// keep the salience lower than 100
+// Specific release priorities
 
  rule "releasePriority41"
+   salience 100
+   when
+     $bz: BugzillaBug($bug1 : bug, targetMilestone str[startsWith] "ovirt-4.1.")
+     $card1: TrelloCard(bug == $bug1, score == null)
+   then
+     internal.setScore($card1, config.getCachedInt("release.ovirt-4.1.0", 0) + 10 * $bz.getPriority().ordinal() + $bz.getSeverity().ordinal());
+ end
+
+// Release score fallbacks for other versions
+// keep the salience lower than 100 (but higher than 0)
+ rule "scoreStandaloneCard"
    salience 99
    when
-     $bz: BugzillaBug($bug1 : bug, targetMilestone != null, targetMilestone str[startsWith] "ovirt-4.1.")
-     $card1: TrelloCard(bug == $bug1, score == null)
+     $card1: TrelloCard(bug == null, targetMilestone != null, $tm : targetMilestone, score == null)
    then
-     internal.setScore($card1, 200 + 10 * $bz.getPriority().ordinal() + $bz.getSeverity().ordinal());
+     internal.setScore($card1, config.getCachedInt("release." + $tm, 0));
  end
 
- rule "releasePriority3Fallback"
-   salience 98
+ rule "releasePriorityDs"
+   salience 99
    when
-     $bz: BugzillaBug($bug1 : bug, targetMilestone != null, targetMilestone str[startsWith] "ovirt-3.")
+     $bz: BugzillaBug($bug1 : bug, community == "redhat", $tm : targetMilestone, $flags : flags)
+     BugzillaBugFlag(approves($bz.getTargetMilestone())) from $flags
      $card1: TrelloCard(bug == $bug1, score == null)
    then
-     internal.setScore($card1, 0 + 10 * $bz.getPriority().ordinal() + $bz.getSeverity().ordinal());
+     internal.setScore($card1, config.getCachedInt("release." + $tm, 0) + 10 * $bz.getPriority().ordinal() + $bz.getSeverity().ordinal());
  end
 
- rule "releasePriority4Fallback"
-   salience 98
+ rule "releasePriorityUs"
+   salience 99
    when
-     $bz: BugzillaBug($bug1 : bug, targetMilestone != null, targetMilestone str[startsWith] "ovirt-4.")
+     $bz: BugzillaBug($bug1 : bug, community != "redhat", $tm : targetMilestone)
      $card1: TrelloCard(bug == $bug1, score == null)
    then
-     internal.setScore($card1, 0 + 10 * $bz.getPriority().ordinal() + $bz.getSeverity().ordinal());
+     internal.setScore($card1, config.getCachedInt("release." + $tm, 0) + 10 * $bz.getPriority().ordinal() + $bz.getSeverity().ordinal());
  end
 
- // Bugs with target release are more important than bugs without it
+ // Bugs with any target release are more important than bugs without it
  rule "releasePriorityNone"
    salience 98
    when
@@ -421,3 +388,21 @@ end
    then
      internal.setScore($card1, -100 + 10 * $bz.getPriority().ordinal() + $bz.getSeverity().ordinal());
  end
+
+// Score callback
+ rule "scoreNotSetBz"
+   salience 97
+   when
+     $bz: BugzillaBug($bug1 : bug)
+     $card1: TrelloCard(bug == $bug1, score == null)
+   then
+     internal.setScore($card1, 0 + 10 * $bz.getPriority().ordinal() + $bz.getSeverity().ordinal());
+ end
+
+  rule "scoreNotSetNoBz"
+    salience 97
+    when
+      $card1: TrelloCard(bug == null, score == null)
+    then
+      internal.setScore($card1, 0);
+  end

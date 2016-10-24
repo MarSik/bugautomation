@@ -46,7 +46,22 @@ public class ConfigurationServiceProperties implements ConfigurationService {
      */
     @Override
     public String getCached(String key) {
-         return cache.getUnchecked(key);
+        try {
+            return cache.getUnchecked(key);
+        } catch (CacheLoader.InvalidCacheLoadException ex) {
+            // When no such entry exists
+            return null;
+        }
+    }
+
+    @Override
+    public Integer getCachedInt(String key, Integer def) {
+        final String value = getCached(key);
+        if (value != null) {
+            return Integer.valueOf(value);
+        } else {
+            return def;
+        }
     }
 
     @Override

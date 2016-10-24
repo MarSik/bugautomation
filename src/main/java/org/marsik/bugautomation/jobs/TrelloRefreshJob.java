@@ -179,6 +179,31 @@ public class TrelloRefreshJob implements Job {
                     }
                 }
 
+                if (fields.containsKey("bug")) {
+                    String[] blocksList = fields.get("bug").split(",");
+                    for (String blocks: blocksList) {
+                        bug = bugMatchingService.identifyBug(blocks);
+                        if (bug.isPresent()) {
+                            kiCard.getBlocks().add(bug.get());
+                        } else {
+                            logger.warn("Card {} contains invalid blocking bug id {}", kiCard, blocks);
+                        }
+                    }
+                }
+
+                // Use target milestone if provided
+                if (fields.containsKey("target")) {
+                    kiCard.setTargetMilestone(fields.get("target"));
+                }
+
+                if (fields.containsKey("targetMilestone")) {
+                    kiCard.setTargetMilestone(fields.get("targetMilestone"));
+                }
+
+                if (fields.containsKey("targetmilestone")) {
+                    kiCard.setTargetMilestone(fields.get("targetmilestone"));
+                }
+
                 factService.addOrUpdateFact(kiCard);
             }
         }

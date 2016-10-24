@@ -1,6 +1,8 @@
 package org.marsik.bugautomation.rest;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -31,5 +33,12 @@ public class InfoEndpoint {
         ClassLoader classLoader = getClass().getClassLoader();
         String content = IOUtils.toString(classLoader.getResourceAsStream("html/bug.html"));
         return Response.ok(content).build();
+    }
+
+    @Path("")
+    @Produces(MediaType.TEXT_HTML)
+    @GET
+    public Response redirectToFrontPage() throws IOException, URISyntaxException {
+        return Response.temporaryRedirect(new URI("/bug/index.html")).build();
     }
 }

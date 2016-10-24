@@ -16,6 +16,7 @@ public interface ConfigurationService {
     Optional<String> get(String key);
 
     String getCached(String key);
+    Integer getCachedInt(String key, Integer def);
 
     Properties getProperties();
 }

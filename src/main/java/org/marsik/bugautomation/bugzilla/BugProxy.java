@@ -18,6 +18,10 @@ public class BugProxy {
         this.map = map;
     }
 
+    public String getCommunity() {
+        return (String) map.getOrDefault("classification", "");
+    }
+
     public String getId() {
         return (String)map.get("id").toString();
     }

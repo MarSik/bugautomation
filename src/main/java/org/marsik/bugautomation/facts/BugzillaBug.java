@@ -18,6 +18,12 @@ public class BugzillaBug {
     String title;
     String description;
 
+    /**
+     * What community does this bug belong to? oVirt, Red Hat or other?
+     */
+    @NotNull
+    String community;
+
     @NotNull
     String status;
     LocalDateTime statusModifiedAt;

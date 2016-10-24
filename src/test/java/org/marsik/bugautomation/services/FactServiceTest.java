@@ -22,6 +22,7 @@ import org.marsik.bugautomation.facts.BugzillaBugFlag;
 import org.marsik.bugautomation.facts.BugzillaPriorityLevel;
 import org.marsik.bugautomation.facts.TrelloBoard;
 import org.marsik.bugautomation.facts.TrelloCard;
+import org.marsik.bugautomation.facts.TrelloLabel;
 import org.marsik.bugautomation.facts.User;
 import org.marsik.bugautomation.stats.Stats;
 import org.mockito.Mock;
@@ -59,6 +60,7 @@ public class FactServiceTest {
         MockitoAnnotations.initMocks(this);
         when(configurationService.getCached("cfg.board.sprint")).thenReturn(TRELLO_BOARD);
         when(configurationService.getCached("cfg.backlog")).thenReturn(TRELLO_BACKLOG);
+        when(configurationService.getCachedInt("release.ovirt-4.0.6", 0)).thenReturn(200);
 
         board = TrelloBoard.builder()
                 .id("sprint")
@@ -214,6 +216,109 @@ public class FactServiceTest {
         trigger();
 
         verify(trelloActions).assignLabelToCard(card1, "triage");
+    }
+
+    @Test
+    public void testFlagsNotNeededRelease() throws Exception {
+        BugzillaBug bug1 = BugzillaBug.builder()
+                .id("1")
+                .targetMilestone("")
+                .priority(BugzillaPriorityLevel.UNSPECIFIED)
+                .severity(BugzillaPriorityLevel.UNSPECIFIED)
+                .bug(Bug.builder().id(1).build())
+                .priority(BugzillaPriorityLevel.UNSPECIFIED)
+                .status("modified")
+                .assignedTo(user)
+                .community("redhat")
+                .build();
+
+        final TrelloLabel label = TrelloLabel.builder()
+                .id("000")
+                .name("flags missing")
+                .build();
+
+        TrelloCard card1 = TrelloCard.builder()
+                .id("a")
+                .board(board)
+                .status(TRELLO_BACKLOG)
+                .pos(1.0)
+                .bug(bug1.getBug())
+                .labels(new HashSet<>(Collections.singletonList(label)))
+                .build();
+
+        factService.addFact(bug1);
+        factService.addFact(card1);
+
+        trigger();
+
+        verify(trelloActions).removeLabelFromCard(card1, label);
+    }
+
+    @Test
+    public void testFlagsNotNeededCommunity() throws Exception {
+        BugzillaBug bug1 = BugzillaBug.builder()
+                .id("1")
+                .targetMilestone("ovirt-4.0.6")
+                .priority(BugzillaPriorityLevel.UNSPECIFIED)
+                .severity(BugzillaPriorityLevel.UNSPECIFIED)
+                .bug(Bug.builder().id(1).build())
+                .priority(BugzillaPriorityLevel.UNSPECIFIED)
+                .status("modified")
+                .assignedTo(user)
+                .community("ovirt")
+                .build();
+
+        final TrelloLabel label = TrelloLabel.builder()
+                .id("000")
+                .name("flags missing")
+                .build();
+
+        TrelloCard card1 = TrelloCard.builder()
+                .id("a")
+                .board(board)
+                .status(TRELLO_BACKLOG)
+                .pos(1.0)
+                .bug(bug1.getBug())
+                .labels(new HashSet<>(Collections.singletonList(label)))
+                .build();
+
+        factService.addFact(bug1);
+        factService.addFact(card1);
+
+        trigger();
+
+        verify(trelloActions).removeLabelFromCard(card1, label);
+    }
+
+    @Test
+    public void testFlagsNeeded() throws Exception {
+        BugzillaBug bug1 = BugzillaBug.builder()
+                .id("1")
+                .targetMilestone("ovirt-4.0.6")
+                .priority(BugzillaPriorityLevel.UNSPECIFIED)
+                .severity(BugzillaPriorityLevel.UNSPECIFIED)
+                .bug(Bug.builder().id(1).build())
+                .priority(BugzillaPriorityLevel.UNSPECIFIED)
+                .status("modified")
+                .assignedTo(user)
+                .community("redhat")
+                .build();
+
+        TrelloCard card1 = TrelloCard.builder()
+                .id("a")
+                .board(board)
+                .status(TRELLO_BACKLOG)
+                .pos(1.0)
+                .bug(bug1.getBug())
+                .labels(new HashSet<>())
+                .build();
+
+        factService.addFact(bug1);
+        factService.addFact(card1);
+
+        trigger();
+
+        verify(trelloActions).assignLabelToCard(card1, "flags missing");
     }
 
     @Test
@@ -384,6 +489,7 @@ public class FactServiceTest {
     private Integer performReleaseAndFlagTest(String release, String flag) {
         BugzillaBug bug1 = BugzillaBug.builder()
                 .id("1")
+                .community("redhat")
                 .targetMilestone(release)
                 .priority(BugzillaPriorityLevel.UNSPECIFIED)
                 .severity(BugzillaPriorityLevel.UNSPECIFIED)
