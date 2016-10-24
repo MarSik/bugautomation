@@ -54,8 +54,8 @@ public class TrelloRefreshJob implements Job {
     @Inject
     TrelloActionsImpl trelloActions;
 
-    private static final Pattern CUSTOM_FIELDS_GROUP_RE = Pattern.compile("\\{\\{ *(([a-zA-Z0-9]+=[a-zA-Z0-9@.:/_=?-]*) *)* *\\}\\}");
-    private static final Pattern CUSTOM_FIELDS_RE = Pattern.compile("([a-zA-Z0-9]+)=([a-zA-Z0-9@.:/_=?-]*)");
+    private static final Pattern CUSTOM_FIELDS_GROUP_RE = Pattern.compile("\\{\\{ *(([a-zA-Z0-9]+[:=][a-zA-Z0-9@.:/_=?-]*) *)* *\\}\\}");
+    private static final Pattern CUSTOM_FIELDS_RE = Pattern.compile("([a-zA-Z0-9]+)[=:]([a-zA-Z0-9@.:/_=?-]*)");
 
     @Override
     public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException {

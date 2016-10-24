@@ -49,6 +49,19 @@ public class TrelloRefreshJobTest {
     }
 
     @Test
+    public void simpleColon() throws Exception {
+        String testDoc = "Test description {{ score:400 }} with suffix";
+        Map<String, String> values = TrelloRefreshJob.getCustomFields(testDoc);
+        assertThat(values)
+                .isNotNull()
+                .hasSize(1);
+
+        assertThat(values.get("score"))
+                .isNotNull()
+                .isEqualTo("400");
+    }
+
+    @Test
     public void multipleSame() throws Exception {
         String testDoc = "Test description {{ score=400 }} with suffix {{ score=300 }}";
         Map<String, String> values = TrelloRefreshJob.getCustomFields(testDoc);
@@ -63,7 +76,7 @@ public class TrelloRefreshJobTest {
 
     @Test
     public void multipleDiff() throws Exception {
-        String testDoc = "Test description {{ score=400 }} with suffix {{ score2=300 }}";
+        String testDoc = "Test description {{ score=400 }} with suffix {{ score2:300 }}";
         Map<String, String> values = TrelloRefreshJob.getCustomFields(testDoc);
         assertThat(values)
                 .isNotNull()
@@ -80,7 +93,7 @@ public class TrelloRefreshJobTest {
 
     @Test
     public void complex() throws Exception {
-        String testDoc = "Test description {{ score=400   test=mail@admin.cz}} with suffix {{score2=300}}";
+        String testDoc = "Test description {{ score=400   test:mail@admin.cz}} with suffix {{score2=300}}";
         Map<String, String> values = TrelloRefreshJob.getCustomFields(testDoc);
         assertThat(values)
                 .isNotNull()
