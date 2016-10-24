@@ -431,6 +431,20 @@ public class FactServiceTest {
     }
 
     @Test
+    public void testZStreamScore5() throws Exception {
+        assertThat(performReleaseAndFlagTest("ovirt-4.0.6", "ovirt-4.0-ga+"))
+                .isNotNull()
+                .isGreaterThan(100);
+    }
+
+    @Test
+    public void testZStreamScore6() throws Exception {
+        assertThat(performReleaseAndFlagTest("ovirt-4.0.6", "rhevm-4.0-ga+"))
+                .isNotNull()
+                .isGreaterThan(100);
+    }
+
+    @Test
     public void testZStreamScore1neg() throws Exception {
         assertThat(performReleaseAndFlagTest("ovirt-4.0.6", "ovirt-4.0.6-"))
                 .isNotNull()
@@ -459,6 +473,20 @@ public class FactServiceTest {
     }
 
     @Test
+    public void testZStreamScore5neg() throws Exception {
+        assertThat(performReleaseAndFlagTest("ovirt-4.0.6", "ovirt-4.0-ga-"))
+                .isNotNull()
+                .isLessThan(100);
+    }
+
+    @Test
+    public void testZStreamScore6neg() throws Exception {
+        assertThat(performReleaseAndFlagTest("ovirt-4.0.6", "rhevm-4.0-ga-"))
+                .isNotNull()
+                .isLessThan(100);
+    }
+
+    @Test
     public void testZStreamScore1waiting() throws Exception {
         assertThat(performReleaseAndFlagTest("ovirt-4.0.6", "ovirt-4.0.6?"))
                 .isNotNull()
@@ -482,6 +510,20 @@ public class FactServiceTest {
     @Test
     public void testZStreamScore4waiting() throws Exception {
         assertThat(performReleaseAndFlagTest("ovirt-4.0.6", "rhevm-4.0.z?"))
+                .isNotNull()
+                .isLessThan(100);
+    }
+
+    @Test
+    public void testZStreamScore5waiting() throws Exception {
+        assertThat(performReleaseAndFlagTest("ovirt-4.0.6", "ovirt-4.0-ga?"))
+                .isNotNull()
+                .isLessThan(100);
+    }
+
+    @Test
+    public void testZStreamScore6waiting() throws Exception {
+        assertThat(performReleaseAndFlagTest("ovirt-4.0.6", "rhevm-4.0-ga?"))
                 .isNotNull()
                 .isLessThan(100);
     }

@@ -37,6 +37,8 @@ public class BugzillaBugFlag {
         return flag.equals(targetRelease + "+")
                 || flag.equals(targetRelease.replace("ovirt", "rhevm") + "+")
                 || flag.equals(targetRelease.replaceAll("\\.[0-9]+$", ".z") + "+")
-                || flag.equals(targetRelease.replace("ovirt", "rhevm").replaceAll("\\.[0-9]+$", ".z") + "+");
+                || flag.equals(targetRelease.replace("ovirt", "rhevm").replaceAll("\\.[0-9]+$", ".z") + "+")
+                || flag.equals(targetRelease.replaceAll("\\.[0-9]+$", "-ga") + "+")
+                || flag.equals(targetRelease.replace("ovirt", "rhevm").replaceAll("\\.[0-9]+$", "-ga") + "+");
     }
 }
