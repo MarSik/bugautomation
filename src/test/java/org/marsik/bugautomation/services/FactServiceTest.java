@@ -1,6 +1,7 @@
 package org.marsik.bugautomation.services;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -156,6 +157,64 @@ public class FactServiceTest {
         trigger();
 
         verify(trelloActions).moveCard(card1, board, "documentation");
+    }
+
+    @Test
+    public void testDoneOldNoMove() throws Exception {
+        BugzillaBug bug1 = BugzillaBug.builder()
+                .id("1")
+                .targetMilestone("")
+                .priority(BugzillaPriorityLevel.UNSPECIFIED)
+                .severity(BugzillaPriorityLevel.UNSPECIFIED)
+                .bug(Bug.builder().id(1).build())
+                .assignedTo(user)
+                .status("closed")
+                .build();
+
+        TrelloCard card1 = TrelloCard.builder()
+                .id("a")
+                .board(board)
+                .status("done before X")
+                .pos(1.0)
+                .bug(bug1.getBug())
+                .build();
+
+
+        factService.addFact(bug1);
+        factService.addFact(card1);
+
+        trigger();
+
+        verify(trelloActions, never()).moveCard(card1, board, "done");
+    }
+
+    @Test
+    public void testDoneOldReopenedMove() throws Exception {
+        BugzillaBug bug1 = BugzillaBug.builder()
+                .id("1")
+                .targetMilestone("")
+                .priority(BugzillaPriorityLevel.UNSPECIFIED)
+                .severity(BugzillaPriorityLevel.UNSPECIFIED)
+                .bug(Bug.builder().id(1).build())
+                .assignedTo(user)
+                .status("assigned")
+                .build();
+
+        TrelloCard card1 = TrelloCard.builder()
+                .id("a")
+                .board(board)
+                .status("done before X")
+                .pos(1.0)
+                .bug(bug1.getBug())
+                .build();
+
+
+        factService.addFact(bug1);
+        factService.addFact(card1);
+
+        trigger();
+
+        verify(trelloActions).moveCard(card1, board, TRELLO_BACKLOG);
     }
 
     @Test

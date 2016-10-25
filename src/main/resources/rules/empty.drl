@@ -46,7 +46,7 @@ rule "closedBug"
   when
     $bz: BugzillaBug($bug : bug, $user : assignedTo, status == "closed")
     $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
-    $card: TrelloCard(bug == $bug, board == $board, status != "done")
+    $card: TrelloCard(bug == $bug, board == $board, status not str[startsWith] "done")
   then
     trello.moveCard($card, $board, "Done");
 end
@@ -57,7 +57,7 @@ rule "documentBug"
     $bz: BugzillaBug($bug : bug, status == "modified" || status == "on_qa" || status == "verified", $flags: flags)
     not(exists BugzillaBugFlag(flag == "requires_doc_text-") from $flags)
     $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
-    $card: TrelloCard(bug == $bug, board == $board, status != "done", status != "documentation")
+    $card: TrelloCard(bug == $bug, board == $board, status not str[startsWith] "done", status != "documentation")
   then
     trello.moveCard($card, $board, "documentation");
 end
@@ -68,7 +68,7 @@ rule "doneBug"
     $bz: BugzillaBug($bug : bug, status == "modified" || status == "on_qa" || status == "verified", $flags: flags)
     BugzillaBugFlag(flag == "requires_doc_text-") from $flags
     $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
-    $card: TrelloCard(bug == $bug, board == $board, status != "done")
+    $card: TrelloCard(bug == $bug, board == $board, status not str[startsWith] "done")
   then
     trello.moveCard($card, $board, "done");
 end
@@ -77,7 +77,7 @@ end
 rule "unknownBug"
   when
     $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
-    $card: TrelloCard($bug : bug, bug != null, board == $board, status != "done")
+    $card: TrelloCard($bug : bug, bug != null, board == $board, status not str[startsWith] "done")
     not(exists BugzillaBug($bug == bug))
   then
     trello.moveCard($card, $board, "Done");
@@ -89,7 +89,7 @@ rule "openBug"
   when
     $bz: BugzillaBug($bug : bug, $user : assignedTo, status == "new" || status == "assigned" || status == "post")
     $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
-    $card: TrelloCard(bug == $bug, board == $board, status == "done" || status == "documentation")
+    $card: TrelloCard(bug == $bug, board == $board, status str[startsWith] "done" || status == "documentation")
   then
     trello.moveCard($card, $board, config.getCached("cfg.backlog"));
 end
