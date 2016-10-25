@@ -41,4 +41,12 @@ public class BugzillaBugFlag {
                 || flag.equals(targetRelease.replaceAll("\\.[0-9]+$", "-ga") + "+")
                 || flag.equals(targetRelease.replace("ovirt", "rhevm").replaceAll("\\.[0-9]+$", "-ga") + "+");
     }
+
+    /**
+     * This method checks whether a flags marks a bug as a future RFE
+     * @return true if the flag is a future flag
+     */
+    public boolean futureFlag() {
+        return flag.matches(".*-future[?+]");
+    }
 }

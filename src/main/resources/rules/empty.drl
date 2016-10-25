@@ -169,7 +169,10 @@ rule "needsTriage"
   when
     $bz: BugzillaBug($bug : bug, status != "closed", targetMilestone == null || targetMilestone == "",
                      priority == BugzillaPriorityLevel.UNSPECIFIED,
-                     "triaged" not memberOf keywords)
+                     "triaged" not memberOf keywords,
+                     "futurefeature" not memberOf keywords,
+                     $flags : flags)
+    not(exists BugzillaBugFlag(futureFlag()) from $flags)
 
     $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
     $card: TrelloCard(bug == $bug, board == $board, $labels: labels)
@@ -192,7 +195,20 @@ end
 rule "alreadyTriaged"
   when
     $bz: BugzillaBug($bug : bug, status == "closed" || (targetMilestone != null && targetMilestone != "")
-      || priority > BugzillaPriorityLevel.UNSPECIFIED || "triaged" memberOf keywords)
+      || priority > BugzillaPriorityLevel.UNSPECIFIED || "triaged" memberOf keywords
+      || "futurefeature" memberOf keywords)
+
+    $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
+    $card: TrelloCard(bug == $bug, board == $board, $labels: labels)
+    $label: TrelloLabel(name == "triage") from $labels
+  then
+    trello.removeLabelFromCard($card, $label);
+end
+
+rule "alreadyTriagedFutureFlag"
+  when
+    $bz: BugzillaBug($bug : bug, $flags : flags)
+    BugzillaBugFlag(futureFlag()) from $flags
 
     $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
     $card: TrelloCard(bug == $bug, board == $board, $labels: labels)

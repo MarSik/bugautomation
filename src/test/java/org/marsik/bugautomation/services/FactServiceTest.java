@@ -278,6 +278,145 @@ public class FactServiceTest {
     }
 
     @Test
+    public void testNoNeedTriageFuture() throws Exception {
+        BugzillaBug bug1 = BugzillaBug.builder()
+                .id("1")
+                .targetMilestone("")
+                .priority(BugzillaPriorityLevel.UNSPECIFIED)
+                .severity(BugzillaPriorityLevel.UNSPECIFIED)
+                .bug(Bug.builder().id(1).build())
+                .priority(BugzillaPriorityLevel.UNSPECIFIED)
+                .status("modified")
+                .keywords(new HashSet<>(Collections.singletonList("futurefeature")))
+                .assignedTo(user)
+                .build();
+
+        TrelloCard card1 = TrelloCard.builder()
+                .id("a")
+                .board(board)
+                .status(TRELLO_BACKLOG)
+                .pos(1.0)
+                .bug(bug1.getBug())
+                .build();
+
+
+        factService.addFact(bug1);
+        factService.addFact(card1);
+
+        trigger();
+
+        verify(trelloActions, never()).assignLabelToCard(card1, "triage");
+    }
+
+    @Test
+    public void testRemoveTriageFuture() throws Exception {
+        BugzillaBug bug1 = BugzillaBug.builder()
+                .id("1")
+                .targetMilestone("")
+                .priority(BugzillaPriorityLevel.UNSPECIFIED)
+                .severity(BugzillaPriorityLevel.UNSPECIFIED)
+                .bug(Bug.builder().id(1).build())
+                .priority(BugzillaPriorityLevel.UNSPECIFIED)
+                .status("modified")
+                .keywords(new HashSet<>(Collections.singletonList("futurefeature")))
+                .assignedTo(user)
+                .build();
+
+        TrelloLabel label = TrelloLabel.builder()
+                .name("triage")
+                .build();
+
+        TrelloCard card1 = TrelloCard.builder()
+                .id("a")
+                .board(board)
+                .status(TRELLO_BACKLOG)
+                .labels(new HashSet<>(Collections.singletonList(label)))
+                .pos(1.0)
+                .bug(bug1.getBug())
+                .build();
+
+
+        factService.addFact(bug1);
+        factService.addFact(card1);
+
+        trigger();
+
+        verify(trelloActions).removeLabelFromCard(card1, label);
+    }
+
+    @Test
+    public void testRemoveTriageFutureFlag() throws Exception {
+        BugzillaBug bug1 = BugzillaBug.builder()
+                .id("1")
+                .targetMilestone("")
+                .priority(BugzillaPriorityLevel.UNSPECIFIED)
+                .severity(BugzillaPriorityLevel.UNSPECIFIED)
+                .bug(Bug.builder().id(1).build())
+                .priority(BugzillaPriorityLevel.UNSPECIFIED)
+                .status("modified")
+                .flags(new HashSet<>(Collections.singletonList(new BugzillaBugFlag("ovirt-future?"))))
+                .assignedTo(user)
+                .build();
+
+        TrelloLabel label = TrelloLabel.builder()
+                .name("triage")
+                .build();
+
+        TrelloCard card1 = TrelloCard.builder()
+                .id("a")
+                .board(board)
+                .status(TRELLO_BACKLOG)
+                .labels(new HashSet<>(Collections.singletonList(label)))
+                .pos(1.0)
+                .bug(bug1.getBug())
+                .build();
+
+
+        factService.addFact(bug1);
+        factService.addFact(card1);
+
+        trigger();
+
+        verify(trelloActions).removeLabelFromCard(card1, label);
+    }
+
+    @Test
+    public void testRemoveTriageFutureFlagRhv() throws Exception {
+        BugzillaBug bug1 = BugzillaBug.builder()
+                .id("1")
+                .targetMilestone("")
+                .priority(BugzillaPriorityLevel.UNSPECIFIED)
+                .severity(BugzillaPriorityLevel.UNSPECIFIED)
+                .bug(Bug.builder().id(1).build())
+                .priority(BugzillaPriorityLevel.UNSPECIFIED)
+                .status("modified")
+                .flags(new HashSet<>(Collections.singletonList(new BugzillaBugFlag("rhevm-future?"))))
+                .assignedTo(user)
+                .build();
+
+        TrelloLabel label = TrelloLabel.builder()
+                .name("triage")
+                .build();
+
+        TrelloCard card1 = TrelloCard.builder()
+                .id("a")
+                .board(board)
+                .status(TRELLO_BACKLOG)
+                .labels(new HashSet<>(Collections.singletonList(label)))
+                .pos(1.0)
+                .bug(bug1.getBug())
+                .build();
+
+
+        factService.addFact(bug1);
+        factService.addFact(card1);
+
+        trigger();
+
+        verify(trelloActions).removeLabelFromCard(card1, label);
+    }
+
+    @Test
     public void testFlagsNotNeededRelease() throws Exception {
         BugzillaBug bug1 = BugzillaBug.builder()
                 .id("1")
