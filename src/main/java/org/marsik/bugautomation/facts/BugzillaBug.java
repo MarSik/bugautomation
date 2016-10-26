@@ -44,7 +44,7 @@ public class BugzillaBug {
     @NotNull
     Set<String> keywords;
     @NotNull
-    Set<String> blocks;
+    Set<Bug> blocks;
     @NotNull
     User assignedTo;
     @NotNull

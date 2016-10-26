@@ -151,7 +151,7 @@ public class BugzillaRefreshJob implements Job {
                      .priority(BugzillaPriorityLevel.valueOf(issue.getPriority().toUpperCase()))
                      .verified(issue.getVerified().stream().map(String::toLowerCase).collect(Collectors.toSet()))
                      .keywords(issue.getKeywords().stream().map(String::toLowerCase).collect(Collectors.toSet()))
-                     .blocks(new HashSet<>(issue.getBlocks()));
+                     .blocks(issue.getBlocks().stream().map(bugMatchingService::getBugByBzId).collect(Collectors.toSet()));
 
             if (issue.getTargetMilestone() != null) {
                 bugzillaBugBuilder.targetMilestone(issue.getTargetMilestone());

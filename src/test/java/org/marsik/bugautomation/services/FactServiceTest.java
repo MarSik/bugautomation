@@ -520,13 +520,15 @@ public class FactServiceTest {
     }
 
     @Test
-    public void testOrderWithBlocking() throws Exception {
+    public void testOrderWithBlockingBug() throws Exception {
+        final Bug bugId2 = Bug.builder().id(2).build();
+
         BugzillaBug bug1 = BugzillaBug.builder()
                 .id("1")
                 .targetMilestone("")
                 .priority(BugzillaPriorityLevel.UNSPECIFIED)
                 .severity(BugzillaPriorityLevel.UNSPECIFIED)
-                .blocks(new HashSet<>(Collections.singletonList("2")))
+                .blocks(new HashSet<>(Collections.singletonList(bugId2)))
                 .bug(Bug.builder().id(1).build())
                 .assignedTo(user)
                 .build();
@@ -536,7 +538,59 @@ public class FactServiceTest {
                 .priority(BugzillaPriorityLevel.UNSPECIFIED)
                 .severity(BugzillaPriorityLevel.UNSPECIFIED)
                 .targetMilestone("ovirt-4.0.6")
-                .bug(Bug.builder().id(2).build())
+                .bug(bugId2)
+                .assignedTo(user)
+                .build();
+
+        TrelloCard card1 = TrelloCard.builder()
+                .id("a")
+                .board(board)
+                .status(TRELLO_BACKLOG)
+                .pos(2.0)
+                .bug(bug1.getBug())
+                .build();
+
+        TrelloCard card2 = TrelloCard.builder()
+                .id("b")
+                .board(board)
+                .status(TRELLO_BACKLOG)
+                .pos(1.0)
+                .bug(bug2.getBug())
+                .build();
+
+        factService.addFact(bug1);
+        factService.addFact(bug2);
+        factService.addFact(card1);
+        factService.addFact(card2);
+
+        trigger();
+
+        assertThat(card2.getScore())
+                .isNotNull()
+                .isEqualTo(card1.getScore());
+        verify(trelloActions).switchCards(card2, card1);
+    }
+
+    @Test
+    public void testScoreWithBlockingBug() throws Exception {
+        final Bug bugId2 = Bug.builder().id(2).build();
+
+        BugzillaBug bug1 = BugzillaBug.builder()
+                .id("1")
+                .targetMilestone("")
+                .priority(BugzillaPriorityLevel.UNSPECIFIED)
+                .severity(BugzillaPriorityLevel.UNSPECIFIED)
+                .blocks(new HashSet<>(Collections.singletonList(bugId2)))
+                .bug(Bug.builder().id(1).build())
+                .assignedTo(user)
+                .build();
+
+        BugzillaBug bug2 = BugzillaBug.builder()
+                .id("2")
+                .priority(BugzillaPriorityLevel.UNSPECIFIED)
+                .severity(BugzillaPriorityLevel.UNSPECIFIED)
+                .targetMilestone("ovirt-4.0.6")
+                .bug(bugId2)
                 .assignedTo(user)
                 .build();
 
@@ -554,7 +608,6 @@ public class FactServiceTest {
                 .status(TRELLO_BACKLOG)
                 .pos(2.0)
                 .bug(bug2.getBug())
-                .score(200)
                 .build();
 
         factService.addFact(bug1);
@@ -571,6 +624,40 @@ public class FactServiceTest {
 
     @Test
     public void testOrderWithBlockingCard() throws Exception {
+        Bug bug = Bug.builder().id(1).build();
+
+        TrelloCard card1 = TrelloCard.builder()
+                .id("a")
+                .board(board)
+                .status(TRELLO_BACKLOG)
+                .pos(1.0)
+                .score(100)
+                .bug(bug)
+                .build();
+
+        TrelloCard card2 = TrelloCard.builder()
+                .id("b")
+                .board(board)
+                .status(TRELLO_BACKLOG)
+                .pos(2.0)
+                .score(100)
+                .blocks(new HashSet<>(Collections.singletonList(bug)))
+                .build();
+
+        factService.addFact(card1);
+        factService.addFact(card2);
+
+        trigger();
+
+        assertThat(card2.getScore())
+                .isNotNull()
+                .isEqualTo(card1.getScore());
+
+        verify(trelloActions).switchCards(card1, card2);
+    }
+
+    @Test
+    public void testScoreWithBlockingCard() throws Exception {
         Bug bug = new Bug(1);
 
         TrelloCard card1 = TrelloCard.builder()

@@ -291,15 +291,25 @@ end
  */
 
 // The first to fix card needs to be on top when two cards have the same score
-rule "orderBacklogByBlocks"
+rule "orderBacklogByBugBlocks"
   when
-    $bz: BugzillaBug($bug1 : bug, $blocks : blocks)
-    BugzillaBug($bug2 : bug, id memberOf $blocks)
+    $bz: BugzillaBug($bug1 : bug)
+    BugzillaBug($bug2 : bug, $bug1 memberOf blocks)
 
     $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
 
     $card1: TrelloCard(bug == $bug1, board == $board, status == config.getCached("cfg.backlog"), $score : score, $pos : pos)
-    $card2: TrelloCard(bug == $bug2, board == $board, status == config.getCached("cfg.backlog"), $score == score, pos < $pos)
+    $card2: TrelloCard(bug == $bug2, board == $board, status == config.getCached("cfg.backlog"), $score == score, pos > $pos)
+  then
+    trello.switchCards($card1, $card2);
+end
+
+rule "orderBacklogByCardBlocks"
+  when
+    $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
+
+    $card1: TrelloCard($bug : bug, board == $board, status == config.getCached("cfg.backlog"), $score : score, $pos : pos)
+    $card2: TrelloCard(bug == null, $bug memberOf blocks, board == $board, status == config.getCached("cfg.backlog"), $score == score, pos > $pos)
   then
     trello.switchCards($card1, $card2);
 end
@@ -364,7 +374,7 @@ end
    salience 100
    when
      $bz: BugzillaBug($bzId : id, $bug1 : bug)
-     BugzillaBug($bug2 : bug, id != $bz.id, $bzId memberOf blocks)
+     BugzillaBug($bug2 : bug, id != $bz.id, $bug1 memberOf blocks)
 
      $card1: TrelloCard(bug == $bug1, $score : score)
      $card2: TrelloCard(bug == $bug2, score == null || $score > score)
