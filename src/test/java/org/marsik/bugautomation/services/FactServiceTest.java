@@ -1,6 +1,7 @@
 package org.marsik.bugautomation.services;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -22,6 +23,7 @@ import org.marsik.bugautomation.facts.Bug;
 import org.marsik.bugautomation.facts.BugzillaBug;
 import org.marsik.bugautomation.facts.BugzillaBugFlag;
 import org.marsik.bugautomation.facts.BugzillaPriorityLevel;
+import org.marsik.bugautomation.facts.BugzillaStatus;
 import org.marsik.bugautomation.facts.TrelloBoard;
 import org.marsik.bugautomation.facts.TrelloCard;
 import org.marsik.bugautomation.facts.TrelloLabel;
@@ -93,6 +95,7 @@ public class FactServiceTest {
                 .priority(BugzillaPriorityLevel.UNSPECIFIED)
                 .severity(BugzillaPriorityLevel.UNSPECIFIED)
                 .assignedTo(user)
+                .status(BugzillaStatus.ASSIGNED)
                 .build();
 
         BugzillaBug bug2 = BugzillaBug.builder()
@@ -102,6 +105,7 @@ public class FactServiceTest {
                 .severity(BugzillaPriorityLevel.UNSPECIFIED)
                 .bug(Bug.builder().id(2).build())
                 .assignedTo(user)
+                .status(BugzillaStatus.ASSIGNED)
                 .build();
 
         TrelloCard card1 = TrelloCard.builder()
@@ -140,7 +144,7 @@ public class FactServiceTest {
                 .severity(BugzillaPriorityLevel.UNSPECIFIED)
                 .bug(Bug.builder().id(1).build())
                 .assignedTo(user)
-                .status("modified")
+                .status(BugzillaStatus.MODIFIED)
                 .build();
 
         TrelloCard card1 = TrelloCard.builder()
@@ -169,7 +173,7 @@ public class FactServiceTest {
                 .severity(BugzillaPriorityLevel.UNSPECIFIED)
                 .bug(Bug.builder().id(1).build())
                 .assignedTo(user)
-                .status("closed")
+                .status(BugzillaStatus.CLOSED)
                 .build();
 
         TrelloCard card1 = TrelloCard.builder()
@@ -198,7 +202,7 @@ public class FactServiceTest {
                 .severity(BugzillaPriorityLevel.UNSPECIFIED)
                 .bug(Bug.builder().id(1).build())
                 .assignedTo(user)
-                .status("assigned")
+                .status(BugzillaStatus.ASSIGNED)
                 .build();
 
         TrelloCard card1 = TrelloCard.builder()
@@ -226,7 +230,7 @@ public class FactServiceTest {
                 .bug(Bug.builder().id(1).build())
                 .priority(BugzillaPriorityLevel.UNSPECIFIED)
                 .severity(BugzillaPriorityLevel.UNSPECIFIED)
-                .status("modified")
+                .status(BugzillaStatus.MODIFIED)
                 .assignedTo(user)
                 .flags(Collections.singleton(new BugzillaBugFlag("requires_doc_text-")))
                 .build();
@@ -257,7 +261,7 @@ public class FactServiceTest {
                 .severity(BugzillaPriorityLevel.UNSPECIFIED)
                 .bug(Bug.builder().id(1).build())
                 .priority(BugzillaPriorityLevel.UNSPECIFIED)
-                .status("modified")
+                .status(BugzillaStatus.MODIFIED)
                 .assignedTo(user)
                 .build();
 
@@ -287,7 +291,7 @@ public class FactServiceTest {
                 .severity(BugzillaPriorityLevel.UNSPECIFIED)
                 .bug(Bug.builder().id(1).build())
                 .priority(BugzillaPriorityLevel.UNSPECIFIED)
-                .status("modified")
+                .status(BugzillaStatus.MODIFIED)
                 .keywords(new HashSet<>(Collections.singletonList("futurefeature")))
                 .assignedTo(user)
                 .build();
@@ -318,7 +322,7 @@ public class FactServiceTest {
                 .severity(BugzillaPriorityLevel.UNSPECIFIED)
                 .bug(Bug.builder().id(1).build())
                 .priority(BugzillaPriorityLevel.UNSPECIFIED)
-                .status("modified")
+                .status(BugzillaStatus.MODIFIED)
                 .keywords(new HashSet<>(Collections.singletonList("futurefeature")))
                 .assignedTo(user)
                 .build();
@@ -354,7 +358,7 @@ public class FactServiceTest {
                 .severity(BugzillaPriorityLevel.UNSPECIFIED)
                 .bug(Bug.builder().id(1).build())
                 .priority(BugzillaPriorityLevel.UNSPECIFIED)
-                .status("modified")
+                .status(BugzillaStatus.ASSIGNED)
                 .flags(new HashSet<>(Collections.singletonList(new BugzillaBugFlag("ovirt-future?"))))
                 .assignedTo(user)
                 .build();
@@ -390,7 +394,7 @@ public class FactServiceTest {
                 .severity(BugzillaPriorityLevel.UNSPECIFIED)
                 .bug(Bug.builder().id(1).build())
                 .priority(BugzillaPriorityLevel.UNSPECIFIED)
-                .status("modified")
+                .status(BugzillaStatus.ASSIGNED)
                 .flags(new HashSet<>(Collections.singletonList(new BugzillaBugFlag("rhevm-future?"))))
                 .assignedTo(user)
                 .build();
@@ -426,7 +430,7 @@ public class FactServiceTest {
                 .severity(BugzillaPriorityLevel.UNSPECIFIED)
                 .bug(Bug.builder().id(1).build())
                 .priority(BugzillaPriorityLevel.UNSPECIFIED)
-                .status("modified")
+                .status(BugzillaStatus.MODIFIED)
                 .assignedTo(user)
                 .community("redhat")
                 .build();
@@ -462,7 +466,7 @@ public class FactServiceTest {
                 .severity(BugzillaPriorityLevel.UNSPECIFIED)
                 .bug(Bug.builder().id(1).build())
                 .priority(BugzillaPriorityLevel.UNSPECIFIED)
-                .status("modified")
+                .status(BugzillaStatus.MODIFIED)
                 .assignedTo(user)
                 .community("ovirt")
                 .build();
@@ -498,7 +502,7 @@ public class FactServiceTest {
                 .severity(BugzillaPriorityLevel.UNSPECIFIED)
                 .bug(Bug.builder().id(1).build())
                 .priority(BugzillaPriorityLevel.UNSPECIFIED)
-                .status("modified")
+                .status(BugzillaStatus.MODIFIED)
                 .assignedTo(user)
                 .community("redhat")
                 .build();
@@ -532,6 +536,7 @@ public class FactServiceTest {
                 .blocks(new HashSet<>(Collections.singletonList(bugId2)))
                 .bug(Bug.builder().id(1).build())
                 .assignedTo(user)
+                .status(BugzillaStatus.ASSIGNED)
                 .build();
 
         BugzillaBug bug2 = BugzillaBug.builder()
@@ -541,6 +546,7 @@ public class FactServiceTest {
                 .targetMilestone("ovirt-4.0.6")
                 .bug(bugId2)
                 .assignedTo(user)
+                .status(BugzillaStatus.ASSIGNED)
                 .build();
 
         TrelloCard card1 = TrelloCard.builder()
@@ -583,6 +589,7 @@ public class FactServiceTest {
                 .severity(BugzillaPriorityLevel.UNSPECIFIED)
                 .blocks(new HashSet<>(Collections.singletonList(bugId2)))
                 .bug(Bug.builder().id(1).build())
+                .status(BugzillaStatus.ASSIGNED)
                 .assignedTo(user)
                 .build();
 
@@ -593,6 +600,7 @@ public class FactServiceTest {
                 .targetMilestone("ovirt-4.0.6")
                 .bug(bugId2)
                 .assignedTo(user)
+                .status(BugzillaStatus.ASSIGNED)
                 .build();
 
         TrelloCard card1 = TrelloCard.builder()
@@ -823,7 +831,7 @@ public class FactServiceTest {
                 .severity(BugzillaPriorityLevel.UNSPECIFIED)
                 .bug(Bug.builder().id(1).build())
                 .priority(BugzillaPriorityLevel.UNSPECIFIED)
-                .status("modified")
+                .status(BugzillaStatus.MODIFIED)
                 .assignedTo(user)
                 .flags(new HashSet<>(Collections.singletonList(new BugzillaBugFlag(flag))))
                 .build();
@@ -891,9 +899,10 @@ public class FactServiceTest {
                 .targetMilestone("")
                 .priority(BugzillaPriorityLevel.UNSPECIFIED)
                 .severity(BugzillaPriorityLevel.UNSPECIFIED)
-                .blocks(new HashSet<>(Collections.singletonList(bugId2)))
+                .blocks(new HashSet<>())
                 .bug(Bug.builder().id(1).build())
                 .assignedTo(user)
+                .status(BugzillaStatus.ASSIGNED)
                 .build();
 
         TrelloCard card = TrelloCard.builder()
@@ -911,5 +920,34 @@ public class FactServiceTest {
         trigger();
 
         verify(trelloActions, never()).assignLabelToCard(card, "done?");
+    }
+
+    @Test
+    public void testIsDoneFlagWhenBlockedModified() throws Exception {
+        BugzillaBug bug1 = BugzillaBug.builder()
+                .id("1")
+                .targetMilestone("")
+                .priority(BugzillaPriorityLevel.UNSPECIFIED)
+                .severity(BugzillaPriorityLevel.UNSPECIFIED)
+                .bug(Bug.builder().id(1).build())
+                .assignedTo(user)
+                .status(BugzillaStatus.MODIFIED)
+                .build();
+
+        TrelloCard card = TrelloCard.builder()
+                .id("b")
+                .board(board)
+                .status(TRELLO_BACKLOG)
+                .pos(2.0)
+                .score(100)
+                .blocks(new HashSet<>(Collections.singletonList(bug1.getBug())))
+                .build();
+
+        factService.addFact(bug1);
+        factService.addFact(card);
+
+        trigger();
+
+        verify(trelloActions).assignLabelToCard(card, "done?");
     }
 }

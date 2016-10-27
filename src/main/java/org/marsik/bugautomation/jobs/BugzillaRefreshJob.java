@@ -17,6 +17,7 @@ import org.marsik.bugautomation.bugzilla.BugProxy;
 import org.marsik.bugautomation.bugzilla.BugzillaClient;
 import org.marsik.bugautomation.facts.BugzillaBug;
 import org.marsik.bugautomation.facts.BugzillaPriorityLevel;
+import org.marsik.bugautomation.facts.BugzillaStatus;
 import org.marsik.bugautomation.services.BugMatchingService;
 import org.marsik.bugautomation.services.ConfigurationService;
 import org.marsik.bugautomation.services.FactService;
@@ -145,7 +146,7 @@ public class BugzillaRefreshJob implements Job {
                      .community(issue.getCommunity().toLowerCase().trim().replace(" ", ""))
                      .title(issue.getSummary())
                      .description(issue.getDescription())
-                     .status(issue.getStatus().toLowerCase())
+                     .status(BugzillaStatus.valueOf(issue.getStatus().toUpperCase()))
                      .bug(bugMatchingService.getBugByBzId(issue.getId()))
                      .severity(BugzillaPriorityLevel.valueOf(issue.getSeverity().toUpperCase()))
                      .priority(BugzillaPriorityLevel.valueOf(issue.getPriority().toUpperCase()))

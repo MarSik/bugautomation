@@ -25,7 +25,7 @@ public class BugzillaBug {
     String community;
 
     @NotNull
-    String status;
+    BugzillaStatus status;
     LocalDateTime statusModifiedAt;
 
     @NotNull
@@ -49,4 +49,8 @@ public class BugzillaBug {
     User assignedTo;
     @NotNull
     Bug bug;
+
+    public boolean isDone() {
+        return BugzillaStatus.MODIFIED.compareTo(status) <= 0;
+    }
 }
