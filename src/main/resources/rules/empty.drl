@@ -45,7 +45,7 @@ end
 // A card for a closed bug should be closed as well
 rule "closedBug"
   when
-    $bz: BugzillaBug($bug : bug, $user : assignedTo, done == true)
+    $bz: BugzillaBug($bug : bug, $user : assignedTo, status == BugzillaStatus.CLOSED)
     $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
     $card: TrelloCard(bug == $bug, board == $board, status not str[startsWith] "done")
   then
