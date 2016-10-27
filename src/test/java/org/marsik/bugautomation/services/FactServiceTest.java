@@ -865,6 +865,24 @@ public class FactServiceTest {
     }
 
     @Test
+    public void testNoIsDoneFlagWhenNoBlockedBugs() throws Exception {
+        TrelloCard card = TrelloCard.builder()
+                .id("b")
+                .board(board)
+                .status(TRELLO_BACKLOG)
+                .pos(2.0)
+                .score(100)
+                .blocks(new HashSet<>())
+                .build();
+
+        factService.addFact(card);
+
+        trigger();
+
+        verify(trelloActions, never()).assignLabelToCard(card, "done?");
+    }
+
+    @Test
     public void testNoIsDoneFlagWhenNotAllBlockedDone() throws Exception {
         final Bug bugId2 = Bug.builder().id(2).build();
 

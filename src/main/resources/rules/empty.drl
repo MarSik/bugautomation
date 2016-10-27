@@ -290,7 +290,7 @@ end
 rule "blocksClosedBug"
   when
     $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
-    $card: TrelloCard(bug == null, $blocks : blocks, status not str[startsWith] "done", board == $board, $labels: labels)
+    $card: TrelloCard(bug == null, $blocks : blocks, blocks.empty == false, status not str[startsWith] "done", board == $board, $labels: labels)
     not(exists BugzillaBug(bug memberOf $blocks))
     not(exists TrelloLabel(name == "done?") from $labels)
   then
