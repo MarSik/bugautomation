@@ -7,6 +7,7 @@ import static org.mockito.Mockito.when;
 
 import javax.inject.Inject;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 
@@ -841,5 +842,56 @@ public class FactServiceTest {
         trigger();
 
         return card1.getScore();
+    }
+
+    @Test
+    public void testIsDoneFlagWhenBlockedDone() throws Exception {
+        Bug bug = Bug.builder().id(1).build();
+
+        TrelloCard card = TrelloCard.builder()
+                .id("b")
+                .board(board)
+                .status(TRELLO_BACKLOG)
+                .pos(2.0)
+                .score(100)
+                .blocks(new HashSet<>(Collections.singletonList(bug)))
+                .build();
+
+        factService.addFact(card);
+
+        trigger();
+
+        verify(trelloActions).assignLabelToCard(card, "done?");
+    }
+
+    @Test
+    public void testNoIsDoneFlagWhenNotAllBlockedDone() throws Exception {
+        final Bug bugId2 = Bug.builder().id(2).build();
+
+        BugzillaBug bug1 = BugzillaBug.builder()
+                .id("1")
+                .targetMilestone("")
+                .priority(BugzillaPriorityLevel.UNSPECIFIED)
+                .severity(BugzillaPriorityLevel.UNSPECIFIED)
+                .blocks(new HashSet<>(Collections.singletonList(bugId2)))
+                .bug(Bug.builder().id(1).build())
+                .assignedTo(user)
+                .build();
+
+        TrelloCard card = TrelloCard.builder()
+                .id("b")
+                .board(board)
+                .status(TRELLO_BACKLOG)
+                .pos(2.0)
+                .score(100)
+                .blocks(new HashSet<>(Arrays.asList(bugId2, bug1.getBug())))
+                .build();
+
+        factService.addFact(bug1);
+        factService.addFact(card);
+
+        trigger();
+
+        verify(trelloActions, never()).assignLabelToCard(card, "done?");
     }
 }
