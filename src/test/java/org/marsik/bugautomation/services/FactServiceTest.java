@@ -31,6 +31,7 @@ import org.marsik.bugautomation.facts.User;
 import org.marsik.bugautomation.stats.Stats;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.slf4j.LoggerFactory;
 
 @RunWith(WeldJUnit4Runner.class)
 public class FactServiceTest {
@@ -82,7 +83,6 @@ public class FactServiceTest {
         kSession.setGlobal("trello", trelloActions);
         kSession.setGlobal("config", configurationService);
         kSession.insert(new Stats());
-        kSession.addEventListener(new DebugAgendaEventListener());
         kSession.fireAllRules();
     }
 
