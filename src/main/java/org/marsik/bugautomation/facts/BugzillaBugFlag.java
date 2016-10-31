@@ -34,12 +34,14 @@ public class BugzillaBugFlag {
      * @return true if the flag approves the given release
      */
     public boolean approves(String targetRelease) {
-        return flag.equals(targetRelease + "+")
-                || flag.equals(targetRelease.replace("ovirt", "rhevm") + "+")
-                || flag.equals(targetRelease.replaceAll("\\.[0-9]+$", ".z") + "+")
-                || flag.equals(targetRelease.replace("ovirt", "rhevm").replaceAll("\\.[0-9]+$", ".z") + "+")
-                || flag.equals(targetRelease.replaceAll("\\.[0-9]+$", "-ga") + "+")
-                || flag.equals(targetRelease.replace("ovirt", "rhevm").replaceAll("\\.[0-9]+$", "-ga") + "+");
+        return flag.equals(targetRelease + "+") // ovirt-X.Y.Z+
+                || flag.equals(targetRelease.replace("ovirt", "rhevm") + "+") // rhevm-X.Y.Z+
+                || flag.equals(targetRelease.replaceAll("\\.[0-9]+$", ".z") + "+") // ovirt-X.Y.z+
+                || flag.equals(targetRelease.replace("ovirt", "rhevm").replaceAll("\\.[0-9]+$", ".z") + "+") // rhevm-X.Y.z+
+                || flag.equals(targetRelease.replaceAll("\\.[0-9]+$", "") + "+") // ovirt-X.Y+
+                || flag.equals(targetRelease.replace("ovirt", "rhevm").replaceAll("\\.[0-9]+$", "") + "+") // rhevm-X.Y+
+                || flag.equals(targetRelease.replaceAll("\\.[0-9]+$", "-ga") + "+") // ovirt-X.Y-ga+
+                || flag.equals(targetRelease.replace("ovirt", "rhevm").replaceAll("\\.[0-9]+$", "-ga") + "+"); // rhevm-X.Y-ga+
     }
 
     /**
