@@ -33,6 +33,18 @@ public class BugzillaBug {
     @NotNull
     BugzillaPriorityLevel severity;
 
+    /**
+     * PM score - higher numbers have to be finished first
+     */
+    @NotNull
+    Integer pmScore;
+
+    /**
+     * PM priority - lower numbers have to be finished first
+     */
+    @NotNull
+    Integer pmPriority;
+
     @NotNull
     String targetMilestone;
     String targetRelease;

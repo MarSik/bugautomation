@@ -100,4 +100,12 @@ public class BugProxy {
         return Arrays.asList(getAs("blocks", Integer[].class)).stream()
                 .map(String::valueOf).collect(Collectors.toList());
     }
+
+    public String getPmScore() {
+        return (String)map.get("cf_pm_score");
+    }
+
+    public String getWhiteBoard() {
+        return (String)map.get("whiteboard");
+    }
 }

@@ -304,6 +304,32 @@ end
  */
 
 // The first to fix card needs to be on top when two cards have the same score
+rule "orderBacklogByPmPriority"
+  when
+    $bz: BugzillaBug($bug1 : bug, $pmPriority : pmPriority)
+    BugzillaBug($bug2 : bug, pmPriority < $pmPriority)
+
+    $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
+
+    $card1: TrelloCard(bug == $bug1, board == $board, status == config.getCached("cfg.backlog"), $score : score, $pos : pos)
+    $card2: TrelloCard(bug == $bug2, board == $board, status == config.getCached("cfg.backlog"), $score == score, pos > $pos)
+  then
+    trello.switchCards($card1, $card2);
+end
+
+rule "orderBacklogByPmScore"
+  when
+    $bz: BugzillaBug($bug1 : bug, $pmScore : pmScore, $pmPriority : pmPriority)
+    BugzillaBug($bug2 : bug, pmScore > $pmScore, pmPriority == $pmPriority)
+
+    $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
+
+    $card1: TrelloCard(bug == $bug1, board == $board, status == config.getCached("cfg.backlog"), $score : score, $pos : pos)
+    $card2: TrelloCard(bug == $bug2, board == $board, status == config.getCached("cfg.backlog"), $score == score, pos > $pos)
+  then
+    trello.switchCards($card1, $card2);
+end
+
 rule "orderBacklogByBugBlocks"
   when
     $bz: BugzillaBug($bug1 : bug)
@@ -380,6 +406,29 @@ end
  * Score rules have to have higher priority than rules with effects to avoid
  * noise during rescoring. (salience 100 does the job)
  */
+
+ // Blocking bugs have to inherit PM score and PM priority
+ rule "blockingBugPmScore"
+   salience 100
+   when
+     BugzillaBug($bzId : id, $bug1 : bug, $pmScore : pmScore)
+     $bz: BugzillaBug($bug2 : bug, id != $bzId, $bug1 memberOf blocks, pmScore < $pmScore)
+   then
+     modify($bz) {
+        setPmScore($pmScore);
+     }
+ end
+
+  rule "blockingBugPmPriority"
+    salience 100
+    when
+      BugzillaBug($bzId : id, $bug1 : bug, $pmPriority : pmPriority)
+      $bz: BugzillaBug($bug2 : bug, id != $bzId, $bug1 memberOf blocks, pmPriority > $pmPriority)
+    then
+      modify($bz) {
+         setPmPriority($pmPriority);
+      }
+  end
 
  // Bugs that block something with a higher priority have high priority too
  // (bug2 blocks bug1 in this rule)

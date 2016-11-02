@@ -8,6 +8,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import com.google.common.collect.ArrayListMultimap;
@@ -33,6 +35,8 @@ import org.slf4j.LoggerFactory;
 public class BugzillaRefreshJob implements Job {
     private static final Logger logger = LoggerFactory.getLogger(BugzillaRefreshJob.class);
     private static final AtomicBoolean finished = new AtomicBoolean(false);
+
+    private static final Pattern PM_PRIO_WHITEBOARD_RE = Pattern.compile("PM-(?<score>[0-9]+)", Pattern.CASE_INSENSITIVE);
 
     @Inject
     FactService factService;
@@ -150,6 +154,8 @@ public class BugzillaRefreshJob implements Job {
                      .bug(bugMatchingService.getBugByBzId(issue.getId()))
                      .severity(BugzillaPriorityLevel.valueOf(issue.getSeverity().toUpperCase()))
                      .priority(BugzillaPriorityLevel.valueOf(issue.getPriority().toUpperCase()))
+                     .pmScore(0)
+                     .pmPriority(Integer.MAX_VALUE)
                      .verified(issue.getVerified().stream().map(String::toLowerCase).collect(Collectors.toSet()))
                      .keywords(issue.getKeywords().stream().map(String::toLowerCase).collect(Collectors.toSet()))
                      .blocks(issue.getBlocks().stream().map(bugMatchingService::getBugByBzId).collect(Collectors.toSet()));
@@ -162,12 +168,28 @@ public class BugzillaRefreshJob implements Job {
                 bugzillaBugBuilder.targetRelease(issue.getTargetRelease());
             }
 
+            if (issue.getWhiteBoard() != null && !issue.getWhiteBoard().isEmpty()) {
+                int highestPrio = Integer.MAX_VALUE;
+                Matcher pmPrioWbMatch = PM_PRIO_WHITEBOARD_RE.matcher(issue.getWhiteBoard());
+                while (pmPrioWbMatch.find()) {
+                    highestPrio = Math.min(highestPrio, Integer.parseInt(pmPrioWbMatch.group("score")));
+                }
+                bugzillaBugBuilder.pmPriority(highestPrio);
+            }
+
+            if (issue.getPmScore() != null && !issue.getPmScore().isEmpty()) {
+                final Integer pmScore = Integer.valueOf(issue.getPmScore());
+                bugzillaBugBuilder.pmScore(pmScore);
+            }
+
             BugzillaBug bugzillaBug = bugzillaBugBuilder.build();
 
-            logger.debug("Bug found: {} - {}/{} - {} - {} - {}",
+            logger.debug("Bug found: {} - {}/{} (prio: {}, sc: {}) - {} - {} - {}",
                     issue.getId(),
                     bugzillaBug.getPriority().getSymbol(),
                     bugzillaBug.getSeverity().getSymbol(),
+                    bugzillaBug.getPmPriority(),
+                    bugzillaBug.getPmScore(),
                     bugzillaBug.getStatus(),
                     issue.getAssignedTo(),
                     issue.getSummary());

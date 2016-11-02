@@ -11,6 +11,7 @@ import javax.inject.Inject;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Set;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -98,6 +99,15 @@ public class FactServiceTest {
                 .pmScore(0)
                 .pmPriority(Integer.MAX_VALUE)
                 .assignedTo(user);
+    }
+
+    private TrelloCard.TrelloCardBuilder cardForBug(BugzillaBug bug, Double pos) {
+        return TrelloCard.builder()
+                .id("card-"+bug.getId())
+                .board(board)
+                .status(TRELLO_BACKLOG)
+                .pos(pos)
+                .bug(bug.getBug());
     }
 
     @Test
@@ -250,7 +260,7 @@ public class FactServiceTest {
     @Test
     public void testNoNeedTriageFuture() throws Exception {
         BugzillaBug bug1 = newBug(1, BugzillaStatus.ASSIGNED)
-                .keywords(new HashSet<>(Collections.singletonList("futurefeature")))
+                .keywords(singletonSet("futurefeature"))
                 .build();
 
         TrelloCard card1 = TrelloCard.builder()
@@ -273,7 +283,7 @@ public class FactServiceTest {
     @Test
     public void testRemoveTriageFuture() throws Exception {
         BugzillaBug bug1 = newBug(1, BugzillaStatus.MODIFIED)
-                .keywords(new HashSet<>(Collections.singletonList("futurefeature")))
+                .keywords(singletonSet("futurefeature"))
                 .build();
 
         TrelloLabel label = TrelloLabel.builder()
@@ -284,7 +294,7 @@ public class FactServiceTest {
                 .id("a")
                 .board(board)
                 .status(TRELLO_BACKLOG)
-                .labels(new HashSet<>(Collections.singletonList(label)))
+                .labels(singletonSet(label))
                 .pos(1.0)
                 .bug(bug1.getBug())
                 .build();
@@ -301,7 +311,7 @@ public class FactServiceTest {
     @Test
     public void testRemoveTriageFutureFlag() throws Exception {
         BugzillaBug bug1 = newBug(1, BugzillaStatus.ASSIGNED)
-                .flags(new HashSet<>(Collections.singletonList(new BugzillaBugFlag("ovirt-future?"))))
+                .flags(singletonSet(new BugzillaBugFlag("ovirt-future?")))
                 .build();
 
         TrelloLabel label = TrelloLabel.builder()
@@ -312,7 +322,7 @@ public class FactServiceTest {
                 .id("a")
                 .board(board)
                 .status(TRELLO_BACKLOG)
-                .labels(new HashSet<>(Collections.singletonList(label)))
+                .labels(singletonSet(label))
                 .pos(1.0)
                 .bug(bug1.getBug())
                 .build();
@@ -329,7 +339,7 @@ public class FactServiceTest {
     @Test
     public void testRemoveTriageFutureFlagRhv() throws Exception {
         BugzillaBug bug1 = newBug(1, BugzillaStatus.ASSIGNED)
-                .flags(new HashSet<>(Collections.singletonList(new BugzillaBugFlag("rhevm-future?"))))
+                .flags(singletonSet(new BugzillaBugFlag("rhevm-future?")))
                 .build();
 
         TrelloLabel label = TrelloLabel.builder()
@@ -340,7 +350,7 @@ public class FactServiceTest {
                 .id("a")
                 .board(board)
                 .status(TRELLO_BACKLOG)
-                .labels(new HashSet<>(Collections.singletonList(label)))
+                .labels(singletonSet(label))
                 .pos(1.0)
                 .bug(bug1.getBug())
                 .build();
@@ -371,7 +381,7 @@ public class FactServiceTest {
                 .status(TRELLO_BACKLOG)
                 .pos(1.0)
                 .bug(bug1.getBug())
-                .labels(new HashSet<>(Collections.singletonList(label)))
+                .labels(singletonSet(label))
                 .build();
 
         factService.addFact(bug1);
@@ -400,7 +410,7 @@ public class FactServiceTest {
                 .status(TRELLO_BACKLOG)
                 .pos(1.0)
                 .bug(bug1.getBug())
-                .labels(new HashSet<>(Collections.singletonList(label)))
+                .labels(singletonSet(label))
                 .build();
 
         factService.addFact(bug1);
@@ -442,25 +452,173 @@ public class FactServiceTest {
                 .build();
 
         BugzillaBug bug1 = newBug(1, BugzillaStatus.ASSIGNED)
-                .blocks(new HashSet<>(Collections.singletonList(bug2.getBug())))
+                .blocks(singletonSet(bug2.getBug()))
                 .build();
 
 
 
-        TrelloCard card1 = TrelloCard.builder()
-                .id("a")
-                .board(board)
-                .status(TRELLO_BACKLOG)
-                .pos(2.0)
-                .bug(bug1.getBug())
+        TrelloCard card1 = cardForBug(bug1, 2.0)
                 .build();
 
-        TrelloCard card2 = TrelloCard.builder()
-                .id("b")
-                .board(board)
-                .status(TRELLO_BACKLOG)
-                .pos(1.0)
-                .bug(bug2.getBug())
+        TrelloCard card2 = cardForBug(bug2, 1.0)
+                .build();
+
+        factService.addFact(bug1);
+        factService.addFact(bug2);
+        factService.addFact(card1);
+        factService.addFact(card2);
+
+        trigger();
+
+        assertThat(card2.getScore())
+                .isNotNull()
+                .isEqualTo(card1.getScore());
+        verify(trelloActions).switchCards(card2, card1);
+    }
+
+    @Test
+    public void testOrderWithPmScore() throws Exception {
+        BugzillaBug bug2 = newBug(2, BugzillaStatus.ASSIGNED)
+                .pmScore(10)
+                .build();
+
+        BugzillaBug bug1 = newBug(1, BugzillaStatus.ASSIGNED)
+                .pmScore(100)
+                .build();
+
+
+
+        TrelloCard card1 = cardForBug(bug1, 2.0)
+                .build();
+
+        TrelloCard card2 = cardForBug(bug2, 1.0)
+                .build();
+
+        factService.addFact(bug1);
+        factService.addFact(bug2);
+        factService.addFact(card1);
+        factService.addFact(card2);
+
+        trigger();
+
+        assertThat(card2.getScore())
+                .isNotNull()
+                .isEqualTo(card1.getScore());
+        verify(trelloActions).switchCards(card2, card1);
+    }
+
+    @Test
+    public void testOrderWithPmPriority() throws Exception {
+        BugzillaBug bug2 = newBug(2, BugzillaStatus.ASSIGNED)
+                .pmPriority(2)
+                .build();
+
+        BugzillaBug bug1 = newBug(1, BugzillaStatus.ASSIGNED)
+                .pmPriority(1)
+                .build();
+
+
+
+        TrelloCard card1 = cardForBug(bug1, 2.0)
+                .build();
+
+        TrelloCard card2 = cardForBug(bug2, 1.0)
+                .build();
+
+        factService.addFact(bug1);
+        factService.addFact(bug2);
+        factService.addFact(card1);
+        factService.addFact(card2);
+
+        trigger();
+
+        assertThat(card2.getScore())
+                .isNotNull()
+                .isEqualTo(card1.getScore());
+        verify(trelloActions).switchCards(card2, card1);
+    }
+
+    @Test
+    public void testOrderWithPmPriorityAndBlocking() throws Exception {
+        BugzillaBug bug2 = newBug(2, BugzillaStatus.ASSIGNED)
+                .pmPriority(1)
+                .build();
+
+        BugzillaBug bug1 = newBug(1, BugzillaStatus.ASSIGNED)
+                .pmPriority(2)
+                .blocks(singletonSet(bug2.getBug()))
+                .build();
+
+
+
+        TrelloCard card1 = cardForBug(bug1, 2.0)
+                .build();
+
+        TrelloCard card2 = cardForBug(bug2, 1.0)
+                .build();
+
+        factService.addFact(bug1);
+        factService.addFact(bug2);
+        factService.addFact(card1);
+        factService.addFact(card2);
+
+        trigger();
+
+        assertThat(card2.getScore())
+                .isNotNull()
+                .isEqualTo(card1.getScore());
+        verify(trelloActions).switchCards(card2, card1);
+    }
+
+    @Test
+    public void testOrderWithPmScoreAndBlocking() throws Exception {
+        BugzillaBug bug2 = newBug(2, BugzillaStatus.ASSIGNED)
+                .pmScore(1000)
+                .build();
+
+        BugzillaBug bug1 = newBug(1, BugzillaStatus.ASSIGNED)
+                .blocks(singletonSet(bug2.getBug()))
+                .build();
+
+
+
+        TrelloCard card1 = cardForBug(bug1, 2.0)
+                .build();
+
+        TrelloCard card2 = cardForBug(bug2, 1.0)
+                .build();
+
+        factService.addFact(bug1);
+        factService.addFact(bug2);
+        factService.addFact(card1);
+        factService.addFact(card2);
+
+        trigger();
+
+        assertThat(card2.getScore())
+                .isNotNull()
+                .isEqualTo(card1.getScore());
+        verify(trelloActions).switchCards(card2, card1);
+    }
+
+    @Test
+    public void testOrderWithPmScoreAndPriority() throws Exception {
+        BugzillaBug bug2 = newBug(2, BugzillaStatus.ASSIGNED)
+                .pmScore(1000)
+                .pmPriority(2)
+                .build();
+
+        BugzillaBug bug1 = newBug(1, BugzillaStatus.ASSIGNED)
+                .pmScore(100)
+                .pmPriority(1)
+                .build();
+
+
+
+        TrelloCard card1 = cardForBug(bug1, 2.0)
+                .build();
+
+        TrelloCard card2 = cardForBug(bug2, 1.0)
                 .build();
 
         factService.addFact(bug1);
@@ -483,7 +641,7 @@ public class FactServiceTest {
                 .build();
 
         BugzillaBug bug1 = newBug(1, BugzillaStatus.ASSIGNED)
-                .blocks(new HashSet<>(Collections.singletonList(bug2.getBug())))
+                .blocks(singletonSet(bug2.getBug()))
                 .build();
 
         TrelloCard card1 = TrelloCard.builder()
@@ -533,7 +691,7 @@ public class FactServiceTest {
                 .status(TRELLO_BACKLOG)
                 .pos(2.0)
                 .score(100)
-                .blocks(new HashSet<>(Collections.singletonList(bug)))
+                .blocks(singletonSet(bug))
                 .build();
 
         factService.addFact(card1);
@@ -557,7 +715,7 @@ public class FactServiceTest {
                 .board(board)
                 .status(TRELLO_BACKLOG)
                 .pos(1.0)
-                .blocks(new HashSet<>(Collections.singletonList(bug)))
+                .blocks(singletonSet(bug))
                 .build();
 
         TrelloCard card2 = TrelloCard.builder()
@@ -751,7 +909,7 @@ public class FactServiceTest {
         BugzillaBug bug1 = newBug(1, BugzillaStatus.MODIFIED)
                 .targetMilestone(release)
                 .community("redhat")
-                .flags(new HashSet<>(Collections.singletonList(new BugzillaBugFlag(flag))))
+                .flags(singletonSet(new BugzillaBugFlag(flag)))
                 .build();
 
         TrelloCard card1 = TrelloCard.builder()
@@ -780,7 +938,7 @@ public class FactServiceTest {
                 .status(TRELLO_BACKLOG)
                 .pos(2.0)
                 .score(100)
-                .blocks(new HashSet<>(Collections.singletonList(bug)))
+                .blocks(singletonSet(bug))
                 .build();
 
         factService.addFact(card);
@@ -843,7 +1001,7 @@ public class FactServiceTest {
                 .status(TRELLO_BACKLOG)
                 .pos(2.0)
                 .score(100)
-                .blocks(new HashSet<>(Collections.singletonList(bug1.getBug())))
+                .blocks(singletonSet(bug1.getBug()))
                 .build();
 
         factService.addFact(bug1);
@@ -852,5 +1010,43 @@ public class FactServiceTest {
         trigger();
 
         verify(trelloActions).assignLabelToCard(card, "done?");
+    }
+    
+    public void testBlockingBugPmScore() throws Exception {
+        BugzillaBug bug1 = newBug(1, BugzillaStatus.MODIFIED)
+                .pmScore(100)
+                .build();
+        BugzillaBug bug2 = newBug(2, BugzillaStatus.MODIFIED)
+                .blocks(singletonSet(bug1.getBug()))
+                .pmScore(10)
+                .build();
+
+        factService.addOrUpdateFact(bug1);
+        factService.addOrUpdateFact(bug2);
+        trigger();
+
+        assertThat(bug1.getPmScore())
+                .isEqualTo(bug2.getPmScore());
+    }
+
+    public void testBlockingBugPmPriority() throws Exception {
+        BugzillaBug bug1 = newBug(1, BugzillaStatus.MODIFIED)
+                .pmPriority(10)
+                .build();
+        BugzillaBug bug2 = newBug(2, BugzillaStatus.MODIFIED)
+                .blocks(singletonSet(bug1.getBug()))
+                .pmPriority(100)
+                .build();
+
+        factService.addOrUpdateFact(bug1);
+        factService.addOrUpdateFact(bug2);
+        trigger();
+
+        assertThat(bug1.getPmPriority())
+                .isEqualTo(bug2.getPmPriority());
+    }
+
+    public <T> Set<T> singletonSet(T element) {
+        return new HashSet<>(Collections.singletonList(element));
     }
 }
