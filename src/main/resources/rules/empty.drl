@@ -430,6 +430,26 @@ end
       }
   end
 
+ // Bugs with higher PM score or priority (lower number) have to have at least
+ // the same card score as cards with lower PM score
+ //
+ // But only apply this to bugs with the same priority (not all PMs use pmScore or pmPriority) that
+ // are targeted.
+ //
+ // This effectively removes the targetRelease score from the equation as the by PM imposed ordering
+ // overrides it
+ rule "cardScoreRelationsMustReflectPmScore"
+   salience 100
+   when
+     BugzillaBug($bzId : id, $bug1 : bug, $priority : priority, $pmScore : pmScore, $pmPriority : pmPriority, targetMilestone != "")
+     BugzillaBug($bug2 : bug, id != $bzId, priority == $priority, pmScore > $pmScore || pmPriority < $pmPriority, targetMilestone != "")
+
+     $card1: TrelloCard(bug == $bug1, $score : score)
+     $card2: TrelloCard(bug == $bug2, score == null || score < $score)
+   then
+     internal.setScore($card2, $score);
+ end
+
  // Bugs that block something with a higher priority have high priority too
  // (bug2 blocks bug1 in this rule)
  rule "blockingBugPriority"
