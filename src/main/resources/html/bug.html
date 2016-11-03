@@ -69,6 +69,8 @@ var BugInfo = React.createClass({
         <td>{entry.bug.targetMilestone}</td>
         <td>{entry.bug.priority}</td>
         <td>{entry.bug.severity}</td>
+        <td>{entry.bug.pmScore}</td>
+        <td>{entry.bug.pmPriority}</td>
         <td>{entry.bug.flags.map((f) => (<span>{f.flag}</span>))}</td>
         <td>&nbsp;</td>
         <td><a href={"https://trello.com/c/" + entry.card.id}>{entry.card.title}</a></td>
@@ -84,7 +86,31 @@ var BugInfo = React.createClass({
   render: function() {
     return (
       <table>
+        <thead>
+        <tr>
+        <th>Bug ID</th>
+        <th>status</th>
+        <th>assigned to</th>
+        <th>title</th>
+        <th>target</th>
+        <th>priority</th>
+        <th>severity</th>
+        <th>PM score</th>
+        <th>PM prio</th>
+        <th>flags</th>
+        <th>&nbsp;</th>
+        <th>Card</th>
+        <th>status</th>
+        <th>assigned to</th>
+        <th>order</th>
+        <th>position</th>
+        <th>score</th>
+        <th>labels</th>
+        </tr>
+        </thead>
+        <tbody>
         {this.state.data.map((entry) => this.singleBugAndCard(entry))}
+        </tbody>
       </table>
     );
   }
