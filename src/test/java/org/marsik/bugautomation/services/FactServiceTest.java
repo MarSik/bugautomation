@@ -707,6 +707,153 @@ public class FactServiceTest {
     }
 
     @Test
+    public void testWaitingWithBlockingCard() throws Exception {
+        Bug bug = Bug.builder().id(1).build();
+
+        TrelloCard card1 = TrelloCard.builder()
+                .id("a")
+                .board(board)
+                .status(TRELLO_BACKLOG)
+                .pos(1.0)
+                .score(100)
+                .bug(bug)
+                .build();
+
+        TrelloCard card2 = TrelloCard.builder()
+                .id("b")
+                .board(board)
+                .status(TRELLO_BACKLOG)
+                .pos(2.0)
+                .score(100)
+                .blocks(singletonSet(bug))
+                .build();
+
+        factService.addFact(card1);
+        factService.addFact(card2);
+
+        trigger();
+
+        verify(trelloActions).assignLabelToCard(card1, "waiting");
+    }
+
+    @Test
+    public void testNoWaitingWithBlockingCardDone() throws Exception {
+        Bug bug = Bug.builder().id(1).build();
+
+        final TrelloLabel waitingLabel = TrelloLabel.builder().name("waiting").build();
+
+        TrelloCard card1 = TrelloCard.builder()
+                .id("a")
+                .board(board)
+                .status(TRELLO_BACKLOG)
+                .pos(1.0)
+                .score(100)
+                .bug(bug)
+                .labels(singletonSet(waitingLabel))
+                .build();
+
+        TrelloCard card2 = TrelloCard.builder()
+                .id("b")
+                .board(board)
+                .status("done")
+                .pos(2.0)
+                .score(100)
+                .blocks(singletonSet(bug))
+                .build();
+
+        factService.addFact(card1);
+        factService.addFact(card2);
+
+        trigger();
+
+        verify(trelloActions).removeLabelFromCard(card1, waitingLabel);
+    }
+
+    @Test
+    public void testWaitingWithBlockingBug() throws Exception {
+        Bug bug = Bug.builder().id(1).build();
+
+        TrelloCard card1 = TrelloCard.builder()
+                .id("a")
+                .board(board)
+                .status(TRELLO_BACKLOG)
+                .pos(1.0)
+                .score(100)
+                .bug(bug)
+                .build();
+
+        BugzillaBug bug2 = newBug(2, BugzillaStatus.ASSIGNED)
+                .blocks(singletonSet(bug))
+                .build();
+
+        TrelloCard card2 = cardForBug(bug2, 2.0).build();
+
+        factService.addFact(bug2);
+        factService.addFact(card1);
+        factService.addFact(card2);
+
+        trigger();
+
+        verify(trelloActions).assignLabelToCard(card1, "waiting");
+    }
+
+    @Test
+    public void testNoWaitingWithBlockingBugDoneInTrello() throws Exception {
+        Bug bug = Bug.builder().id(1).build();
+
+        final TrelloLabel waitingLabel = TrelloLabel.builder().name("waiting").build();
+
+        TrelloCard card1 = TrelloCard.builder()
+                .id("a")
+                .board(board)
+                .status(TRELLO_BACKLOG)
+                .pos(1.0)
+                .score(100)
+                .bug(bug)
+                .labels(singletonSet(waitingLabel))
+                .build();
+
+        BugzillaBug bug2 = newBug(2, BugzillaStatus.ASSIGNED)
+                .blocks(singletonSet(bug))
+                .build();
+
+        TrelloCard card2 = cardForBug(bug2, 2.0)
+                .status("done")
+                .build();
+
+        factService.addFact(bug2);
+        factService.addFact(card1);
+        factService.addFact(card2);
+
+        trigger();
+
+        verify(trelloActions).removeLabelFromCard(card1, waitingLabel);
+    }
+
+    @Test
+    public void testNoWaitingWithNoBlockingBugPresent() throws Exception {
+        Bug bug = Bug.builder().id(1).build();
+
+        final TrelloLabel waitingLabel = TrelloLabel.builder().name("waiting").build();
+
+        TrelloCard card1 = TrelloCard.builder()
+                .id("a")
+                .board(board)
+                .status(TRELLO_BACKLOG)
+                .pos(1.0)
+                .score(100)
+                .bug(bug)
+                .labels(singletonSet(waitingLabel))
+                .build();
+
+        factService.addFact(card1);
+
+        trigger();
+
+        verify(trelloActions).removeLabelFromCard(card1, waitingLabel);
+    }
+
+    @Test
     public void testScoreWithBlockingCard() throws Exception {
         Bug bug = new Bug(1);
 
