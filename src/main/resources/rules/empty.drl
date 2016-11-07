@@ -236,6 +236,15 @@ rule "alreadyTriagedCardScore"
     trello.removeLabelFromCard($card, $label);
 end
 
+rule "alreadyTriagedCardDueDate"
+  when
+    $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
+    $card: TrelloCard(bug == null, board == $board, $labels: labels, dueDate != null && dueDate != "")
+    $label: TrelloLabel(name == "triage") from $labels
+  then
+    trello.removeLabelFromCard($card, $label);
+end
+
 // Mark all ZStream cards with insufficient flags
 rule "missingZStreamFlags"
   when

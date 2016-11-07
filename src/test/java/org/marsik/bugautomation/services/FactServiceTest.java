@@ -8,6 +8,7 @@ import static org.mockito.Mockito.when;
 
 import javax.inject.Inject;
 
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -329,6 +330,29 @@ public class FactServiceTest {
 
 
         factService.addFact(bug1);
+        factService.addFact(card1);
+
+        trigger();
+
+        verify(trelloActions).removeLabelFromCard(card1, label);
+    }
+
+    @Test
+    public void testRemoveTriageDueDateg() throws Exception {
+        TrelloLabel label = TrelloLabel.builder()
+                .name("triage")
+                .build();
+
+        TrelloCard card1 = TrelloCard.builder()
+                .id("a")
+                .board(board)
+                .status(TRELLO_BACKLOG)
+                .labels(singletonSet(label))
+                .dueDate(Instant.now())
+                .blocks(new HashSet<>())
+                .pos(1.0)
+                .build();
+
         factService.addFact(card1);
 
         trigger();
