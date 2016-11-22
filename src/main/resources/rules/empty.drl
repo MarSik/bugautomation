@@ -168,7 +168,7 @@ end
 // Add triage label to all cards without assignee, priority and target milestone
 rule "needsTriage"
   when
-    $bz: BugzillaBug($bug : bug, status != BugzillaStatus.CLOSED, targetMilestone == null || targetMilestone == "",
+    $bz: BugzillaBug($bug : bug, done == false, targetMilestone == null || targetMilestone == "",
                      priority == BugzillaPriorityLevel.UNSPECIFIED,
                      "triaged" not memberOf keywords,
                      "futurefeature" not memberOf keywords,
@@ -182,18 +182,19 @@ rule "needsTriage"
     trello.assignLabelToCard($card, "triage");
 end
 
+// Add triage label to cards (with no real bug, but custom bug id is allowed)
 rule "cardNeedsTriage"
   when
     $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
-    $card: TrelloCard($bug : bug, $blocks: blocks, board == $board, $labels: labels,
+    $card: TrelloCard($bug : bug, bug == null || bug.isReal() == false, $blocks: blocks, board == $board, $labels: labels,
+      status not str[startsWith] "done", status not str[startsWith] "documentation",
       score == 0, targetMilestone == null || targetMilestone == "", dueDate == null || dueDate == "")
     not(exists TrelloLabel(name == "triage") from $labels)
-    not(exists BugzillaBug(bug == $bug))
   then
     trello.assignLabelToCard($card, "triage");
 end
 
-// Remove triage label from targeted bugs and cards
+// Remove triage label from already fixed and properly targeted bugs and cards
 rule "alreadyTriaged"
   when
     $bz: BugzillaBug($bug : bug, done || (targetMilestone != null && targetMilestone != "")
@@ -202,6 +203,24 @@ rule "alreadyTriaged"
 
     $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
     $card: TrelloCard(bug == $bug, board == $board, $labels: labels)
+    $label: TrelloLabel(name == "triage") from $labels
+  then
+    trello.removeLabelFromCard($card, $label);
+end
+
+rule "alreadyTriagedCardDone"
+  when
+    $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
+    $card: TrelloCard(board == $board, status str[startsWith] "done", $labels: labels)
+    $label: TrelloLabel(name == "triage") from $labels
+  then
+    trello.removeLabelFromCard($card, $label);
+end
+
+rule "alreadyTriagedDocumentation"
+  when
+    $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
+    $card: TrelloCard(board == $board, status str[startsWith] "documentation", $labels: labels)
     $label: TrelloLabel(name == "triage") from $labels
   then
     trello.removeLabelFromCard($card, $label);
@@ -223,7 +242,6 @@ rule "alreadyTriagedCardMilestone"
   when
     $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
     $card: TrelloCard($bug : bug, board == $board, $labels: labels, targetMilestone != null, targetMilestone != "")
-    not(exists BugzillaBug(bug == $bug))
     $label: TrelloLabel(name == "triage") from $labels
   then
     trello.removeLabelFromCard($card, $label);
@@ -243,7 +261,6 @@ rule "alreadyTriagedCardDueDate"
   when
     $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
     $card: TrelloCard($bug : bug, board == $board, $labels: labels, dueDate != null && dueDate != "")
-    not(exists BugzillaBug(bug == $bug))
     $label: TrelloLabel(name == "triage") from $labels
   then
     trello.removeLabelFromCard($card, $label);
