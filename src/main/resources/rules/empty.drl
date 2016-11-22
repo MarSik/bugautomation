@@ -78,10 +78,10 @@ end
 rule "unknownBug"
   when
     $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
-    $card: TrelloCard($bug : bug, bug != null, board == $board, status not str[startsWith] "done")
+    $card: TrelloCard($bug : bug, bug != null, bug.isReal(), board == $board, status not str[startsWith] "done")
     not(exists BugzillaBug($bug == bug))
   then
-    trello.moveCard($card, $board, "Done");
+    trello.moveCard($card, $board, "done");
 end
 
 // A card in finished columns (documentation, done) that is linked to unfinished bugzilla entry
@@ -185,9 +185,10 @@ end
 rule "cardNeedsTriage"
   when
     $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
-    $card: TrelloCard(bug == null, board == $board, $labels: labels,
+    $card: TrelloCard($bug : bug, $blocks: blocks, board == $board, $labels: labels,
       score == 0, targetMilestone == null || targetMilestone == "", dueDate == null || dueDate == "")
     not(exists TrelloLabel(name == "triage") from $labels)
+    not(exists BugzillaBug(bug == $bug))
   then
     trello.assignLabelToCard($card, "triage");
 end
@@ -221,7 +222,8 @@ end
 rule "alreadyTriagedCardMilestone"
   when
     $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
-    $card: TrelloCard(bug == null, board == $board, $labels: labels, targetMilestone != null, targetMilestone != "")
+    $card: TrelloCard($bug : bug, board == $board, $labels: labels, targetMilestone != null, targetMilestone != "")
+    not(exists BugzillaBug(bug == $bug))
     $label: TrelloLabel(name == "triage") from $labels
   then
     trello.removeLabelFromCard($card, $label);
@@ -230,7 +232,8 @@ end
 rule "alreadyTriagedCardScore"
   when
     $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
-    $card: TrelloCard(bug == null, board == $board, $labels: labels, score > 0)
+    $card: TrelloCard($bug : bug, board == $board, $labels: labels, score > 0)
+    not(exists BugzillaBug(bug == $bug))
     $label: TrelloLabel(name == "triage") from $labels
   then
     trello.removeLabelFromCard($card, $label);
@@ -239,7 +242,8 @@ end
 rule "alreadyTriagedCardDueDate"
   when
     $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
-    $card: TrelloCard(bug == null, board == $board, $labels: labels, dueDate != null && dueDate != "")
+    $card: TrelloCard($bug : bug, board == $board, $labels: labels, dueDate != null && dueDate != "")
+    not(exists BugzillaBug(bug == $bug))
     $label: TrelloLabel(name == "triage") from $labels
   then
     trello.removeLabelFromCard($card, $label);
@@ -300,7 +304,7 @@ end
 rule "blocksClosedBug"
   when
     $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
-    $card: TrelloCard(bug == null, $blocks : blocks, blocks.empty == false, status not str[startsWith] "done", board == $board, $labels: labels)
+    $card: TrelloCard($blocks : blocks, blocks.empty == false, status not str[startsWith] "documentation", status not str[startsWith] "done", board == $board, $labels: labels)
     not(exists BugzillaBug(done == false, bug memberOf $blocks))
     not(exists TrelloLabel(name == "done?") from $labels)
   then
@@ -390,7 +394,7 @@ rule "orderBacklogByCardBlocks"
     $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
 
     $card1: TrelloCard($bug : bug, board == $board, status == config.getCached("cfg.backlog"), $score : score, $pos : pos)
-    $card2: TrelloCard(bug == null, $bug memberOf blocks, board == $board, status == config.getCached("cfg.backlog"), $score == score, pos > $pos)
+    $card2: TrelloCard($bug memberOf blocks, board == $board, status == config.getCached("cfg.backlog"), $score == score, pos > $pos)
   then
     trello.switchCards($card1, $card2);
 end
@@ -533,7 +537,8 @@ end
  rule "scoreStandaloneCard"
    salience 99
    when
-     $card1: TrelloCard(bug == null, targetMilestone != null, $tm : targetMilestone, score == null)
+     $card1: TrelloCard($bug : bug, targetMilestone != null, $tm : targetMilestone, score == null)
+     not(exists BugzillaBug(bug == $bug))
    then
      internal.setScore($card1, config.getCachedInt("release." + $tm, 0));
  end
@@ -580,7 +585,8 @@ end
   rule "scoreNotSetNoBz"
     salience 97
     when
-      $card1: TrelloCard(bug == null, score == null)
+      $card1: TrelloCard($bug : bug, score == null)
+      not(exists BugzillaBug(bug == $bug))
     then
       internal.setScore($card1, 0);
   end

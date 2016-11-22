@@ -21,3 +21,14 @@ query "getBugInfo" (String bugId)
   )
 end
 
+query "getCardInfo" (String cardId)
+  card: TrelloCard(id == cardId, $board : board, $status : status, $pos : pos)
+  order: Long() from accumulate(
+    TrelloCard(this != card, board == $board, $status == status, pos < $pos),
+    count(1)
+  )
+end
+
+query "getColumnInfo" (String board, String status)
+  card: TrelloCard(board == board, status == status)
+end

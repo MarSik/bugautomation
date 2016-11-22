@@ -36,7 +36,7 @@ public class BugMatchingService {
         Bug bug = weakBug == null ? null : weakBug.get();
 
         if (bug == null) {
-            bug = new Bug(nextId.getAndIncrement());
+            bug = new Bug(String.valueOf(nextId.getAndIncrement()));
             weakBug = new WeakReference<>(bug);
             bzIdToBug.put(bugId, weakBug);
         }

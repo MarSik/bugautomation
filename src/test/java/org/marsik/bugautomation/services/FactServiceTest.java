@@ -94,7 +94,7 @@ public class FactServiceTest {
                 .targetMilestone("")
                 .priority(BugzillaPriorityLevel.UNSPECIFIED)
                 .severity(BugzillaPriorityLevel.UNSPECIFIED)
-                .bug(Bug.builder().id(id).build())
+                .bug(new Bug(String.valueOf(id)))
                 .priority(BugzillaPriorityLevel.UNSPECIFIED)
                 .status(status)
                 .pmScore(0)
@@ -108,6 +108,7 @@ public class FactServiceTest {
                 .board(board)
                 .status(TRELLO_BACKLOG)
                 .pos(pos)
+                .blocks(Collections.emptySet())
                 .bug(bug.getBug());
     }
 
@@ -126,6 +127,7 @@ public class FactServiceTest {
                 .status(TRELLO_BACKLOG)
                 .pos(1.0)
                 .bug(bug1.getBug())
+                .blocks(Collections.emptySet())
                 .build();
 
         TrelloCard card2 = TrelloCard.builder()
@@ -134,6 +136,7 @@ public class FactServiceTest {
                 .status(TRELLO_BACKLOG)
                 .pos(2.0)
                 .bug(bug2.getBug())
+                .blocks(Collections.emptySet())
                 .build();
 
         factService.addFact(bug1);
@@ -158,6 +161,7 @@ public class FactServiceTest {
                 .status(TRELLO_BACKLOG)
                 .pos(1.0)
                 .bug(bug1.getBug())
+                .blocks(Collections.emptySet())
                 .build();
 
 
@@ -167,6 +171,43 @@ public class FactServiceTest {
         trigger();
 
         verify(trelloActions).moveCard(card1, board, "documentation");
+    }
+
+    @Test
+    public void testCardArtificialId() throws Exception {
+        TrelloCard card1 = TrelloCard.builder()
+                .id("a")
+                .board(board)
+                .status(TRELLO_BACKLOG)
+                .pos(1.0)
+                .bug(new Bug("test-card", Bug.IdType.CUSTOM))
+                .blocks(Collections.emptySet())
+                .build();
+
+        factService.addFact(card1);
+
+        trigger();
+
+        verify(trelloActions, never()).moveCard(card1, board, "documentation");
+        verify(trelloActions, never()).moveCard(card1, board, "done");
+    }
+
+    @Test
+    public void testCardRealIdNoBugPresent() throws Exception {
+        TrelloCard card1 = TrelloCard.builder()
+                .id("a")
+                .board(board)
+                .status(TRELLO_BACKLOG)
+                .pos(1.0)
+                .bug(new Bug("1234567"))
+                .blocks(Collections.emptySet())
+                .build();
+
+        factService.addFact(card1);
+
+        trigger();
+
+        verify(trelloActions).moveCard(card1, board, "done");
     }
 
     @Test
@@ -180,6 +221,7 @@ public class FactServiceTest {
                 .status("done before X")
                 .pos(1.0)
                 .bug(bug1.getBug())
+                .blocks(Collections.emptySet())
                 .build();
 
 
@@ -202,6 +244,7 @@ public class FactServiceTest {
                 .status("done before X")
                 .pos(1.0)
                 .bug(bug1.getBug())
+                .blocks(Collections.emptySet())
                 .build();
 
 
@@ -225,6 +268,7 @@ public class FactServiceTest {
                 .status(TRELLO_BACKLOG)
                 .pos(1.0)
                 .bug(bug1.getBug())
+                .blocks(Collections.emptySet())
                 .build();
 
 
@@ -246,6 +290,7 @@ public class FactServiceTest {
                 .board(board)
                 .status(TRELLO_BACKLOG)
                 .pos(1.0)
+                .blocks(Collections.emptySet())
                 .bug(bug1.getBug())
                 .build();
 
@@ -270,6 +315,7 @@ public class FactServiceTest {
                 .status(TRELLO_BACKLOG)
                 .pos(1.0)
                 .bug(bug1.getBug())
+                .blocks(Collections.emptySet())
                 .build();
 
 
@@ -298,6 +344,7 @@ public class FactServiceTest {
                 .labels(singletonSet(label))
                 .pos(1.0)
                 .bug(bug1.getBug())
+                .blocks(Collections.emptySet())
                 .build();
 
 
@@ -326,6 +373,7 @@ public class FactServiceTest {
                 .labels(singletonSet(label))
                 .pos(1.0)
                 .bug(bug1.getBug())
+                .blocks(Collections.emptySet())
                 .build();
 
 
@@ -377,6 +425,7 @@ public class FactServiceTest {
                 .labels(singletonSet(label))
                 .pos(1.0)
                 .bug(bug1.getBug())
+                .blocks(Collections.emptySet())
                 .build();
 
 
@@ -406,6 +455,7 @@ public class FactServiceTest {
                 .pos(1.0)
                 .bug(bug1.getBug())
                 .labels(singletonSet(label))
+                .blocks(Collections.emptySet())
                 .build();
 
         factService.addFact(bug1);
@@ -435,6 +485,7 @@ public class FactServiceTest {
                 .pos(1.0)
                 .bug(bug1.getBug())
                 .labels(singletonSet(label))
+                .blocks(Collections.emptySet())
                 .build();
 
         factService.addFact(bug1);
@@ -459,6 +510,7 @@ public class FactServiceTest {
                 .pos(1.0)
                 .bug(bug1.getBug())
                 .labels(new HashSet<>())
+                .blocks(Collections.emptySet())
                 .build();
 
         factService.addFact(bug1);
@@ -674,6 +726,7 @@ public class FactServiceTest {
                 .status(TRELLO_BACKLOG)
                 .pos(1.0)
                 .bug(bug1.getBug())
+                .blocks(Collections.emptySet())
                 .build();
 
         TrelloCard card2 = TrelloCard.builder()
@@ -682,6 +735,7 @@ public class FactServiceTest {
                 .status(TRELLO_BACKLOG)
                 .pos(2.0)
                 .bug(bug2.getBug())
+                .blocks(Collections.emptySet())
                 .build();
 
         factService.addFact(bug1);
@@ -698,7 +752,7 @@ public class FactServiceTest {
 
     @Test
     public void testOrderWithBlockingCard() throws Exception {
-        Bug bug = Bug.builder().id(1).build();
+        Bug bug = new Bug("1");
 
         TrelloCard card1 = TrelloCard.builder()
                 .id("a")
@@ -706,6 +760,7 @@ public class FactServiceTest {
                 .status(TRELLO_BACKLOG)
                 .pos(1.0)
                 .score(100)
+                .blocks(Collections.emptySet())
                 .bug(bug)
                 .build();
 
@@ -732,7 +787,7 @@ public class FactServiceTest {
 
     @Test
     public void testWaitingWithBlockingCard() throws Exception {
-        Bug bug = Bug.builder().id(1).build();
+        Bug bug = new Bug("1");
 
         TrelloCard card1 = TrelloCard.builder()
                 .id("a")
@@ -741,6 +796,7 @@ public class FactServiceTest {
                 .pos(1.0)
                 .score(100)
                 .bug(bug)
+                .blocks(Collections.emptySet())
                 .build();
 
         TrelloCard card2 = TrelloCard.builder()
@@ -762,7 +818,7 @@ public class FactServiceTest {
 
     @Test
     public void testNoWaitingWithBlockingCardDone() throws Exception {
-        Bug bug = Bug.builder().id(1).build();
+        Bug bug = new Bug("1");
 
         TrelloCard card1 = TrelloCard.builder()
                 .id("a")
@@ -771,6 +827,7 @@ public class FactServiceTest {
                 .pos(1.0)
                 .score(100)
                 .bug(bug)
+                .blocks(Collections.emptySet())
                 .build();
 
         TrelloCard card2 = TrelloCard.builder()
@@ -792,7 +849,7 @@ public class FactServiceTest {
 
     @Test
     public void testNoWaitingWithBlockingCardInDocumentation() throws Exception {
-        Bug bug = Bug.builder().id(1).build();
+        Bug bug = new Bug("1");
 
         TrelloCard card1 = TrelloCard.builder()
                 .id("a")
@@ -801,6 +858,7 @@ public class FactServiceTest {
                 .pos(1.0)
                 .score(100)
                 .bug(bug)
+                .blocks(Collections.emptySet())
                 .build();
 
         TrelloCard card2 = TrelloCard.builder()
@@ -822,7 +880,7 @@ public class FactServiceTest {
 
     @Test
     public void testRemoveWaitingWithBlockingCardDone() throws Exception {
-        Bug bug = Bug.builder().id(1).build();
+        Bug bug = new Bug("1");
 
         final TrelloLabel waitingLabel = TrelloLabel.builder().name("waiting").build();
 
@@ -834,6 +892,7 @@ public class FactServiceTest {
                 .score(100)
                 .bug(bug)
                 .labels(singletonSet(waitingLabel))
+                .blocks(Collections.emptySet())
                 .build();
 
         TrelloCard card2 = TrelloCard.builder()
@@ -855,7 +914,7 @@ public class FactServiceTest {
 
     @Test
     public void testRemoveWaitingWithBlockingCardInDocumentation() throws Exception {
-        Bug bug = Bug.builder().id(1).build();
+        Bug bug = new Bug("1");
 
         final TrelloLabel waitingLabel = TrelloLabel.builder().name("waiting").build();
 
@@ -867,6 +926,7 @@ public class FactServiceTest {
                 .score(100)
                 .bug(bug)
                 .labels(singletonSet(waitingLabel))
+                .blocks(Collections.emptySet())
                 .build();
 
         TrelloCard card2 = TrelloCard.builder()
@@ -888,7 +948,7 @@ public class FactServiceTest {
 
     @Test
     public void testWaitingWithBlockingBug() throws Exception {
-        Bug bug = Bug.builder().id(1).build();
+        Bug bug = new Bug("1");
 
         TrelloCard card1 = TrelloCard.builder()
                 .id("a")
@@ -897,6 +957,7 @@ public class FactServiceTest {
                 .pos(1.0)
                 .score(100)
                 .bug(bug)
+                .blocks(Collections.emptySet())
                 .build();
 
         BugzillaBug bug2 = newBug(2, BugzillaStatus.ASSIGNED)
@@ -916,7 +977,7 @@ public class FactServiceTest {
 
     @Test
     public void testNoWaitingWithBlockingBugDoneInTrello() throws Exception {
-        Bug bug = Bug.builder().id(1).build();
+        Bug bug = new Bug("1");
 
         TrelloCard card1 = TrelloCard.builder()
                 .id("a")
@@ -925,6 +986,7 @@ public class FactServiceTest {
                 .pos(1.0)
                 .score(100)
                 .bug(bug)
+                .blocks(Collections.emptySet())
                 .build();
 
         BugzillaBug bug2 = newBug(2, BugzillaStatus.ASSIGNED)
@@ -946,7 +1008,7 @@ public class FactServiceTest {
 
     @Test
     public void testNoWaitingWithBlockingBugDoneInDocumentation() throws Exception {
-        Bug bug = Bug.builder().id(1).build();
+        Bug bug = new Bug("1");
 
         TrelloCard card1 = TrelloCard.builder()
                 .id("a")
@@ -955,6 +1017,7 @@ public class FactServiceTest {
                 .pos(1.0)
                 .score(100)
                 .bug(bug)
+                .blocks(Collections.emptySet())
                 .build();
 
         BugzillaBug bug2 = newBug(2, BugzillaStatus.ASSIGNED)
@@ -976,7 +1039,7 @@ public class FactServiceTest {
 
     @Test
     public void testRemoveWithBlockingBugDoneInTrello() throws Exception {
-        Bug bug = Bug.builder().id(1).build();
+        Bug bug = new Bug("1");
 
         final TrelloLabel waitingLabel = TrelloLabel.builder().name("waiting").build();
 
@@ -987,6 +1050,7 @@ public class FactServiceTest {
                 .pos(1.0)
                 .score(100)
                 .bug(bug)
+                .blocks(Collections.emptySet())
                 .labels(singletonSet(waitingLabel))
                 .build();
 
@@ -1009,7 +1073,7 @@ public class FactServiceTest {
 
     @Test
     public void testRemoveWithBlockingBugInDocumentationInTrello() throws Exception {
-        Bug bug = Bug.builder().id(1).build();
+        Bug bug = new Bug("1");
 
         final TrelloLabel waitingLabel = TrelloLabel.builder().name("waiting").build();
 
@@ -1020,6 +1084,7 @@ public class FactServiceTest {
                 .pos(1.0)
                 .score(100)
                 .bug(bug)
+                .blocks(Collections.emptySet())
                 .labels(singletonSet(waitingLabel))
                 .build();
 
@@ -1042,7 +1107,7 @@ public class FactServiceTest {
 
     @Test
     public void testNoWaitingWithNoBlockingBugPresent() throws Exception {
-        Bug bug = Bug.builder().id(1).build();
+        Bug bug = new Bug("1");
 
         final TrelloLabel waitingLabel = TrelloLabel.builder().name("waiting").build();
 
@@ -1053,6 +1118,7 @@ public class FactServiceTest {
                 .pos(1.0)
                 .score(100)
                 .bug(bug)
+                .blocks(Collections.emptySet())
                 .labels(singletonSet(waitingLabel))
                 .build();
 
@@ -1065,7 +1131,7 @@ public class FactServiceTest {
 
     @Test
     public void testScoreWithBlockingCard() throws Exception {
-        Bug bug = new Bug(1);
+        Bug bug = new Bug("1");
 
         TrelloCard card1 = TrelloCard.builder()
                 .id("a")
@@ -1081,6 +1147,7 @@ public class FactServiceTest {
                 .status(TRELLO_BACKLOG)
                 .pos(2.0)
                 .bug(bug)
+                .blocks(Collections.emptySet())
                 .score(200)
                 .build();
 
@@ -1275,6 +1342,7 @@ public class FactServiceTest {
                 .status(TRELLO_BACKLOG)
                 .pos(1.0)
                 .bug(bug1.getBug())
+                .blocks(Collections.emptySet())
                 .build();
 
         factService.addFact(bug1);
@@ -1287,7 +1355,7 @@ public class FactServiceTest {
 
     @Test
     public void testIsDoneFlagWhenBlockedDone() throws Exception {
-        Bug bug = Bug.builder().id(1).build();
+        Bug bug = new Bug("1");
 
         TrelloCard card = TrelloCard.builder()
                 .id("b")
@@ -1303,6 +1371,26 @@ public class FactServiceTest {
         trigger();
 
         verify(trelloActions).assignLabelToCard(card, "done?");
+    }
+
+    @Test
+    public void testNoIsDoneFlagWhenInDocumentation() throws Exception {
+        Bug bug = new Bug("1");
+
+        TrelloCard card = TrelloCard.builder()
+                .id("b")
+                .board(board)
+                .status("documentation")
+                .pos(2.0)
+                .score(100)
+                .blocks(singletonSet(bug))
+                .build();
+
+        factService.addFact(card);
+
+        trigger();
+
+        verify(trelloActions, never()).assignLabelToCard(card, "done?");
     }
 
     @Test
@@ -1325,7 +1413,7 @@ public class FactServiceTest {
 
     @Test
     public void testNoIsDoneFlagWhenNotAllBlockedDone() throws Exception {
-        final Bug bugId2 = Bug.builder().id(2).build();
+        final Bug bugId2 = new Bug("1");
 
         BugzillaBug bug1 = newBug(1, BugzillaStatus.ASSIGNED)
                 .build();

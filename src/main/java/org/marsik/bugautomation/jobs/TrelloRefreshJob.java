@@ -180,12 +180,7 @@ public class TrelloRefreshJob implements Job {
                 if (fields.containsKey("blocks")) {
                     String[] blocksList = fields.get("blocks").split(",");
                     for (String blocks: blocksList) {
-                        bug = bugMatchingService.identifyBug(blocks);
-                        if (bug.isPresent()) {
-                            kiCard.getBlocks().add(bug.get());
-                        } else {
-                            logger.warn("Card {} contains invalid blocking bug id {}", kiCard, blocks);
-                        }
+                        kiCard.getBlocks().add(new Bug(blocks));
                     }
                 }
 
@@ -212,6 +207,10 @@ public class TrelloRefreshJob implements Job {
 
                 if (fields.containsKey("targetmilestone")) {
                     kiCard.setTargetMilestone(fields.get("targetmilestone"));
+                }
+
+                if (fields.containsKey("id")) {
+                    kiCard.setBug(new Bug(fields.get("id"), Bug.IdType.CUSTOM));
                 }
 
                 factService.addOrUpdateFact(kiCard);
