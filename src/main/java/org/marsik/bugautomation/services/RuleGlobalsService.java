@@ -44,7 +44,7 @@ public class RuleGlobalsService {
         List<Map<String, Object>> dtos = new ArrayList<>();
         for (QueryResultsRow row: results) {
             Map<String, Object> dtoRow = new HashMap<>();
-            dtoRow.put("bug", row.get("bug"));
+            dtoRow.put("bug", row.get("bz"));
             dtoRow.put("card", row.get("card"));
             dtoRow.put("order", row.get("order"));
             dtos.add(dtoRow);

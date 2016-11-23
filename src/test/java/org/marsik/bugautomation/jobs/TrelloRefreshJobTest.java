@@ -49,6 +49,19 @@ public class TrelloRefreshJobTest {
     }
 
     @Test
+    public void simpleIdWithDashes() throws Exception {
+        String testDoc = "Test description {{ id:test-with-dashes }} with suffix";
+        Map<String, String> values = TrelloRefreshJob.getCustomFields(testDoc);
+        assertThat(values)
+                .isNotNull()
+                .hasSize(1);
+
+        assertThat(values.get("id"))
+                .isNotNull()
+                .isEqualTo("test-with-dashes");
+    }
+
+    @Test
     public void simpleColon() throws Exception {
         String testDoc = "Test description {{ score:400 }} with suffix";
         Map<String, String> values = TrelloRefreshJob.getCustomFields(testDoc);

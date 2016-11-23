@@ -944,6 +944,37 @@ public class FactServiceTest {
     }
 
     @Test
+    public void testWaitingWithBlockingCardCustomId() throws Exception {
+        Bug bug = new Bug("test-custom-id", Bug.IdType.CUSTOM);
+
+        TrelloCard card1 = TrelloCard.builder()
+                .id("a")
+                .board(board)
+                .status(TRELLO_BACKLOG)
+                .pos(1.0)
+                .score(100)
+                .bug(bug)
+                .blocks(Collections.emptySet())
+                .build();
+
+        TrelloCard card2 = TrelloCard.builder()
+                .id("b")
+                .board(board)
+                .status("inprogress")
+                .pos(2.0)
+                .score(100)
+                .blocks(singletonSet(bug))
+                .build();
+
+        factService.addFact(card1);
+        factService.addFact(card2);
+
+        trigger();
+
+        verify(trelloActions).assignLabelToCard(card1, "waiting");
+    }
+
+    @Test
     public void testNoWaitingWithBlockingCardDone() throws Exception {
         Bug bug = new Bug("1");
 

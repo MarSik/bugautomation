@@ -3,6 +3,7 @@ package org.marsik.bugautomation.jobs;
 import javax.inject.Inject;
 
 import org.kie.api.cdi.KSession;
+import org.kie.api.event.rule.DebugAgendaEventListener;
 import org.kie.api.runtime.KieSession;
 import org.kie.api.runtime.rule.FactHandle;
 import org.marsik.bugautomation.services.BugzillaActions;
@@ -49,6 +50,7 @@ public class RefreshRulesJob implements Job {
         FactHandle statsHandle = kSession.insert(stats);
 
         long startTime = System.nanoTime();
+        kSession.addEventListener( new DebugAgendaEventListener() );
         kSession.fireAllRules();
         long elapsedTime = System.nanoTime() - startTime;
         stats.add(SingleStat.TRIGGER_TIME)

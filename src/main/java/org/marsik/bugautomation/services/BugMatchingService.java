@@ -14,7 +14,6 @@ import org.marsik.bugautomation.facts.Bug;
 
 @Singleton
 public class BugMatchingService {
-    AtomicInteger nextId = new AtomicInteger();
     BiMap<String, WeakReference<Bug>> bzIdToBug = HashBiMap.create();
 
     private static final Pattern RE_RHBZ = Pattern.compile("\\[?(bug *#?|show_bug.cgi?id=|(rh)?(bz)?#?)?(?<id>[1-9][0-9]{5,6})\\]?");
@@ -36,7 +35,7 @@ public class BugMatchingService {
         Bug bug = weakBug == null ? null : weakBug.get();
 
         if (bug == null) {
-            bug = new Bug(String.valueOf(nextId.getAndIncrement()));
+            bug = new Bug(bugId);
             weakBug = new WeakReference<>(bug);
             bzIdToBug.put(bugId, weakBug);
         }
