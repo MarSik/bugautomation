@@ -7,7 +7,7 @@
         </layout>
     </appender>
 
-    <logger name="org.drools" level="DEBUG" />
+    <logger name="org.drools" level="INFO" />
 
     <root level="INFO">
         <appender-ref ref="STDOUT" />
