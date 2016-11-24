@@ -19,7 +19,7 @@ public class InfoEndpoint {
     @Inject
     RuleGlobalsService factService;
 
-    @Path("/{bugId:[0-9]+}")
+    @Path("/{bugId:[a-zA-Z0-9-]+}")
     @Produces(MediaType.APPLICATION_JSON)
     @GET
     public Response getBugInfo(@PathParam("bugId") String bugId) {
