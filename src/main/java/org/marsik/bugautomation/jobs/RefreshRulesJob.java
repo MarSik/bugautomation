@@ -50,7 +50,11 @@ public class RefreshRulesJob implements Job {
         FactHandle statsHandle = kSession.insert(stats);
 
         long startTime = System.nanoTime();
-        kSession.addEventListener( new DebugAgendaEventListener() );
+
+        if (logger.isDebugEnabled()) {
+            kSession.addEventListener(new DebugAgendaEventListener());
+        }
+
         kSession.fireAllRules();
         long elapsedTime = System.nanoTime() - startTime;
         stats.add(SingleStat.TRIGGER_TIME)
