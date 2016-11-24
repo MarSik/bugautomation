@@ -74,12 +74,13 @@ rule "doneBug"
     trello.moveCard($card, $board, "done");
 end
 
-// A card with a bug number that has no corresponding bug record in the knowledge db
+// A card with a bug number that has no corresponding bug record or custom bug id in the knowledge db
 rule "unknownBug"
   when
     $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
-    $card: TrelloCard($bug : bug, bug != null, bug.isReal(), board == $board, status not str[startsWith] "done")
+    $card: TrelloCard($bug : bug, bug != null, board == $board, status not str[startsWith] "done")
     not(exists BugzillaBug($bug == bug))
+    not(exists Bug(this == $bug))
   then
     trello.moveCard($card, $board, "done");
 end
@@ -186,10 +187,11 @@ end
 rule "cardNeedsTriage"
   when
     $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
-    $card: TrelloCard($bug : bug, bug == null || bug.isReal() == false, $blocks: blocks, board == $board, $labels: labels,
+    $card: TrelloCard($bug : bug, $blocks: blocks, board == $board, $labels: labels,
       status not str[startsWith] "done", status not str[startsWith] "documentation",
       score == 0, targetMilestone == null || targetMilestone == "", dueDate == null || dueDate == "")
     not(exists TrelloLabel(name == "triage") from $labels)
+    not(exists BugzillaBug(bug == $bug))
   then
     trello.assignLabelToCard($card, "triage");
 end

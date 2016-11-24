@@ -180,11 +180,12 @@ public class FactServiceTest {
                 .board(board)
                 .status(TRELLO_BACKLOG)
                 .pos(1.0)
-                .bug(new Bug("test-card", Bug.IdType.CUSTOM))
+                .bug(new Bug("test-card"))
                 .blocks(Collections.emptySet())
                 .build();
 
         factService.addFact(card1);
+        factService.addFact(card1.getBug());
 
         trigger();
 
@@ -331,10 +332,10 @@ public class FactServiceTest {
                 .status(TRELLO_BACKLOG)
                 .pos(1.0)
                 .blocks(Collections.emptySet())
-                .bug(new Bug("1", Bug.IdType.CUSTOM))
+                .bug(new Bug("1"))
                 .build();
 
-
+        factService.addFact(card1.getBug());
         factService.addFact(card1);
 
         trigger();
@@ -373,10 +374,10 @@ public class FactServiceTest {
                 .status("done before 25th")
                 .pos(1.0)
                 .blocks(Collections.emptySet())
-                .bug(new Bug("1", Bug.IdType.CUSTOM))
+                .bug(new Bug("1"))
                 .build();
 
-
+        factService.addFact(card1.getBug());
         factService.addFact(card1);
 
         trigger();
@@ -945,7 +946,7 @@ public class FactServiceTest {
 
     @Test
     public void testWaitingWithBlockingCardCustomId() throws Exception {
-        Bug bug = new Bug("test-custom-id", Bug.IdType.CUSTOM);
+        Bug bug = new Bug("test-custom-id");
 
         TrelloCard card1 = TrelloCard.builder()
                 .id("a")
@@ -966,6 +967,7 @@ public class FactServiceTest {
                 .blocks(singletonSet(bug))
                 .build();
 
+        factService.addFact(bug);
         factService.addFact(card1);
         factService.addFact(card2);
 

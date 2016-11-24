@@ -210,7 +210,8 @@ public class TrelloRefreshJob implements Job {
                 }
 
                 if (fields.containsKey("id")) {
-                    kiCard.setBug(new Bug(fields.get("id"), Bug.IdType.CUSTOM));
+                    kiCard.setBug(new Bug(fields.get("id")));
+                    factService.addOrUpdateFact(kiCard.getBug());
                 }
 
                 factService.addOrUpdateFact(kiCard);
