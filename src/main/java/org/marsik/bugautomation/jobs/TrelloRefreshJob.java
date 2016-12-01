@@ -21,8 +21,11 @@ import org.marsik.bugautomation.facts.User;
 import org.marsik.bugautomation.services.BugMatchingService;
 import org.marsik.bugautomation.services.ConfigurationService;
 import org.marsik.bugautomation.services.FactService;
+import org.marsik.bugautomation.services.StatsService;
 import org.marsik.bugautomation.services.TrelloActionsImpl;
 import org.marsik.bugautomation.services.UserMatchingService;
+import org.marsik.bugautomation.stats.SingleStat;
+import org.marsik.bugautomation.stats.Stats;
 import org.marsik.bugautomation.trello.Board;
 import org.marsik.bugautomation.trello.Card;
 import org.marsik.bugautomation.trello.TrelloClient;
@@ -55,6 +58,8 @@ public class TrelloRefreshJob implements Job {
     @Inject
     TrelloActionsImpl trelloActions;
 
+    @Inject StatsService statsService;
+
     private static final Pattern CUSTOM_FIELDS_GROUP_RE = Pattern.compile("\\{\\{ *(([a-zA-Z0-9]+[:=][a-zA-Z0-9@.:/_=?-]*) *)* *\\}\\}");
     private static final Pattern CUSTOM_FIELDS_RE = Pattern.compile("([a-zA-Z0-9]+)[=:]([a-zA-Z0-9@.:/_=?-]*)");
 
@@ -66,6 +71,8 @@ public class TrelloRefreshJob implements Job {
             logger.warn("Trello not configured, can't create card.");
             return;
         }
+
+        long startTime = System.nanoTime();
 
         TrelloClient trello = builder.build();
 
@@ -218,7 +225,14 @@ public class TrelloRefreshJob implements Job {
             }
         }
 
-        logger.info("Trello refresh finished");
+        long elapsedTime = System.nanoTime() - startTime;
+
+        logger.info("Trello refresh finished ({} ms)", (float)elapsedTime / 1000000);
+
+        final Stats stats = new Stats();
+        stats.add(SingleStat.TRELLO_REFRESH_TIME).value(elapsedTime);
+        statsService.merge(stats);
+
         finished.set(true);
     }
 

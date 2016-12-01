@@ -36,6 +36,23 @@ public class StatsTest {
     }
 
     @Test
+    public void testTrivialMerge() throws Exception {
+        Stats stats = new Stats();
+        stats.add(SingleStat.SPRINT_CONTENT)
+                .value(5f);
+
+        Stats stats2 = new Stats();
+        stats2.add(SingleStat.SPRINT_CONTENT)
+                .value(10f);
+
+        stats.merge(stats2);
+
+        String result = stats.toPrometheusString();
+        assertThat(result)
+                .isEqualTo("bug_automation_sprint_content 10.0\n");
+    }
+
+    @Test
     public void testSimple() throws Exception {
         Stats stats = new Stats();
         stats.add(SingleStat.SPRINT_CONTENT)

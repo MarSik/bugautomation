@@ -61,4 +61,9 @@ public class Stats {
                 .sorted()
                 .collect(Collectors.joining("\n"))+"\n";
     }
+
+    public Stats merge(Stats other) {
+        values.putAll(other.values);
+        return this;
+    }
 }

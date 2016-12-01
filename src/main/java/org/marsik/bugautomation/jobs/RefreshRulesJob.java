@@ -44,7 +44,7 @@ public class RefreshRulesJob implements Job {
         }
 
         logger.info("Triggering rules...");
-        final Stats stats = new Stats(statsService.getStats());
+        final Stats stats = new Stats();
         stats.add(SingleStat.TRIGGER_COUNT)
                 .value(1f);
         FactHandle statsHandle = kSession.insert(stats);
@@ -61,7 +61,7 @@ public class RefreshRulesJob implements Job {
                 .value((float) elapsedTime);
 
         kSession.delete(statsHandle);
-        statsService.setStats(stats);
+        statsService.merge(stats);
         logger.info("All rules processed in {} ms", (float)elapsedTime/1000000);
     }
 }

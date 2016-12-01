@@ -13,11 +13,15 @@ public class StatsService {
         stats.set(new Stats());
     }
 
-    public Stats getStats() {
+    public synchronized Stats getStats() {
         return stats.get();
     }
 
-    public void setStats(Stats stats) {
+    public synchronized void setStats(Stats stats) {
         this.stats.set(stats);
+    }
+
+    public synchronized void merge(Stats other) {
+        stats.get().merge(other);
     }
 }

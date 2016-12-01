@@ -24,7 +24,10 @@ import org.marsik.bugautomation.facts.BugzillaStatus;
 import org.marsik.bugautomation.services.BugMatchingService;
 import org.marsik.bugautomation.services.ConfigurationService;
 import org.marsik.bugautomation.services.FactService;
+import org.marsik.bugautomation.services.StatsService;
 import org.marsik.bugautomation.services.UserMatchingService;
+import org.marsik.bugautomation.stats.SingleStat;
+import org.marsik.bugautomation.stats.Stats;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
@@ -50,6 +53,9 @@ public class BugzillaRefreshJob implements Job {
 
     @Inject
     BugMatchingService bugMatchingService;
+
+    @Inject
+    StatsService statsService;
 
     @Override
     public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException {
@@ -129,7 +135,12 @@ public class BugzillaRefreshJob implements Job {
 
             finished.set(true);
             long elapsedTime = System.nanoTime() - startTime;
-            logger.info("Bugzilla refresh done ({} ms)", elapsedTime / 1000000);
+
+            final Stats stats = new Stats();
+            stats.add(SingleStat.BUGS_REFRESH_TIME).value(elapsedTime);
+            statsService.merge(stats);
+
+            logger.info("Bugzilla refresh done ({} ms)", (float)elapsedTime / 1000000);
         }
 
     }
