@@ -81,6 +81,9 @@ public class BugzillaRefreshJob implements Job {
         Map<String, BugzillaBug> retrievedBugs = new HashMap<>();
 
         if (session.open()) {
+            logger.info("Refreshing bugzilla bugs");
+            long startTime = System.nanoTime();
+
             // Search bugs by users
             Multimap<String, Object> searchData = ArrayListMultimap.create();
             if (bugzillaOwners.isPresent() && !bugzillaOwners.get().trim().isEmpty()) {
@@ -124,6 +127,8 @@ public class BugzillaRefreshJob implements Job {
             session.close();
 
             finished.set(true);
+            long elapsedTime = System.nanoTime() - startTime;
+            logger.info("Bugzilla refresh done ({} ms)", elapsedTime / 1000000);
         }
 
     }
@@ -141,7 +146,6 @@ public class BugzillaRefreshJob implements Job {
     }
 
     private Map<String, BugzillaBug> searchAndProcess(BugzillaClient session, Multimap<String, Object> searchData) {
-        logger.info("Refreshing bugzilla bugs");
         Map<String, BugzillaBug> kiBugs = new HashMap<>();
         Iterable<BugProxy> i = session.searchBugs(searchData);
         for (BugProxy issue : i) {
