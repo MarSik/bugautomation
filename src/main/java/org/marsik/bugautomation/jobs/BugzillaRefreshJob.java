@@ -1,6 +1,7 @@
 package org.marsik.bugautomation.jobs;
 
 import javax.inject.Inject;
+import javax.validation.constraints.NotNull;
 import java.net.MalformedURLException;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -87,7 +88,7 @@ public class BugzillaRefreshJob implements Job {
             // Search bugs by users
             Multimap<String, Object> searchData = ArrayListMultimap.create();
             if (bugzillaOwners.isPresent() && !bugzillaOwners.get().trim().isEmpty()) {
-                for (String owner : splitNames(bugzillaOwners)) {
+                for (String owner : splitNames(bugzillaOwners.get())) {
                     searchData.put("assigned_to", owner);
                 }
                 populateSearchData(searchData);
@@ -98,7 +99,7 @@ public class BugzillaRefreshJob implements Job {
             // Search bugs by teams
             if (bugzillaTeams.isPresent() && !bugzillaTeams.get().trim().isEmpty()) {
                 searchData = ArrayListMultimap.create();
-                for (String team : splitNames(bugzillaTeams)) {
+                for (String team : splitNames(bugzillaTeams.get())) {
                     searchData.put("cf_ovirt_team", team);
                 }
                 populateSearchData(searchData);
@@ -133,8 +134,8 @@ public class BugzillaRefreshJob implements Job {
 
     }
 
-    private String[] splitNames(Optional<String> commaSeparatedNames) {
-        return commaSeparatedNames.orElse("").split(" *, *");
+    private String[] splitNames(@NotNull String commaSeparatedNames) {
+        return commaSeparatedNames.split(" *, *");
     }
 
     private void populateSearchData(Multimap<String, Object> searchData) {
