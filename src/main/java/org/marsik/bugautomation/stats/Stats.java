@@ -63,7 +63,13 @@ public class Stats {
     }
 
     public Stats merge(Stats other) {
-        values.putAll(other.values);
+        for (Map.Entry<SingleStatWLabels, Double> entry: other.values.entrySet()) {
+            if (entry.getKey().getStat().getType().isPersistent()) {
+                values.put(entry.getKey(), values.getOrDefault(entry.getKey(), 0.0) + entry.getValue());
+            } else {
+                values.put(entry.getKey(), entry.getValue());
+            }
+        }
         return this;
     }
 }

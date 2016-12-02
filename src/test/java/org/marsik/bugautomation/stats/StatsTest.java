@@ -53,6 +53,23 @@ public class StatsTest {
     }
 
     @Test
+    public void testPersistentMerge() throws Exception {
+        Stats stats = new Stats();
+        stats.add(SingleStat.TRIGGER_COUNT)
+                .value(5f);
+
+        Stats stats2 = new Stats();
+        stats2.add(SingleStat.TRIGGER_COUNT)
+                .value(5f);
+
+        stats.merge(stats2);
+
+        String result = stats.toPrometheusString();
+        assertThat(result)
+                .isEqualTo("bug_automation_trigger_count 10.0\n");
+    }
+
+    @Test
     public void testSimple() throws Exception {
         Stats stats = new Stats();
         stats.add(SingleStat.SPRINT_CONTENT)
