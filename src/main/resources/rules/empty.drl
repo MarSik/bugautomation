@@ -335,7 +335,7 @@ rule "blockedByUnclosedBug"
   when
     $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
     $card: TrelloCard($bug : bug, status not str[startsWith] "done", board == $board, $labels: labels)
-    BugzillaBug($bug2 : bug, bug != $bug, $bug memberOf blocks)
+    BugzillaBug($bug2 : bug, bug != $bug, $bug memberOf blocks, done == false)
     exists TrelloCard(bug == $bug2, status not str[startsWith] "done", status != "documentation", board == $board)
     not(exists TrelloLabel(name == "waiting") from $labels)
   then
@@ -346,19 +346,20 @@ rule "blockedByUnclosedCard"
   when
     $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
     $card: TrelloCard($bug : bug, status not str[startsWith] "done", board == $board, $labels: labels)
+    not(exists BugzillaBug(bug == $bug, done == true))
     exists TrelloCard(status not str[startsWith] "done", status != "documentation", $bug memberOf blocks)
     not(exists TrelloLabel(name == "waiting") from $labels)
   then
     trello.assignLabelToCard($card, "waiting");
 end
 
-rule "notBlockedByAnyUnclosedCardOrBug"
+rule "notBlockedByAnyUnclosedCardOrBugCard"
   when
     $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
     $card: TrelloCard($bug : bug, status not str[startsWith] "done", board == $board, $labels: labels)
-    not (exists TrelloCard(status not str[startsWith] "done", status != "documentation", $bug memberOf blocks))
-    ((not (exists BugzillaBug(done != true, bug != $bug, $bug memberOf blocks)))
-     or (BugzillaBug($bug3 : bug, bug != $bug, $bug memberOf blocks) and TrelloCard(bug == $bug3, status str[startsWith] "done" || status == "documentation")))
+    not TrelloCard(status not str[startsWith] "done", status != "documentation", $bug memberOf blocks)
+    (not BugzillaBug(done == false, bug != $bug, $bug memberOf blocks) or
+     not (BugzillaBug($bug2 : bug, done == false, bug != $bug, $bug memberOf blocks) and TrelloCard(bug == $bug2, status not str[startsWith] "done", status != "documentation")))
     $label: TrelloLabel(name == "waiting") from $labels
   then
     trello.removeLabelFromCard($card, $label);

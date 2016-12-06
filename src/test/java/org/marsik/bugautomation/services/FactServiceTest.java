@@ -2,6 +2,7 @@ package org.marsik.bugautomation.services;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.atLeast;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -1069,7 +1070,7 @@ public class FactServiceTest {
 
         trigger();
 
-        verify(trelloActions).removeLabelFromCard(card1, waitingLabel);
+        verify(trelloActions, atLeastOnce()).removeLabelFromCard(card1, waitingLabel);
     }
 
     @Test
@@ -1103,7 +1104,7 @@ public class FactServiceTest {
 
         trigger();
 
-        verify(trelloActions).removeLabelFromCard(card1, waitingLabel);
+        verify(trelloActions, atLeastOnce()).removeLabelFromCard(card1, waitingLabel);
     }
 
     @Test
@@ -1266,6 +1267,210 @@ public class FactServiceTest {
     }
 
     @Test
+    public void testNoWaitingBugWithBlockingBugDoneInTrello() throws Exception {
+        BugzillaBug bug1 = newBug(1, BugzillaStatus.ASSIGNED)
+                .build();
+
+        TrelloCard card1 = cardForBug(bug1, 1.0)
+                .build();
+
+        BugzillaBug bug2 = newBug(2, BugzillaStatus.ASSIGNED)
+                .blocks(singletonSet(bug1.getBug()))
+                .build();
+
+        TrelloCard card2 = cardForBug(bug2, 2.0)
+                .status("done")
+                .build();
+
+        factService.addFact(bug1);
+        factService.addFact(bug2);
+        factService.addFact(card1);
+        factService.addFact(card2);
+
+        trigger();
+
+        verify(trelloActions, never()).assignLabelToCard(card1, "waiting");
+    }
+
+    @Test
+    public void testNoWaitingBugWithBlockingBugDoneButCardNot() throws Exception {
+        BugzillaBug bug1 = newBug(1, BugzillaStatus.ASSIGNED)
+                .build();
+
+        TrelloCard card1 = cardForBug(bug1, 1.0)
+                .build();
+
+        BugzillaBug bug2 = newBug(2, BugzillaStatus.MODIFIED)
+                .blocks(singletonSet(bug1.getBug()))
+                .build();
+
+        TrelloCard card2 = cardForBug(bug2, 2.0)
+                .status("inprogress")
+                .build();
+
+        factService.addFact(bug1);
+        factService.addFact(bug2);
+        factService.addFact(card1);
+        factService.addFact(card2);
+
+        trigger();
+
+        verify(trelloActions, never()).assignLabelToCard(card1, "waiting");
+    }
+
+    @Test
+    public void testNoWaitingBugWithBlockingBugInDocumentationInTrello() throws Exception {
+        BugzillaBug bug1 = newBug(1, BugzillaStatus.ASSIGNED)
+                .build();
+
+        TrelloCard card1 = cardForBug(bug1, 1.0)
+                .build();
+
+        BugzillaBug bug2 = newBug(2, BugzillaStatus.ASSIGNED)
+                .blocks(singletonSet(bug1.getBug()))
+                .build();
+
+        TrelloCard card2 = cardForBug(bug2, 2.0)
+                .status("documentation")
+                .build();
+
+        factService.addFact(bug1);
+        factService.addFact(bug2);
+        factService.addFact(card1);
+        factService.addFact(card2);
+
+        trigger();
+
+        verify(trelloActions, never()).assignLabelToCard(card1, "waiting");
+    }
+
+    @Test
+    public void testRemoveBugWithBlockingBugDoneInTrello() throws Exception {
+        final TrelloLabel waitingLabel = TrelloLabel.builder().name("waiting").build();
+
+        BugzillaBug bug1 = newBug(1, BugzillaStatus.ASSIGNED)
+                .build();
+
+        TrelloCard card1 = cardForBug(bug1, 1.0)
+                .labels(singletonSet(waitingLabel))
+                .build();
+
+        BugzillaBug bug2 = newBug(2, BugzillaStatus.ASSIGNED)
+                .blocks(singletonSet(bug1.getBug()))
+                .build();
+
+        TrelloCard card2 = cardForBug(bug2, 2.0)
+                .status("done")
+                .build();
+
+        factService.addFact(bug1);
+        factService.addFact(bug2);
+        factService.addFact(card1);
+        factService.addFact(card2);
+
+        trigger();
+
+        verify(trelloActions).removeLabelFromCard(card1, waitingLabel);
+    }
+
+    @Test
+    public void testNoRemoveBugWithNotAllBlockingBugsDoneInTrello() throws Exception {
+        final TrelloLabel waitingLabel = TrelloLabel.builder().name("waiting").build();
+
+        BugzillaBug bug1 = newBug(1, BugzillaStatus.ASSIGNED)
+                .build();
+
+        TrelloCard card1 = cardForBug(bug1, 1.0)
+                .labels(singletonSet(waitingLabel))
+                .build();
+
+        BugzillaBug bug2 = newBug(2, BugzillaStatus.ASSIGNED)
+                .blocks(singletonSet(bug1.getBug()))
+                .build();
+
+        TrelloCard card2 = cardForBug(bug2, 2.0)
+                .status("done")
+                .build();
+
+        BugzillaBug bug3 = newBug(3, BugzillaStatus.ASSIGNED)
+                .blocks(singletonSet(bug1.getBug()))
+                .build();
+
+        TrelloCard card3 = cardForBug(bug3, 3.0)
+                .status("inprogress")
+                .build();
+
+        factService.addFact(bug1);
+        factService.addFact(bug2);
+        factService.addFact(bug3);
+        factService.addFact(card1);
+        factService.addFact(card2);
+        factService.addFact(card3);
+
+        trigger();
+
+        verify(trelloActions, never()).removeLabelFromCard(card1, waitingLabel);
+    }
+
+    @Test
+    public void testRemoveBugWithBlockingBugDoneButCardNot() throws Exception {
+        final TrelloLabel waitingLabel = TrelloLabel.builder().name("waiting").build();
+
+        BugzillaBug bug1 = newBug(1, BugzillaStatus.ASSIGNED)
+                .build();
+
+        TrelloCard card1 = cardForBug(bug1, 1.0)
+                .labels(singletonSet(waitingLabel))
+                .build();
+
+        BugzillaBug bug2 = newBug(2, BugzillaStatus.MODIFIED)
+                .blocks(singletonSet(bug1.getBug()))
+                .build();
+
+        TrelloCard card2 = cardForBug(bug2, 2.0)
+                .status("inprogress")
+                .build();
+
+        factService.addFact(bug1);
+        factService.addFact(bug2);
+        factService.addFact(card1);
+        factService.addFact(card2);
+
+        trigger();
+
+        verify(trelloActions, atLeastOnce()).removeLabelFromCard(card1, waitingLabel);
+    }
+
+    @Test
+    public void testRemoveBugWithBlockingBugInDocumentationInTrello() throws Exception {
+        final TrelloLabel waitingLabel = TrelloLabel.builder().name("waiting").build();
+
+        BugzillaBug bug1 = newBug(1, BugzillaStatus.ASSIGNED)
+                .build();
+
+        TrelloCard card1 = cardForBug(bug1, 1.0)
+                .labels(singletonSet(waitingLabel))
+                .build();
+
+        BugzillaBug bug2 = newBug(2, BugzillaStatus.ASSIGNED)
+                .blocks(singletonSet(bug1.getBug()))
+                .build();
+
+        TrelloCard card2 = cardForBug(bug2, 2.0)
+                .status("documentation")
+                .build();
+
+        factService.addFact(bug1);
+        factService.addFact(bug2);
+        factService.addFact(card1);
+        factService.addFact(card2);
+
+        trigger();
+
+        verify(trelloActions).removeLabelFromCard(card1, waitingLabel);
+    }
+
+    @Test
     public void testNoWaitingWithNoBlockingBugPresent() throws Exception {
         Bug bug = new Bug("1");
 
@@ -1286,7 +1491,7 @@ public class FactServiceTest {
 
         trigger();
 
-        verify(trelloActions).removeLabelFromCard(card1, waitingLabel);
+        verify(trelloActions, atLeastOnce()).removeLabelFromCard(card1, waitingLabel);
     }
 
     @Test
