@@ -155,6 +155,7 @@ public class BugzillaRefreshJob implements Job {
         searchData.put("bug_status", "POST");
         searchData.put("bug_status", "MODIFIED");
         searchData.put("bug_status", "ON_QA");
+        searchData.put("bug_status", "VERIFIED");
     }
 
     private Map<String, BugzillaBug> searchAndProcess(BugzillaClient session, Multimap<String, Object> searchData) {
