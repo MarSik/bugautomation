@@ -3,8 +3,10 @@ package org.marsik.bugautomation.jobs;
 import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
 import java.net.MalformedURLException;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -24,6 +26,7 @@ import org.marsik.bugautomation.facts.BugzillaStatus;
 import org.marsik.bugautomation.services.BugMatchingService;
 import org.marsik.bugautomation.services.ConfigurationService;
 import org.marsik.bugautomation.services.FactService;
+import org.marsik.bugautomation.services.RuleGlobalsService;
 import org.marsik.bugautomation.services.StatsService;
 import org.marsik.bugautomation.services.UserMatchingService;
 import org.marsik.bugautomation.stats.SingleStat;
@@ -56,6 +59,9 @@ public class BugzillaRefreshJob implements Job {
 
     @Inject
     StatsService statsService;
+
+    @Inject
+    RuleGlobalsService ruleGlobalsService;
 
     @Override
     public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException {
@@ -123,11 +129,15 @@ public class BugzillaRefreshJob implements Job {
             retrievedBugs.values().stream().forEach(factService::addOrUpdateFact);
 
             // Forget about bugs that were assigned out of scope
-            Set<String> bugsToRemove = new HashSet<>(bugMatchingService.getKnownBugs());
-            bugsToRemove.removeAll(retrievedBugs.keySet());
+            Collection<BugzillaBug> bugsToRemove = ruleGlobalsService.getBugzillaBugs();
+            bugsToRemove = bugsToRemove.stream()
+                    .filter(b -> !retrievedBugs.containsKey(b.getId()))
+                    .collect(Collectors.toList());
+
+            logger.info("Forgetting about bugs: {}", bugsToRemove.stream()
+                    .map(BugzillaBug::getId).collect(Collectors.toList()));
 
             bugsToRemove.stream()
-                    .map(bugMatchingService::getBugByBzId)
                     .forEach(factService::removeFact);
 
             // Close the session
