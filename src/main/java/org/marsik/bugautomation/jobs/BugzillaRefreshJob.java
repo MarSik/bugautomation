@@ -204,10 +204,15 @@ public class BugzillaRefreshJob implements Job {
                 bugzillaBugBuilder.pmPriority(highestPrio);
             }
 
+            /*
+            Disable PM score temporarily, because there are old numbers in BZ
+            and the PMs are not using this field ATM.
+
             if (issue.getPmScore() != null && !issue.getPmScore().isEmpty()) {
                 final Integer pmScore = Integer.valueOf(issue.getPmScore());
                 bugzillaBugBuilder.pmScore(pmScore);
             }
+            */
 
             BugzillaBug bugzillaBug = bugzillaBugBuilder.build();
 
