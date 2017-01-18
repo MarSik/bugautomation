@@ -1,13 +1,27 @@
 package org.marsik.bugautomation.jobs;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 import java.util.Map;
 
+import org.junit.Before;
 import org.junit.Test;
-
+import org.marsik.bugautomation.services.ConfigurationService;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 public class TrelloRefreshJobTest {
+    @Mock
+    ConfigurationService configurationService;
+
+    @Before
+    public void setUp() {
+        MockitoAnnotations.initMocks(this);
+        when(configurationService.getCached("release.future.prefix")).thenReturn("ovirt-4.1.");
+        when(configurationService.getCached("release.future.release")).thenReturn("ovirt-4.1.0");
+    }
+
     @Test
     public void empty() throws Exception {
         String testDoc = "Test description with suffix";

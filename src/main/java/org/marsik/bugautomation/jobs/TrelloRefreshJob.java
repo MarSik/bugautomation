@@ -205,15 +205,15 @@ public class TrelloRefreshJob implements Job {
 
                 // Use target milestone if provided
                 if (fields.containsKey("target")) {
-                    kiCard.setTargetMilestone(fields.get("target"));
+                    kiCard.setTargetMilestone(configurationService.resolveRelease(fields.get("target")));
                 }
 
                 if (fields.containsKey("targetMilestone")) {
-                    kiCard.setTargetMilestone(fields.get("targetMilestone"));
+                    kiCard.setTargetMilestone(configurationService.resolveRelease(fields.get("targetMilestone")));
                 }
 
                 if (fields.containsKey("targetmilestone")) {
-                    kiCard.setTargetMilestone(fields.get("targetmilestone"));
+                    kiCard.setTargetMilestone(configurationService.resolveRelease(fields.get("targetmilestone")));
                 }
 
                 if (fields.containsKey("id")) {

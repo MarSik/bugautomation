@@ -31,6 +31,18 @@ cfg.board.sprint=Sprint
 # The name of the backlog column in sprint board
 cfg.backlog=todo
 
+# Release (target milestone) score configuration
+release.X.Y.Z=200
+
+# Release mapping
+release.map.X.Y.Z-beta=X.Y.Z
+release.map.A.B.C=A.B.D
+
+# Future release (wildcard map)
+release.future.prefix=A.B.
+release.future.release=A.B.0
+release.A.B.0=100
+
 ```
 
 Unpack the archive and start the server form the unpacked directory using:

@@ -188,7 +188,7 @@ public class BugzillaRefreshJob implements Job {
                      .blocks(issue.getBlocks().stream().map(bugMatchingService::getBugByBzId).collect(Collectors.toSet()));
 
             if (issue.getTargetMilestone() != null) {
-                bugzillaBugBuilder.targetMilestone(issue.getTargetMilestone());
+                bugzillaBugBuilder.targetMilestone(configurationService.resolveRelease(issue.getTargetMilestone()));
             }
 
             if (issue.getTargetRelease() != null) {

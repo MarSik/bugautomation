@@ -543,13 +543,13 @@ end
 
 // Specific release priorities
 
- rule "releasePriority41"
+ rule "releasePriorityFuture"
    salience 100
    when
-     $bz: BugzillaBug($bug1 : bug, targetMilestone str[startsWith] "ovirt-4.1.")
+     $bz: BugzillaBug($bug1 : bug, targetMilestone str[startsWith] config.getCached("release.future.prefix"))
      $card1: TrelloCard(bug == $bug1, score == null)
    then
-     internal.setScore($card1, config.getCachedInt("release.ovirt-4.1.0", 0) + 10 * $bz.getPriority().ordinal() + $bz.getSeverity().ordinal());
+     internal.setScore($card1, config.getCachedInt("release." + config.getCached("release.future.release"), 0) + 10 * $bz.getPriority().ordinal() + $bz.getSeverity().ordinal());
  end
 
 // Release score fallbacks for other versions

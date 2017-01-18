@@ -84,4 +84,10 @@ public class ConfigurationServiceProperties implements ConfigurationService {
         }
         return config;
     }
+
+    @Override
+    public String resolveRelease(String release) {
+        final String mappedRelease = getCached("release.map." + release);
+        return mappedRelease != null ? mappedRelease : release;
+    }
 }

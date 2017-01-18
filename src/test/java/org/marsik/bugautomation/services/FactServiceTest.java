@@ -68,6 +68,9 @@ public class FactServiceTest {
         MockitoAnnotations.initMocks(this);
         when(configurationService.getCached("cfg.board.sprint")).thenReturn(TRELLO_BOARD);
         when(configurationService.getCached("cfg.backlog")).thenReturn(TRELLO_BACKLOG);
+        when(configurationService.getCached("release.future.prefix")).thenReturn("ovirt-4.1.");
+        when(configurationService.getCached("release.future.release")).thenReturn("ovirt-4.1.0");
+
         when(configurationService.getCachedInt("release.ovirt-4.0.6", 0)).thenReturn(200);
 
         board = TrelloBoard.builder()

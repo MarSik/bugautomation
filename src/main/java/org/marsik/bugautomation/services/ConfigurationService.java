@@ -19,4 +19,6 @@ public interface ConfigurationService {
     Integer getCachedInt(String key, Integer def);
 
     Properties getProperties();
+
+    String resolveRelease(String release);
 }
