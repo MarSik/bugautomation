@@ -45,9 +45,9 @@ release.A.B.0=100
 
 ```
 
-Unpack the archive and start the server form the unpacked directory using:
+Unpack the archive and start the server from the unpacked directory using:
 
 ```
-java -cp '*' -Dbug.config=path/to/config.properties org.marsik.bugautomation.Main
+java -jar server-*.jar
 ```
 
