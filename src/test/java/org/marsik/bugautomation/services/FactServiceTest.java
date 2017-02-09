@@ -113,6 +113,7 @@ public class FactServiceTest {
                 .status(TRELLO_BACKLOG)
                 .pos(pos)
                 .blocks(Collections.emptySet())
+                .assignedTo(new HashSet<>())
                 .bug(bug.getBug());
     }
 
@@ -132,6 +133,7 @@ public class FactServiceTest {
                 .pos(1.0)
                 .bug(bug1.getBug())
                 .blocks(Collections.emptySet())
+                .assignedTo(new HashSet<>())
                 .build();
 
         TrelloCard card2 = TrelloCard.builder()
@@ -141,6 +143,7 @@ public class FactServiceTest {
                 .pos(2.0)
                 .bug(bug2.getBug())
                 .blocks(Collections.emptySet())
+                .assignedTo(new HashSet<>())
                 .build();
 
         factService.addFact(bug1);
@@ -166,6 +169,7 @@ public class FactServiceTest {
                 .pos(1.0)
                 .bug(bug1.getBug())
                 .blocks(Collections.emptySet())
+                .assignedTo(new HashSet<>())
                 .build();
 
 
@@ -186,6 +190,7 @@ public class FactServiceTest {
                 .pos(1.0)
                 .bug(new Bug("test-card"))
                 .blocks(Collections.emptySet())
+                .assignedTo(new HashSet<>())
                 .build();
 
         factService.addFact(card1);
@@ -207,6 +212,7 @@ public class FactServiceTest {
                 .bug(new Bug("1234567"))
                 .blocks(Collections.emptySet())
                 .labels(Collections.emptySet())
+                .assignedTo(new HashSet<>())
                 .build();
 
         factService.addFact(card1);
@@ -229,6 +235,7 @@ public class FactServiceTest {
                 .pos(1.0)
                 .bug(bug1.getBug())
                 .blocks(Collections.emptySet())
+                .assignedTo(new HashSet<>())
                 .build();
 
 
@@ -252,6 +259,7 @@ public class FactServiceTest {
                 .pos(1.0)
                 .bug(bug1.getBug())
                 .blocks(Collections.emptySet())
+                .assignedTo(new HashSet<>())
                 .build();
 
 
@@ -276,6 +284,7 @@ public class FactServiceTest {
                 .pos(1.0)
                 .bug(bug1.getBug())
                 .blocks(Collections.emptySet())
+                .assignedTo(new HashSet<>())
                 .build();
 
 
@@ -298,6 +307,7 @@ public class FactServiceTest {
                 .status(TRELLO_BACKLOG)
                 .pos(1.0)
                 .blocks(Collections.emptySet())
+                .assignedTo(new HashSet<>())
                 .bug(bug1.getBug())
                 .build();
 
@@ -318,6 +328,7 @@ public class FactServiceTest {
                 .status(TRELLO_BACKLOG)
                 .pos(1.0)
                 .blocks(Collections.emptySet())
+                .assignedTo(new HashSet<>())
                 .build();
 
 
@@ -336,6 +347,7 @@ public class FactServiceTest {
                 .status(TRELLO_BACKLOG)
                 .pos(1.0)
                 .blocks(Collections.emptySet())
+                .assignedTo(new HashSet<>())
                 .bug(new Bug("1"))
                 .build();
 
@@ -358,6 +370,7 @@ public class FactServiceTest {
                 .status(TRELLO_BACKLOG)
                 .pos(1.0)
                 .blocks(Collections.emptySet())
+                .assignedTo(new HashSet<>())
                 .bug(bug1.getBug())
                 .build();
 
@@ -378,6 +391,7 @@ public class FactServiceTest {
                 .status("done before 25th")
                 .pos(1.0)
                 .blocks(Collections.emptySet())
+                .assignedTo(new HashSet<>())
                 .bug(new Bug("1"))
                 .build();
 
@@ -402,6 +416,7 @@ public class FactServiceTest {
                 .pos(1.0)
                 .bug(bug1.getBug())
                 .blocks(Collections.emptySet())
+                .assignedTo(new HashSet<>())
                 .build();
 
 
@@ -426,6 +441,7 @@ public class FactServiceTest {
                 .labels(singletonSet(label))
                 .pos(1.0)
                 .blocks(Collections.emptySet())
+                .assignedTo(new HashSet<>())
                 .build();
 
 
@@ -449,6 +465,7 @@ public class FactServiceTest {
                 .labels(singletonSet(label))
                 .pos(1.0)
                 .blocks(Collections.emptySet())
+                .assignedTo(new HashSet<>())
                 .build();
 
 
@@ -477,6 +494,7 @@ public class FactServiceTest {
                 .pos(1.0)
                 .bug(bug1.getBug())
                 .blocks(Collections.emptySet())
+                .assignedTo(new HashSet<>())
                 .build();
 
 
@@ -506,6 +524,7 @@ public class FactServiceTest {
                 .pos(1.0)
                 .bug(bug1.getBug())
                 .blocks(Collections.emptySet())
+                .assignedTo(new HashSet<>())
                 .build();
 
 
@@ -530,6 +549,7 @@ public class FactServiceTest {
                 .labels(singletonSet(label))
                 .dueDate(Instant.now())
                 .blocks(new HashSet<>())
+                .assignedTo(new HashSet<>())
                 .pos(1.0)
                 .build();
 
@@ -558,6 +578,7 @@ public class FactServiceTest {
                 .pos(1.0)
                 .bug(bug1.getBug())
                 .blocks(Collections.emptySet())
+                .assignedTo(new HashSet<>())
                 .build();
 
 
@@ -588,6 +609,7 @@ public class FactServiceTest {
                 .bug(bug1.getBug())
                 .labels(singletonSet(label))
                 .blocks(Collections.emptySet())
+                .assignedTo(new HashSet<>())
                 .build();
 
         factService.addFact(bug1);
@@ -618,6 +640,7 @@ public class FactServiceTest {
                 .bug(bug1.getBug())
                 .labels(singletonSet(label))
                 .blocks(Collections.emptySet())
+                .assignedTo(new HashSet<>())
                 .build();
 
         factService.addFact(bug1);
@@ -643,6 +666,7 @@ public class FactServiceTest {
                 .bug(bug1.getBug())
                 .labels(new HashSet<>())
                 .blocks(Collections.emptySet())
+                .assignedTo(new HashSet<>())
                 .build();
 
         factService.addFact(bug1);
@@ -859,6 +883,7 @@ public class FactServiceTest {
                 .pos(1.0)
                 .bug(bug1.getBug())
                 .blocks(Collections.emptySet())
+                .assignedTo(new HashSet<>())
                 .build();
 
         TrelloCard card2 = TrelloCard.builder()
@@ -868,6 +893,7 @@ public class FactServiceTest {
                 .pos(2.0)
                 .bug(bug2.getBug())
                 .blocks(Collections.emptySet())
+                .assignedTo(new HashSet<>())
                 .build();
 
         factService.addFact(bug1);
@@ -893,6 +919,7 @@ public class FactServiceTest {
                 .pos(1.0)
                 .score(100)
                 .blocks(Collections.emptySet())
+                .assignedTo(new HashSet<>())
                 .bug(bug)
                 .build();
 
@@ -903,6 +930,7 @@ public class FactServiceTest {
                 .pos(2.0)
                 .score(100)
                 .blocks(singletonSet(bug))
+                .assignedTo(new HashSet<>())
                 .build();
 
         factService.addFact(card1);
@@ -929,6 +957,7 @@ public class FactServiceTest {
                 .score(100)
                 .bug(bug)
                 .blocks(Collections.emptySet())
+                .assignedTo(new HashSet<>())
                 .build();
 
         TrelloCard card2 = TrelloCard.builder()
@@ -938,6 +967,7 @@ public class FactServiceTest {
                 .pos(2.0)
                 .score(100)
                 .blocks(singletonSet(bug))
+                .assignedTo(new HashSet<>())
                 .build();
 
         factService.addFact(card1);
@@ -960,6 +990,7 @@ public class FactServiceTest {
                 .score(100)
                 .bug(bug)
                 .blocks(Collections.emptySet())
+                .assignedTo(new HashSet<>())
                 .build();
 
         TrelloCard card2 = TrelloCard.builder()
@@ -969,6 +1000,7 @@ public class FactServiceTest {
                 .pos(2.0)
                 .score(100)
                 .blocks(singletonSet(bug))
+                .assignedTo(new HashSet<>())
                 .build();
 
         factService.addFact(bug);
@@ -992,6 +1024,7 @@ public class FactServiceTest {
                 .score(100)
                 .bug(bug)
                 .blocks(Collections.emptySet())
+                .assignedTo(new HashSet<>())
                 .build();
 
         TrelloCard card2 = TrelloCard.builder()
@@ -1001,6 +1034,7 @@ public class FactServiceTest {
                 .pos(2.0)
                 .score(100)
                 .blocks(singletonSet(bug))
+                .assignedTo(new HashSet<>())
                 .build();
 
         factService.addFact(card1);
@@ -1023,6 +1057,7 @@ public class FactServiceTest {
                 .score(100)
                 .bug(bug)
                 .blocks(Collections.emptySet())
+                .assignedTo(new HashSet<>())
                 .build();
 
         TrelloCard card2 = TrelloCard.builder()
@@ -1032,6 +1067,7 @@ public class FactServiceTest {
                 .pos(2.0)
                 .score(100)
                 .blocks(singletonSet(bug))
+                .assignedTo(new HashSet<>())
                 .build();
 
         factService.addFact(card1);
@@ -1057,6 +1093,7 @@ public class FactServiceTest {
                 .bug(bug)
                 .labels(singletonSet(waitingLabel))
                 .blocks(Collections.emptySet())
+                .assignedTo(new HashSet<>())
                 .build();
 
         TrelloCard card2 = TrelloCard.builder()
@@ -1066,6 +1103,7 @@ public class FactServiceTest {
                 .pos(2.0)
                 .score(100)
                 .blocks(singletonSet(bug))
+                .assignedTo(new HashSet<>())
                 .build();
 
         factService.addFact(card1);
@@ -1091,6 +1129,7 @@ public class FactServiceTest {
                 .bug(bug)
                 .labels(singletonSet(waitingLabel))
                 .blocks(Collections.emptySet())
+                .assignedTo(new HashSet<>())
                 .build();
 
         TrelloCard card2 = TrelloCard.builder()
@@ -1100,6 +1139,7 @@ public class FactServiceTest {
                 .pos(2.0)
                 .score(100)
                 .blocks(singletonSet(bug))
+                .assignedTo(new HashSet<>())
                 .build();
 
         factService.addFact(card1);
@@ -1122,6 +1162,7 @@ public class FactServiceTest {
                 .score(100)
                 .bug(bug)
                 .blocks(Collections.emptySet())
+                .assignedTo(new HashSet<>())
                 .build();
 
         BugzillaBug bug2 = newBug(2, BugzillaStatus.ASSIGNED)
@@ -1151,6 +1192,7 @@ public class FactServiceTest {
                 .score(100)
                 .bug(bug)
                 .blocks(Collections.emptySet())
+                .assignedTo(new HashSet<>())
                 .build();
 
         BugzillaBug bug2 = newBug(2, BugzillaStatus.ASSIGNED)
@@ -1182,6 +1224,7 @@ public class FactServiceTest {
                 .score(100)
                 .bug(bug)
                 .blocks(Collections.emptySet())
+                .assignedTo(new HashSet<>())
                 .build();
 
         BugzillaBug bug2 = newBug(2, BugzillaStatus.ASSIGNED)
@@ -1216,6 +1259,7 @@ public class FactServiceTest {
                 .bug(bug)
                 .blocks(Collections.emptySet())
                 .labels(singletonSet(waitingLabel))
+                .assignedTo(new HashSet<>())
                 .build();
 
         BugzillaBug bug2 = newBug(2, BugzillaStatus.ASSIGNED)
@@ -1250,6 +1294,7 @@ public class FactServiceTest {
                 .bug(bug)
                 .blocks(Collections.emptySet())
                 .labels(singletonSet(waitingLabel))
+                .assignedTo(new HashSet<>())
                 .build();
 
         BugzillaBug bug2 = newBug(2, BugzillaStatus.ASSIGNED)
@@ -1488,6 +1533,7 @@ public class FactServiceTest {
                 .bug(bug)
                 .blocks(Collections.emptySet())
                 .labels(singletonSet(waitingLabel))
+                .assignedTo(new HashSet<>())
                 .build();
 
         factService.addFact(card1);
@@ -1507,6 +1553,7 @@ public class FactServiceTest {
                 .status(TRELLO_BACKLOG)
                 .pos(1.0)
                 .blocks(singletonSet(bug))
+                .assignedTo(new HashSet<>())
                 .build();
 
         TrelloCard card2 = TrelloCard.builder()
@@ -1516,6 +1563,7 @@ public class FactServiceTest {
                 .pos(2.0)
                 .bug(bug)
                 .blocks(Collections.emptySet())
+                .assignedTo(new HashSet<>())
                 .score(200)
                 .build();
 
@@ -1711,6 +1759,7 @@ public class FactServiceTest {
                 .pos(1.0)
                 .bug(bug1.getBug())
                 .blocks(Collections.emptySet())
+                .assignedTo(new HashSet<>())
                 .build();
 
         factService.addFact(bug1);
@@ -1732,6 +1781,7 @@ public class FactServiceTest {
                 .pos(2.0)
                 .score(100)
                 .blocks(singletonSet(bug))
+                .assignedTo(new HashSet<>())
                 .build();
 
         factService.addFact(card);
@@ -1752,6 +1802,7 @@ public class FactServiceTest {
                 .pos(2.0)
                 .score(100)
                 .blocks(singletonSet(bug))
+                .assignedTo(new HashSet<>())
                 .build();
 
         factService.addFact(card);
@@ -1770,6 +1821,7 @@ public class FactServiceTest {
                 .pos(2.0)
                 .score(100)
                 .blocks(new HashSet<>())
+                .assignedTo(new HashSet<>())
                 .build();
 
         factService.addFact(card);
@@ -1793,6 +1845,7 @@ public class FactServiceTest {
                 .pos(2.0)
                 .score(100)
                 .blocks(new HashSet<>(Arrays.asList(bugId2, bug1.getBug())))
+                .assignedTo(new HashSet<>())
                 .build();
 
         factService.addFact(bug1);
@@ -1815,6 +1868,7 @@ public class FactServiceTest {
                 .pos(2.0)
                 .score(100)
                 .blocks(singletonSet(bug1.getBug()))
+                .assignedTo(new HashSet<>())
                 .build();
 
         factService.addFact(bug1);
