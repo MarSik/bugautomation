@@ -15,7 +15,6 @@
         <weld.version>2.4.0.Final</weld.version>
         <lombok.version>1.16.8</lombok.version>
         <assertj.version>3.4.1</assertj.version>
-        <quartz.version>2.2.0</quartz.version>
         <resteasy.version>3.0.19.Final</resteasy.version>
         <hystrix.version>1.5.5</hystrix.version>
         <undertow.version>1.4.3.Final</undertow.version>
@@ -68,13 +67,6 @@
             <groupId>org.drools</groupId>
             <artifactId>drools-compiler</artifactId>
             <version>${drools-runtime.version}</version>
-        </dependency>
-
-        <!-- Timers //-->
-        <dependency>
-            <groupId>org.quartz-scheduler</groupId>
-            <artifactId>quartz</artifactId>
-            <version>${quartz.version}</version>
         </dependency>
 
         <!-- Circuit breakers //-->

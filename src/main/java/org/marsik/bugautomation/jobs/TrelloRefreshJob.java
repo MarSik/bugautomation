@@ -31,15 +31,10 @@ import org.marsik.bugautomation.trello.Card;
 import org.marsik.bugautomation.trello.TrelloClient;
 import org.marsik.bugautomation.trello.TrelloClientBuilder;
 import org.marsik.bugautomation.trello.TrelloList;
-import org.quartz.DisallowConcurrentExecution;
-import org.quartz.Job;
-import org.quartz.JobExecutionContext;
-import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@DisallowConcurrentExecution
-public class TrelloRefreshJob implements Job {
+public class TrelloRefreshJob implements Runnable {
     private static final Logger logger = LoggerFactory.getLogger(TrelloRefreshJob.class);
     private static final AtomicBoolean finished = new AtomicBoolean(false);
 
@@ -64,7 +59,7 @@ public class TrelloRefreshJob implements Job {
     private static final Pattern CUSTOM_FIELDS_RE = Pattern.compile("([a-zA-Z0-9]+)[=:]([a-zA-Z0-9@.:/_=?-]*)");
 
     @Override
-    public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException {
+    public void run() {
 
         TrelloClientBuilder builder = trelloActions.getTrello();
         if (builder == null) {

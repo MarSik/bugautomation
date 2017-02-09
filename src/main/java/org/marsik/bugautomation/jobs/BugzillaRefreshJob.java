@@ -31,15 +31,10 @@ import org.marsik.bugautomation.services.StatsService;
 import org.marsik.bugautomation.services.UserMatchingService;
 import org.marsik.bugautomation.stats.SingleStat;
 import org.marsik.bugautomation.stats.Stats;
-import org.quartz.DisallowConcurrentExecution;
-import org.quartz.Job;
-import org.quartz.JobExecutionContext;
-import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@DisallowConcurrentExecution
-public class BugzillaRefreshJob implements Job {
+public class BugzillaRefreshJob implements Runnable {
     private static final Logger logger = LoggerFactory.getLogger(BugzillaRefreshJob.class);
     private static final AtomicBoolean finished = new AtomicBoolean(false);
 
@@ -64,7 +59,7 @@ public class BugzillaRefreshJob implements Job {
     RuleGlobalsService ruleGlobalsService;
 
     @Override
-    public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException {
+    public void run() {
         final Optional<String> bugzillaUrl = configurationService.get(ConfigurationService.BUGZILLA_URL);
         final Optional<String> bugzillaUsername = configurationService.get(ConfigurationService.BUGZILLA_USERNAME);
         final Optional<String> bugzillaPassword = configurationService.get(ConfigurationService.BUGZILLA_PASSWORD);

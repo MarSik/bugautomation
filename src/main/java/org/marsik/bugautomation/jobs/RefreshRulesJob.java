@@ -14,15 +14,10 @@ import org.marsik.bugautomation.services.StatsService;
 import org.marsik.bugautomation.services.TrelloActions;
 import org.marsik.bugautomation.stats.SingleStat;
 import org.marsik.bugautomation.stats.Stats;
-import org.quartz.DisallowConcurrentExecution;
-import org.quartz.Job;
-import org.quartz.JobExecutionContext;
-import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@DisallowConcurrentExecution
-public class RefreshRulesJob implements Job {
+public class RefreshRulesJob implements Runnable {
     private static final Logger logger = LoggerFactory.getLogger(RefreshRulesJob.class);
 
     @Inject
@@ -36,7 +31,7 @@ public class RefreshRulesJob implements Job {
     StatsService statsService;
 
     @Override
-    public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException {
+    public void run() {
         if (!BugzillaRefreshJob.getFinished().get()
                 || !TrelloRefreshJob.getFinished().get()) {
             logger.info("Delaying rules until the initial data collection finishes.");

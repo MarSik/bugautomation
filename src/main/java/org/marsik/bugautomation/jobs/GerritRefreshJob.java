@@ -6,16 +6,11 @@ import org.marsik.bugautomation.services.BugMatchingService;
 import org.marsik.bugautomation.services.ConfigurationService;
 import org.marsik.bugautomation.services.FactService;
 import org.marsik.bugautomation.services.UserMatchingService;
-import org.quartz.DisallowConcurrentExecution;
-import org.quartz.Job;
-import org.quartz.JobExecutionContext;
-import org.quartz.JobExecutionException;
 
 /**
  * Use https://github.com/uwolfer/gerrit-rest-java-client
  */
-@DisallowConcurrentExecution
-public class GerritRefreshJob implements Job {
+public class GerritRefreshJob implements Runnable {
     @Inject
     FactService factService;
 
@@ -29,7 +24,7 @@ public class GerritRefreshJob implements Job {
     BugMatchingService bugMatchingService;
 
     @Override
-    public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException {
+    public void run() {
 
     }
 }
