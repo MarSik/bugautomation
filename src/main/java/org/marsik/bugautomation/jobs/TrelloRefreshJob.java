@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -21,6 +22,7 @@ import org.marsik.bugautomation.facts.User;
 import org.marsik.bugautomation.services.BugMatchingService;
 import org.marsik.bugautomation.services.ConfigurationService;
 import org.marsik.bugautomation.services.FactService;
+import org.marsik.bugautomation.services.RuleGlobalsService;
 import org.marsik.bugautomation.services.StatsService;
 import org.marsik.bugautomation.services.TrelloActionsImpl;
 import org.marsik.bugautomation.services.UserMatchingService;
@@ -52,6 +54,9 @@ public class TrelloRefreshJob implements Runnable {
 
     @Inject
     TrelloActionsImpl trelloActions;
+
+    @Inject
+    RuleGlobalsService ruleGlobalsService;
 
     @Inject StatsService statsService;
 
@@ -106,7 +111,9 @@ public class TrelloRefreshJob implements Runnable {
                     });
 
             // Process cards
+            Set<String> visitedCards = new HashSet<>();
             for (Card trCard: trBoard.getCards()) {
+                visitedCards.add(trCard.getId());
                 String status = idListToStatus.get(trCard.getIdList());
                 if (status == null) {
                     TrelloList list = idToListMap.get(trCard.getIdList());
@@ -218,6 +225,12 @@ public class TrelloRefreshJob implements Runnable {
 
                 factService.addOrUpdateFact(kiCard);
             }
+
+            // Forget about removed cards
+            ruleGlobalsService.getTrelloCards().stream()
+                    .filter(c -> !visitedCards.contains(c.getId()))
+                    .peek(c -> logger.info("Forgetting about card: {} ({})", c.getTitle(), c.getId()))
+                    .forEach(factService::removeFact);
         }
 
         long elapsedTime = System.nanoTime() - startTime;

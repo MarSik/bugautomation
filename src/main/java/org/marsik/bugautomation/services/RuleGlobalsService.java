@@ -18,6 +18,7 @@ import org.kie.api.runtime.rule.FactHandle;
 import org.kie.api.runtime.rule.QueryResults;
 import org.kie.api.runtime.rule.QueryResultsRow;
 import org.marsik.bugautomation.facts.BugzillaBug;
+import org.marsik.bugautomation.facts.TrelloCard;
 
 @Singleton
 public class RuleGlobalsService {
@@ -61,5 +62,10 @@ public class RuleGlobalsService {
     @SuppressWarnings("unchecked")
     public Collection<BugzillaBug> getBugzillaBugs() {
         return (Collection<BugzillaBug>) kSession.getObjects(o -> o instanceof BugzillaBug);
+    }
+
+    @SuppressWarnings("unchecked")
+    public Collection<TrelloCard> getTrelloCards() {
+        return (Collection<TrelloCard>) kSession.getObjects(o -> o instanceof TrelloCard);
     }
 }
