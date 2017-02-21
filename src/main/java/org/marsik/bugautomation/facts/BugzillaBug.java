@@ -65,4 +65,12 @@ public class BugzillaBug {
     public boolean isDone() {
         return BugzillaStatus.MODIFIED.compareTo(status) <= 0;
     }
+
+    public boolean isUntargeted() {
+        return targetMilestone == null || targetMilestone.isEmpty();
+    }
+
+    public boolean isTargeted() {
+        return !isUntargeted();
+    }
 }

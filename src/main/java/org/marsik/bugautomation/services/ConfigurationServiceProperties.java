@@ -5,8 +5,10 @@ import javax.validation.constraints.NotNull;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import com.google.common.cache.CacheBuilder;
@@ -89,5 +91,20 @@ public class ConfigurationServiceProperties implements ConfigurationService {
     public String resolveRelease(String release) {
         final String mappedRelease = getCached("release.map." + release);
         return mappedRelease != null ? mappedRelease : release;
+    }
+
+    @Override
+    public Set<String> findAllReleases(String release) {
+        Set<String> releases = new HashSet<>();
+        releases.add(release);
+
+        do {
+            release = getCached("release.before." + release);
+            if (release != null) {
+                releases.add(release);
+            }
+        } while (release != null);
+
+        return releases;
     }
 }

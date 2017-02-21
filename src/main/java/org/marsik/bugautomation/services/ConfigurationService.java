@@ -2,6 +2,7 @@ package org.marsik.bugautomation.services;
 
 import java.util.Optional;
 import java.util.Properties;
+import java.util.Set;
 
 public interface ConfigurationService {
     String TRELLO_APP_KEY = "trello.appkey";
@@ -21,4 +22,5 @@ public interface ConfigurationService {
     Properties getProperties();
 
     String resolveRelease(String release);
+    Set<String> findAllReleases(String release);
 }

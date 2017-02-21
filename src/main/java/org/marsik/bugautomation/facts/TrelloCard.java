@@ -3,6 +3,7 @@ package org.marsik.bugautomation.facts;
 import javax.validation.constraints.NotNull;
 import java.time.Instant;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import org.codehaus.jackson.map.annotate.JsonDeserialize;
@@ -56,5 +57,34 @@ public class TrelloCard {
 
     public String getCleanDesc() {
         return description.replaceAll("\\{\\{[^}]*\\}\\}", " ");
+    }
+
+    public boolean isTargeted() {
+        return (targetMilestone != null && !targetMilestone.isEmpty())
+                || dueDate != null;
+    }
+
+    public boolean isUntargeted() {
+        return !isTargeted();
+    }
+
+    public boolean above(TrelloCard other) {
+        return pos < other.pos;
+    }
+
+    public boolean below(TrelloCard other) {
+        return pos > other.pos;
+    }
+
+    public boolean lessImportant(TrelloCard other) {
+        return score != null && other.score != null && score < other.score;
+    }
+
+    public boolean moreImportant(TrelloCard other) {
+        return score != null && other.score != null && score > other.score;
+    }
+
+    public boolean sameScore(TrelloCard other) {
+        return score != null && other.score != null && Objects.equals(score, other.score);
     }
 }

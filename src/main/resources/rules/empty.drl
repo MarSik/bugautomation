@@ -170,7 +170,7 @@ end
 // Add triage label to all cards without assignee, priority and target milestone
 rule "needsTriage"
   when
-    $bz: BugzillaBug($bug : bug, done == false, targetMilestone == null || targetMilestone == "",
+    $bz: BugzillaBug($bug : bug, done == false, untargeted,
                      priority == BugzillaPriorityLevel.UNSPECIFIED,
                      "triaged" not memberOf keywords,
                      "futurefeature" not memberOf keywords,
@@ -190,7 +190,7 @@ rule "cardNeedsTriage"
     $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
     $card: TrelloCard($bug : bug, $blocks: blocks, board == $board, $labels: labels,
       status not str[startsWith] "done", status not str[startsWith] "documentation",
-      score == 0, targetMilestone == null || targetMilestone == "", dueDate == null || dueDate == "")
+      score == 0, untargeted)
     not(exists TrelloLabel(name == "triage") from $labels)
     not(exists BugzillaBug(bug == $bug))
   then
@@ -200,7 +200,7 @@ end
 // Remove triage label from already fixed and properly targeted bugs and cards
 rule "alreadyTriaged"
   when
-    $bz: BugzillaBug($bug : bug, done || (targetMilestone != null && targetMilestone != "")
+    $bz: BugzillaBug($bug : bug, done || targeted
       || priority > BugzillaPriorityLevel.UNSPECIFIED || "triaged" memberOf keywords
       || "futurefeature" memberOf keywords)
 
@@ -241,10 +241,10 @@ rule "alreadyTriagedFutureFlag"
     trello.removeLabelFromCard($card, $label);
 end
 
-rule "alreadyTriagedCardMilestone"
+rule "alreadyTriagedCardMilestoneDueDate"
   when
     $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
-    $card: TrelloCard($bug : bug, board == $board, $labels: labels, targetMilestone != null, targetMilestone != "")
+    $card: TrelloCard($bug : bug, board == $board, $labels: labels, targeted)
     $label: TrelloLabel(name == "triage") from $labels
   then
     trello.removeLabelFromCard($card, $label);
@@ -255,15 +255,6 @@ rule "alreadyTriagedCardScore"
     $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
     $card: TrelloCard($bug : bug, board == $board, $labels: labels, score > 0)
     not(exists BugzillaBug(bug == $bug))
-    $label: TrelloLabel(name == "triage") from $labels
-  then
-    trello.removeLabelFromCard($card, $label);
-end
-
-rule "alreadyTriagedCardDueDate"
-  when
-    $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
-    $card: TrelloCard($bug : bug, board == $board, $labels: labels, dueDate != null && dueDate != "")
     $label: TrelloLabel(name == "triage") from $labels
   then
     trello.removeLabelFromCard($card, $label);
@@ -378,8 +369,8 @@ rule "orderBacklogByPmPriority"
 
     $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
 
-    $card1: TrelloCard(bug == $bug1, board == $board, status == config.getCached("cfg.backlog"), $score : score, $pos : pos)
-    $card2: TrelloCard(bug == $bug2, board == $board, status == config.getCached("cfg.backlog"), $score == score, pos > $pos)
+    $card1: TrelloCard(bug == $bug1, board == $board, status == config.getCached("cfg.backlog"))
+    $card2: TrelloCard(bug == $bug2, board == $board, status == config.getCached("cfg.backlog"), sameScore($card1), below($card1))
   then
     trello.switchCards($card1, $card2);
 end
@@ -391,8 +382,8 @@ rule "orderBacklogByPmScore"
 
     $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
 
-    $card1: TrelloCard(bug == $bug1, board == $board, status == config.getCached("cfg.backlog"), $score : score, $pos : pos)
-    $card2: TrelloCard(bug == $bug2, board == $board, status == config.getCached("cfg.backlog"), $score == score, pos > $pos)
+    $card1: TrelloCard(bug == $bug1, board == $board, status == config.getCached("cfg.backlog"))
+    $card2: TrelloCard(bug == $bug2, board == $board, status == config.getCached("cfg.backlog"), sameScore($card1), below($card1))
   then
     trello.switchCards($card1, $card2);
 end
@@ -404,8 +395,8 @@ rule "orderBacklogByBugBlocks"
 
     $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
 
-    $card1: TrelloCard(bug == $bug1, board == $board, status == config.getCached("cfg.backlog"), $score : score, $pos : pos)
-    $card2: TrelloCard(bug == $bug2, board == $board, status == config.getCached("cfg.backlog"), $score == score, pos > $pos)
+    $card1: TrelloCard(bug == $bug1, board == $board, status == config.getCached("cfg.backlog"))
+    $card2: TrelloCard(bug == $bug2, board == $board, status == config.getCached("cfg.backlog"), sameScore($card1), below($card1))
   then
     trello.switchCards($card1, $card2);
 end
@@ -414,8 +405,8 @@ rule "orderBacklogByCardBlocks"
   when
     $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
 
-    $card1: TrelloCard($bug : bug, board == $board, status == config.getCached("cfg.backlog"), $score : score, $pos : pos)
-    $card2: TrelloCard($bug memberOf blocks, board == $board, status == config.getCached("cfg.backlog"), $score == score, pos > $pos)
+    $card1: TrelloCard($bug : bug, board == $board, status == config.getCached("cfg.backlog"))
+    $card2: TrelloCard($bug memberOf blocks, board == $board, status == config.getCached("cfg.backlog"), sameScore($card1), below($card1))
   then
     trello.switchCards($card1, $card2);
 end
@@ -425,8 +416,8 @@ rule "orderBacklogByScore"
   when
     $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
 
-    $card1: TrelloCard(board == $board, status == config.getCached("cfg.backlog"), score != null, $score : score, $pos : pos)
-    $card2: TrelloCard(board == $board, status == config.getCached("cfg.backlog"), score != null, score > $score, pos > $pos)
+    $card1: TrelloCard(board == $board, status == config.getCached("cfg.backlog"))
+    $card2: TrelloCard(board == $board, status == config.getCached("cfg.backlog"), moreImportant($card2), below($card1))
   then
     trello.switchCards($card1, $card2);
 end
@@ -522,8 +513,8 @@ end
  rule "cardScoreRelationsMustReflectPmScore"
    salience 100
    when
-     BugzillaBug($bzId : id, $bug1 : bug, $priority : priority, $pmScore : pmScore, $pmPriority : pmPriority, targetMilestone != "")
-     BugzillaBug($bug2 : bug, id != $bzId, priority == $priority, pmScore > $pmScore || pmPriority < $pmPriority, targetMilestone != "")
+     BugzillaBug($bzId : id, $bug1 : bug, $priority : priority, $pmScore : pmScore, $pmPriority : pmPriority, targeted)
+     BugzillaBug($bug2 : bug, id != $bzId, priority == $priority, pmScore > $pmScore || pmPriority < $pmPriority, targeted)
 
      $card1: TrelloCard(bug == $bug1, $score : score)
      $card2: TrelloCard(bug == $bug2, score == null || score < $score)
@@ -601,7 +592,7 @@ end
  rule "releasePriorityNone"
    salience 98
    when
-     $bz: BugzillaBug($bug1 : bug, targetMilestone == null || targetMilestone == "")
+     $bz: BugzillaBug($bug1 : bug, untargeted)
      $card1: TrelloCard(bug == $bug1, score == null)
    then
      internal.setScore($card1, -100 + 10 * $bz.getPriority().ordinal() + $bz.getSeverity().ordinal());
