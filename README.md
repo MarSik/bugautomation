@@ -25,6 +25,7 @@ bugzilla.password=<password>
 # User mapping, repeat for each user (each user has different someid)
 user.<someid>.bugzilla=<bugzilla account email>
 user.<someid>.trello=<trello user id>
+user.<someid>.gerrit=<gerrit account id>
 
 # Case sensitive name of the main trello board
 cfg.board.sprint=Sprint
