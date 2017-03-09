@@ -709,6 +709,37 @@ public class FactServiceTest {
     }
 
     @Test
+    public void testOrderWithScore() throws Exception {
+        BugzillaBug bug2 = newBug(2, BugzillaStatus.ASSIGNED)
+                .build();
+
+        BugzillaBug bug1 = newBug(1, BugzillaStatus.ASSIGNED)
+                .build();
+
+
+
+        TrelloCard card1 = cardForBug(bug1, 1.0)
+                .score(100)
+                .build();
+
+        TrelloCard card2 = cardForBug(bug2, 2.0)
+                .score(200)
+                .build();
+
+        factService.addFact(bug1);
+        factService.addFact(bug2);
+        factService.addFact(card1);
+        factService.addFact(card2);
+
+        trigger();
+
+        assertThat(card2.getScore())
+                .isNotNull()
+                .isGreaterThan(card1.getScore());
+        verify(trelloActions).switchCards(card1, card2);
+    }
+
+    @Test
     public void testOrderWithPmScore() throws Exception {
         BugzillaBug bug2 = newBug(2, BugzillaStatus.ASSIGNED)
                 .pmScore(10)

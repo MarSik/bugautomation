@@ -417,7 +417,7 @@ rule "orderBacklogByScore"
     $board: TrelloBoard(name == config.getCached("cfg.board.sprint"))
 
     $card1: TrelloCard(board == $board, status == config.getCached("cfg.backlog"))
-    $card2: TrelloCard(board == $board, status == config.getCached("cfg.backlog"), moreImportant($card2), below($card1))
+    $card2: TrelloCard(board == $board, status == config.getCached("cfg.backlog"), moreImportant($card1), below($card1))
   then
     trello.switchCards($card1, $card2);
 end
