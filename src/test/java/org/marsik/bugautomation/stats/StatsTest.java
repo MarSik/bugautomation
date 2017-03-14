@@ -91,6 +91,28 @@ public class StatsTest {
     }
 
     @Test
+    public void testTrivialMergeWithDifferentStats() throws Exception {
+        Stats stats = new Stats();
+        stats.add(SingleStat.SPRINT_CONTENT)
+                .label("project", "x")
+                .value(5f);
+        stats.add(SingleStat.BUGS)
+                .label("user", "absd")
+                .value(5f);
+
+        Stats stats2 = new Stats();
+        stats2.add(SingleStat.SPRINT_CONTENT)
+                .label("project", "x")
+                .value(10f);
+
+        stats.merge(stats2);
+
+        String result = stats.toPrometheusString();
+        assertThat(result)
+                .isEqualTo("bug_automation_bugs{user=\"absd\"} 5.0\nbug_automation_sprint_content{project=\"x\"} 10.0\n");
+    }
+
+    @Test
     public void testPersistentMerge() throws Exception {
         Stats stats = new Stats();
         stats.add(SingleStat.TRIGGER_COUNT)
