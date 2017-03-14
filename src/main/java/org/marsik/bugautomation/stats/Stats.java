@@ -1,7 +1,10 @@
 package org.marsik.bugautomation.stats;
 
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import lombok.Data;
@@ -62,7 +65,30 @@ public class Stats {
                 .collect(Collectors.joining("\n"))+"\n";
     }
 
+    /**
+     * Merge updates all stat values from the provided `other` object. It will also remove
+     * all non-persistent values that refer to any `SingleStat` type that is part of the
+     * update coming from `other`.
+     *
+     * The idea is that each piece of code using merge to submit stats to the central
+     * object updates only its own area of responsibility.
+     *
+     * @param other Stats to publish to this object
+     * @return this object (with updated stats)
+     */
     public Stats merge(Stats other) {
+        // Find out which stats (ignore labels) are updated by this merge
+        // but ignore persistent stats (whose we always want to keep)
+        Set<SingleStat> refreshFor = other.values.keySet().stream()
+                .map(SingleStatWLabels::getStat)
+                .distinct()
+                .filter(stat -> !stat.getType().isPersistent())
+                .collect(Collectors.toSet());
+
+        // Clear updated nonpersistent stats
+        values.entrySet().removeIf(entry -> refreshFor.contains(entry.getKey().getStat()));
+
+        // Publish updates
         for (Map.Entry<SingleStatWLabels, Double> entry: other.values.entrySet()) {
             if (entry.getKey().getStat().getType().isPersistent()) {
                 values.put(entry.getKey(), values.getOrDefault(entry.getKey(), 0.0) + entry.getValue());
@@ -70,6 +96,7 @@ public class Stats {
                 values.put(entry.getKey(), entry.getValue());
             }
         }
+
         return this;
     }
 }
