@@ -3,6 +3,7 @@ package org.marsik.bugautomation;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.PostConstruct;
@@ -24,7 +25,6 @@ public class Main {
     private static final Logger logger = LoggerFactory.getLogger(Main.class);
 
     private ScheduledExecutorService scheduler;
-    private ExecutorService threadPool;
 
     @Inject
     RefreshRulesJob refreshRulesJob;
@@ -37,21 +37,19 @@ public class Main {
 
     @PostConstruct
     public void create() {
-        scheduler = Executors.newSingleThreadScheduledExecutor();
-        threadPool = Executors.newCachedThreadPool();
+        scheduler = Executors.newScheduledThreadPool(3);
 
-        scheduler.scheduleWithFixedDelay(() -> threadPool.submit(refreshRulesJob),
+        scheduler.scheduleWithFixedDelay(refreshRulesJob,
                 0, 30, TimeUnit.SECONDS);
-        scheduler.scheduleWithFixedDelay(() -> threadPool.submit(trelloRefreshJob),
+        scheduler.scheduleWithFixedDelay(trelloRefreshJob,
                 0, 120, TimeUnit.SECONDS);
-        scheduler.scheduleWithFixedDelay(() -> threadPool.submit(bugzillaRefreshJob),
+        scheduler.scheduleWithFixedDelay(bugzillaRefreshJob,
                 0, 300, TimeUnit.SECONDS);
     }
 
     @PreDestroy
     public void tearDown() {
         scheduler.shutdown();
-        threadPool.shutdown();
     }
 
     @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT")
