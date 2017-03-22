@@ -5,7 +5,10 @@ import javax.validation.constraints.NotNull;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
@@ -15,11 +18,13 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import org.apache.commons.io.IOUtils;
+import org.marsik.bugautomation.facts.TrelloBoard;
 
 @Singleton
 public class ConfigurationServiceProperties implements ConfigurationService {
 
     private LoadingCache<String, String> cache;
+    private LoadingCache<String, Boolean> monitoredBoards;
 
     public ConfigurationServiceProperties() {
         cache = CacheBuilder.newBuilder()
@@ -30,6 +35,15 @@ public class ConfigurationServiceProperties implements ConfigurationService {
                     return get(key).orElse(null);
                 }
             });
+
+        monitoredBoards = CacheBuilder.newBuilder()
+                .maximumSize(1000)
+                .expireAfterWrite(2, TimeUnit.MINUTES)
+                .build(new CacheLoader<String, Boolean>() {
+                    public Boolean load(@NotNull String key) {
+                        return checkBoardMonitored(key);
+                    }
+                });
     }
 
     @Override
@@ -53,6 +67,15 @@ public class ConfigurationServiceProperties implements ConfigurationService {
         } catch (CacheLoader.InvalidCacheLoadException ex) {
             // When no such entry exists
             return null;
+        }
+    }
+
+    public Optional<String> getCachedOptional(String key) {
+        try {
+            return Optional.of(cache.getUnchecked(key));
+        } catch (CacheLoader.InvalidCacheLoadException ex) {
+            // When no such entry exists
+            return Optional.empty();
         }
     }
 
@@ -99,12 +122,45 @@ public class ConfigurationServiceProperties implements ConfigurationService {
         releases.add(release);
 
         do {
-            release = getCached("release.before." + release);
+            release = getCached("release.fixbefore." + release);
             if (release != null) {
                 releases.add(release);
             }
         } while (release != null);
 
         return releases;
+    }
+
+    public List<String> getMonitoredBoards() {
+        return Arrays.asList(
+                Optional.ofNullable(
+                        getCached(ConfigurationService.TRELLO_BOARDS)
+                ).orElse("").split(" *, *"));
+    }
+
+    public boolean checkBoardMonitored(String id) {
+        return getCachedOptional(ConfigurationService.TRELLO_BOARDS)
+                .map(s -> s.split(" *, *"))
+                .map(Arrays::asList)
+                .map(HashSet::new)
+                .map(s -> s.contains(id))
+                .orElse(false);
+    }
+
+    @Override
+    public boolean isBoardMonitored(String id) {
+        return monitoredBoards.getUnchecked(id);
+    }
+
+    @Override
+    public String getBacklog(TrelloBoard board) {
+        final String backlog = getCached("cfg.backlog." + board.getId());
+        return backlog == null ? "todo" : backlog.toLowerCase();
+    }
+
+    @Override
+    public String getDonelog(TrelloBoard board) {
+        final String backlog = getCached("cfg.done." + board.getId());
+        return backlog == null ? "done" : backlog.toLowerCase();
     }
 }

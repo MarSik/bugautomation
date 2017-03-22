@@ -1,6 +1,7 @@
 package org.marsik.bugautomation.services;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.never;
@@ -57,7 +58,6 @@ public class FactServiceTest {
     @Inject
     FactService factService;
 
-    private static final String TRELLO_BOARD = "Sprint";
     private static final String TRELLO_BACKLOG = "todo";
 
     private TrelloBoard board;
@@ -66,16 +66,20 @@ public class FactServiceTest {
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
-        when(configurationService.getCached("cfg.board.sprint")).thenReturn(TRELLO_BOARD);
-        when(configurationService.getCached("cfg.backlog")).thenReturn(TRELLO_BACKLOG);
+        when(configurationService.getCached("trello.boards")).thenReturn("sprint");
+        when(configurationService.getCached("cfg.backlog.sprint")).thenReturn(TRELLO_BACKLOG);
+        when(configurationService.getCached("cfg.done.sprint")).thenReturn("done");
         when(configurationService.getCached("release.future.prefix")).thenReturn("ovirt-4.1.");
         when(configurationService.getCached("release.future.release")).thenReturn("ovirt-4.1.0");
+        when(configurationService.isBoardMonitored("sprint")).thenReturn(true);
+        when(configurationService.getBacklog(any())).thenReturn(TRELLO_BACKLOG);
+        when(configurationService.getDonelog(any())).thenReturn("done");
 
         when(configurationService.getCachedInt("release.ovirt-4.0.6", 0)).thenReturn(200);
 
         board = TrelloBoard.builder()
                 .id("sprint")
-                .name(TRELLO_BOARD)
+                .name("Sprint")
                 .build();
 
         // Clear session and populate with board fact
@@ -109,6 +113,7 @@ public class FactServiceTest {
     private TrelloCard.TrelloCardBuilder cardForBug(BugzillaBug bug, Double pos) {
         return TrelloCard.builder()
                 .id("card-"+bug.getId())
+                .closed(false)
                 .board(board)
                 .status(TRELLO_BACKLOG)
                 .pos(pos)
@@ -128,6 +133,7 @@ public class FactServiceTest {
 
         TrelloCard card1 = TrelloCard.builder()
                 .id("a")
+                .closed(false)
                 .board(board)
                 .status(TRELLO_BACKLOG)
                 .pos(1.0)
@@ -138,6 +144,7 @@ public class FactServiceTest {
 
         TrelloCard card2 = TrelloCard.builder()
                 .id("b")
+                .closed(false)
                 .board(board)
                 .status(TRELLO_BACKLOG)
                 .pos(2.0)
@@ -164,6 +171,7 @@ public class FactServiceTest {
 
         TrelloCard card1 = TrelloCard.builder()
                 .id("a")
+                .closed(false)
                 .board(board)
                 .status(TRELLO_BACKLOG)
                 .pos(1.0)
@@ -185,6 +193,7 @@ public class FactServiceTest {
     public void testCardArtificialId() throws Exception {
         TrelloCard card1 = TrelloCard.builder()
                 .id("a")
+                .closed(false)
                 .board(board)
                 .status(TRELLO_BACKLOG)
                 .pos(1.0)
@@ -206,6 +215,7 @@ public class FactServiceTest {
     public void testCardRealIdNoBugPresent() throws Exception {
         TrelloCard card1 = TrelloCard.builder()
                 .id("a")
+                .closed(false)
                 .board(board)
                 .status(TRELLO_BACKLOG)
                 .pos(1.0)
@@ -230,6 +240,7 @@ public class FactServiceTest {
 
         TrelloCard card1 = TrelloCard.builder()
                 .id("a")
+                .closed(false)
                 .board(board)
                 .status("done before X")
                 .pos(1.0)
@@ -254,12 +265,63 @@ public class FactServiceTest {
 
         TrelloCard card1 = TrelloCard.builder()
                 .id("a")
+                .closed(false)
                 .board(board)
                 .status("done before X")
                 .pos(1.0)
                 .bug(bug1.getBug())
                 .blocks(Collections.emptySet())
                 .assignedTo(new HashSet<>())
+                .build();
+
+
+        factService.addFact(bug1);
+        factService.addFact(card1);
+
+        trigger();
+
+        verify(trelloActions).moveCard(card1, board, TRELLO_BACKLOG);
+    }
+
+    @Test
+    public void testArchivedReopenedMove() throws Exception {
+        BugzillaBug bug1 = newBug(1, BugzillaStatus.ASSIGNED)
+                .build();
+
+        TrelloCard card1 = TrelloCard.builder()
+                .id("a")
+                .board(board)
+                .status("done before X")
+                .pos(1.0)
+                .bug(bug1.getBug())
+                .blocks(Collections.emptySet())
+                .assignedTo(new HashSet<>())
+                .closed(true)
+                .build();
+
+
+        factService.addFact(bug1);
+        factService.addFact(card1);
+
+        trigger();
+
+        verify(trelloActions, atLeastOnce()).moveCard(card1, board, TRELLO_BACKLOG);
+    }
+
+    @Test
+    public void testArchivedInTodoUnarchive() throws Exception {
+        BugzillaBug bug1 = newBug(1, BugzillaStatus.ASSIGNED)
+                .build();
+
+        TrelloCard card1 = TrelloCard.builder()
+                .id("a")
+                .board(board)
+                .status("todo")
+                .pos(1.0)
+                .bug(bug1.getBug())
+                .blocks(Collections.emptySet())
+                .assignedTo(new HashSet<>())
+                .closed(true)
                 .build();
 
 
@@ -279,6 +341,7 @@ public class FactServiceTest {
 
         TrelloCard card1 = TrelloCard.builder()
                 .id("a")
+                .closed(false)
                 .board(board)
                 .status(TRELLO_BACKLOG)
                 .pos(1.0)
@@ -303,6 +366,7 @@ public class FactServiceTest {
 
         TrelloCard card1 = TrelloCard.builder()
                 .id("a")
+                .closed(false)
                 .board(board)
                 .status(TRELLO_BACKLOG)
                 .pos(1.0)
@@ -324,6 +388,7 @@ public class FactServiceTest {
     public void testCardNeedsTriage() throws Exception {
         TrelloCard card1 = TrelloCard.builder()
                 .id("a")
+                .closed(false)
                 .board(board)
                 .status(TRELLO_BACKLOG)
                 .pos(1.0)
@@ -343,6 +408,7 @@ public class FactServiceTest {
     public void testCardCustomIdNeedsTriage() throws Exception {
         TrelloCard card1 = TrelloCard.builder()
                 .id("a")
+                .closed(false)
                 .board(board)
                 .status(TRELLO_BACKLOG)
                 .pos(1.0)
@@ -366,6 +432,7 @@ public class FactServiceTest {
 
         TrelloCard card1 = TrelloCard.builder()
                 .id("a")
+                .closed(false)
                 .board(board)
                 .status(TRELLO_BACKLOG)
                 .pos(1.0)
@@ -387,6 +454,7 @@ public class FactServiceTest {
     public void testNoNeedTriageCardDone() throws Exception {
         TrelloCard card1 = TrelloCard.builder()
                 .id("a")
+                .closed(false)
                 .board(board)
                 .status("done before 25th")
                 .pos(1.0)
@@ -411,6 +479,7 @@ public class FactServiceTest {
 
         TrelloCard card1 = TrelloCard.builder()
                 .id("a")
+                .closed(false)
                 .board(board)
                 .status(TRELLO_BACKLOG)
                 .pos(1.0)
@@ -436,6 +505,7 @@ public class FactServiceTest {
 
         TrelloCard card1 = TrelloCard.builder()
                 .id("a")
+                .closed(false)
                 .board(board)
                 .status("documentation")
                 .labels(singletonSet(label))
@@ -460,6 +530,7 @@ public class FactServiceTest {
 
         TrelloCard card1 = TrelloCard.builder()
                 .id("a")
+                .closed(false)
                 .board(board)
                 .status("done")
                 .labels(singletonSet(label))
@@ -488,6 +559,7 @@ public class FactServiceTest {
 
         TrelloCard card1 = TrelloCard.builder()
                 .id("a")
+                .closed(false)
                 .board(board)
                 .status(TRELLO_BACKLOG)
                 .labels(singletonSet(label))
@@ -518,6 +590,7 @@ public class FactServiceTest {
 
         TrelloCard card1 = TrelloCard.builder()
                 .id("a")
+                .closed(false)
                 .board(board)
                 .status(TRELLO_BACKLOG)
                 .labels(singletonSet(label))
@@ -544,6 +617,7 @@ public class FactServiceTest {
 
         TrelloCard card1 = TrelloCard.builder()
                 .id("a")
+                .closed(false)
                 .board(board)
                 .status(TRELLO_BACKLOG)
                 .labels(singletonSet(label))
@@ -572,6 +646,7 @@ public class FactServiceTest {
 
         TrelloCard card1 = TrelloCard.builder()
                 .id("a")
+                .closed(false)
                 .board(board)
                 .status(TRELLO_BACKLOG)
                 .labels(singletonSet(label))
@@ -603,6 +678,7 @@ public class FactServiceTest {
 
         TrelloCard card1 = TrelloCard.builder()
                 .id("a")
+                .closed(false)
                 .board(board)
                 .status(TRELLO_BACKLOG)
                 .pos(1.0)
@@ -634,6 +710,7 @@ public class FactServiceTest {
 
         TrelloCard card1 = TrelloCard.builder()
                 .id("a")
+                .closed(false)
                 .board(board)
                 .status(TRELLO_BACKLOG)
                 .pos(1.0)
@@ -660,6 +737,7 @@ public class FactServiceTest {
 
         TrelloCard card1 = TrelloCard.builder()
                 .id("a")
+                .closed(false)
                 .board(board)
                 .status(TRELLO_BACKLOG)
                 .pos(1.0)
@@ -909,6 +987,7 @@ public class FactServiceTest {
 
         TrelloCard card1 = TrelloCard.builder()
                 .id("a")
+                .closed(false)
                 .board(board)
                 .status(TRELLO_BACKLOG)
                 .pos(1.0)
@@ -919,6 +998,7 @@ public class FactServiceTest {
 
         TrelloCard card2 = TrelloCard.builder()
                 .id("b")
+                .closed(false)
                 .board(board)
                 .status(TRELLO_BACKLOG)
                 .pos(2.0)
@@ -945,6 +1025,7 @@ public class FactServiceTest {
 
         TrelloCard card1 = TrelloCard.builder()
                 .id("a")
+                .closed(false)
                 .board(board)
                 .status(TRELLO_BACKLOG)
                 .pos(1.0)
@@ -956,6 +1037,7 @@ public class FactServiceTest {
 
         TrelloCard card2 = TrelloCard.builder()
                 .id("b")
+                .closed(false)
                 .board(board)
                 .status(TRELLO_BACKLOG)
                 .pos(2.0)
@@ -982,6 +1064,7 @@ public class FactServiceTest {
 
         TrelloCard card1 = TrelloCard.builder()
                 .id("a")
+                .closed(false)
                 .board(board)
                 .status(TRELLO_BACKLOG)
                 .pos(1.0)
@@ -993,6 +1076,7 @@ public class FactServiceTest {
 
         TrelloCard card2 = TrelloCard.builder()
                 .id("b")
+                .closed(false)
                 .board(board)
                 .status(TRELLO_BACKLOG)
                 .pos(2.0)
@@ -1015,6 +1099,7 @@ public class FactServiceTest {
 
         TrelloCard card1 = TrelloCard.builder()
                 .id("a")
+                .closed(false)
                 .board(board)
                 .status(TRELLO_BACKLOG)
                 .pos(1.0)
@@ -1026,6 +1111,7 @@ public class FactServiceTest {
 
         TrelloCard card2 = TrelloCard.builder()
                 .id("b")
+                .closed(false)
                 .board(board)
                 .status("inprogress")
                 .pos(2.0)
@@ -1049,6 +1135,7 @@ public class FactServiceTest {
 
         TrelloCard card1 = TrelloCard.builder()
                 .id("a")
+                .closed(false)
                 .board(board)
                 .status(TRELLO_BACKLOG)
                 .pos(1.0)
@@ -1060,6 +1147,7 @@ public class FactServiceTest {
 
         TrelloCard card2 = TrelloCard.builder()
                 .id("b")
+                .closed(false)
                 .board(board)
                 .status("done")
                 .pos(2.0)
@@ -1082,6 +1170,7 @@ public class FactServiceTest {
 
         TrelloCard card1 = TrelloCard.builder()
                 .id("a")
+                .closed(false)
                 .board(board)
                 .status(TRELLO_BACKLOG)
                 .pos(1.0)
@@ -1093,6 +1182,7 @@ public class FactServiceTest {
 
         TrelloCard card2 = TrelloCard.builder()
                 .id("b")
+                .closed(false)
                 .board(board)
                 .status("documentation")
                 .pos(2.0)
@@ -1117,6 +1207,7 @@ public class FactServiceTest {
 
         TrelloCard card1 = TrelloCard.builder()
                 .id("a")
+                .closed(false)
                 .board(board)
                 .status(TRELLO_BACKLOG)
                 .pos(1.0)
@@ -1129,6 +1220,7 @@ public class FactServiceTest {
 
         TrelloCard card2 = TrelloCard.builder()
                 .id("b")
+                .closed(false)
                 .board(board)
                 .status("done")
                 .pos(2.0)
@@ -1153,6 +1245,7 @@ public class FactServiceTest {
 
         TrelloCard card1 = TrelloCard.builder()
                 .id("a")
+                .closed(false)
                 .board(board)
                 .status(TRELLO_BACKLOG)
                 .pos(1.0)
@@ -1165,6 +1258,7 @@ public class FactServiceTest {
 
         TrelloCard card2 = TrelloCard.builder()
                 .id("b")
+                .closed(false)
                 .board(board)
                 .status("documentation")
                 .pos(2.0)
@@ -1187,6 +1281,7 @@ public class FactServiceTest {
 
         TrelloCard card1 = TrelloCard.builder()
                 .id("a")
+                .closed(false)
                 .board(board)
                 .status(TRELLO_BACKLOG)
                 .pos(1.0)
@@ -1217,6 +1312,7 @@ public class FactServiceTest {
 
         TrelloCard card1 = TrelloCard.builder()
                 .id("a")
+                .closed(false)
                 .board(board)
                 .status(TRELLO_BACKLOG)
                 .pos(1.0)
@@ -1249,6 +1345,7 @@ public class FactServiceTest {
 
         TrelloCard card1 = TrelloCard.builder()
                 .id("a")
+                .closed(false)
                 .board(board)
                 .status(TRELLO_BACKLOG)
                 .pos(1.0)
@@ -1283,6 +1380,7 @@ public class FactServiceTest {
 
         TrelloCard card1 = TrelloCard.builder()
                 .id("a")
+                .closed(false)
                 .board(board)
                 .status(TRELLO_BACKLOG)
                 .pos(1.0)
@@ -1318,6 +1416,7 @@ public class FactServiceTest {
 
         TrelloCard card1 = TrelloCard.builder()
                 .id("a")
+                .closed(false)
                 .board(board)
                 .status(TRELLO_BACKLOG)
                 .pos(1.0)
@@ -1557,6 +1656,7 @@ public class FactServiceTest {
 
         TrelloCard card1 = TrelloCard.builder()
                 .id("a")
+                .closed(false)
                 .board(board)
                 .status(TRELLO_BACKLOG)
                 .pos(1.0)
@@ -1580,6 +1680,7 @@ public class FactServiceTest {
 
         TrelloCard card1 = TrelloCard.builder()
                 .id("a")
+                .closed(false)
                 .board(board)
                 .status(TRELLO_BACKLOG)
                 .pos(1.0)
@@ -1589,6 +1690,7 @@ public class FactServiceTest {
 
         TrelloCard card2 = TrelloCard.builder()
                 .id("b")
+                .closed(false)
                 .board(board)
                 .status(TRELLO_BACKLOG)
                 .pos(2.0)
@@ -1785,6 +1887,7 @@ public class FactServiceTest {
 
         TrelloCard card1 = TrelloCard.builder()
                 .id("a")
+                .closed(false)
                 .board(board)
                 .status(TRELLO_BACKLOG)
                 .pos(1.0)
@@ -1807,6 +1910,7 @@ public class FactServiceTest {
 
         TrelloCard card = TrelloCard.builder()
                 .id("b")
+                .closed(false)
                 .board(board)
                 .status(TRELLO_BACKLOG)
                 .pos(2.0)
@@ -1828,6 +1932,7 @@ public class FactServiceTest {
 
         TrelloCard card = TrelloCard.builder()
                 .id("b")
+                .closed(false)
                 .board(board)
                 .status("documentation")
                 .pos(2.0)
@@ -1847,6 +1952,7 @@ public class FactServiceTest {
     public void testNoIsDoneFlagWhenNoBlockedBugs() throws Exception {
         TrelloCard card = TrelloCard.builder()
                 .id("b")
+                .closed(false)
                 .board(board)
                 .status(TRELLO_BACKLOG)
                 .pos(2.0)
@@ -1871,6 +1977,7 @@ public class FactServiceTest {
 
         TrelloCard card = TrelloCard.builder()
                 .id("b")
+                .closed(false)
                 .board(board)
                 .status(TRELLO_BACKLOG)
                 .pos(2.0)
@@ -1894,6 +2001,7 @@ public class FactServiceTest {
 
         TrelloCard card = TrelloCard.builder()
                 .id("b")
+                .closed(false)
                 .board(board)
                 .status(TRELLO_BACKLOG)
                 .pos(2.0)

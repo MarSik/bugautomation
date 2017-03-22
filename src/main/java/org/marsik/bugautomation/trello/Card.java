@@ -25,4 +25,6 @@ public class Card extends BaseObject {
     private String due;
 
     private List<Label> labels;
+
+    private Boolean closed;
 }

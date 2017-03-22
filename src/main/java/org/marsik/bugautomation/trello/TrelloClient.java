@@ -66,4 +66,9 @@ public interface TrelloClient {
     @Path("/1/cards/{id}/idLabels/{value}")
     @Consumes("application/json")
     void removeLabelFromCard(@PathParam("id") String cardId, @PathParam("value") String labelId);
+
+    @PUT
+    @Path("/1/cards/{id}/closed")
+    @Consumes("application/json")
+    void archiveCard(@PathParam("id") String cardId, Map<String, Object> attributes);
 }

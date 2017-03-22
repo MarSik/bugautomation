@@ -13,4 +13,5 @@ import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 public class TrelloList extends BaseObject{
     String name;
     String idBoard;
+    Boolean closed;
 }

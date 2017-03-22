@@ -1,8 +1,11 @@
 package org.marsik.bugautomation.services;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
+
+import org.marsik.bugautomation.facts.TrelloBoard;
 
 public interface ConfigurationService {
     String TRELLO_APP_KEY = "trello.appkey";
@@ -23,4 +26,9 @@ public interface ConfigurationService {
 
     String resolveRelease(String release);
     Set<String> findAllReleases(String release);
+
+    public List<String> getMonitoredBoards();
+    boolean isBoardMonitored(String id);
+    String getBacklog(TrelloBoard board);
+    String getDonelog(TrelloBoard board);
 }

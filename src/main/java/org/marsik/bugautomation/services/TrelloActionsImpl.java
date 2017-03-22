@@ -157,6 +157,12 @@ public class TrelloActionsImpl implements TrelloActions {
                     trList.get().getName());
             trello.moveCard(kiCard.getId(), trList.get().getId());
 
+            if (kiCard.getClosed() != null && kiCard.getClosed()) {
+                logger.info("Unarchiving card {}", kiCard.getTitle());
+                trello.archiveCard(kiCard.getId(), Collections.singletonMap("value", false));
+                kiCard.setClosed(false);
+            }
+
             kiCard.setBoard(kiBoard);
             kiCard.setStatus(trList.get().getName().replace(" ", "").toLowerCase());
             factService.addOrUpdateFact(kiCard);

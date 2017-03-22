@@ -78,13 +78,12 @@ public class TrelloRefreshJob implements Runnable {
 
         Map<String, User> users = new HashMap<>();
 
-        List<String> boards = Arrays.asList(configurationService.get(ConfigurationService.TRELLO_BOARDS)
-                .orElse("").split(" *, *"));
+        List<String> boards = configurationService.getMonitoredBoards();
 
         // Process boards
         for (String boardId: boards) {
             logger.info("Refreshing trello board {}", boardId);
-            Board trBoard = trello.getBoardWithData(boardId, "open", "open", "all");
+            Board trBoard = trello.getBoardWithData(boardId, "all", "all", "all");
             final TrelloBoard kiBoard = TrelloBoard.builder()
                     .name(trBoard.getName())
                     .id(trBoard.getId())
@@ -132,6 +131,7 @@ public class TrelloRefreshJob implements Runnable {
                         .labels(new HashSet<>())
                         .fields(new HashMap<>())
                         .blocks(new HashSet<>())
+                        .closed(trCard.getClosed())
                         .build();
 
                 logger.debug("Found card {} at {}#{}", kiCard.getTitle(), kiCard.getStatus(), kiCard.getPos());
