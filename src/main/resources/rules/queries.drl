@@ -14,7 +14,7 @@ import org.marsik.bugautomation.stats.Stats;
 
 query "getBugInfo" (String bugId)
   bz: BugzillaBug($bug : bug, bug != null, bug.id str[startsWith] bugId)
-  card: TrelloCard(bug == $bug || $bug memberOf blocks, $board : board, $status : status, $pos : pos)
+  card: TrelloCard(bug == $bug || $bug memberOf blocks, $board : board, $status : status, $pos : pos, closed != true)
   order: Long() from accumulate(
     TrelloCard(this != card, board == $board, $status == status, pos < $pos),
     count(1)
@@ -22,13 +22,13 @@ query "getBugInfo" (String bugId)
 end
 
 query "getCardInfo" (String cardId)
-  card: TrelloCard(id == cardId, $board : board, $status : status, $pos : pos)
+  card: TrelloCard(id == cardId, $board : board, $status : status, $pos : pos, closed != true)
   order: Long() from accumulate(
-    TrelloCard(this != card, board == $board, $status == status, pos < $pos),
+    TrelloCard(this != card, board == $board, $status == status, pos < $pos, closed != true),
     count(1)
   )
 end
 
 query "getColumnInfo" (String board, String status)
-  card: TrelloCard(board == board, status == status)
+  card: TrelloCard(board == board, status == status, closed != true)
 end

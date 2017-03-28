@@ -70,9 +70,9 @@ public class ConfigurationServiceProperties implements ConfigurationService {
         }
     }
 
-    public Optional<String> getCachedOptional(String key) {
+    private Optional<String> getCachedOptional(String key) {
         try {
-            return Optional.of(cache.getUnchecked(key));
+            return Optional.ofNullable(cache.getUnchecked(key));
         } catch (CacheLoader.InvalidCacheLoadException ex) {
             // When no such entry exists
             return Optional.empty();
@@ -138,7 +138,7 @@ public class ConfigurationServiceProperties implements ConfigurationService {
                 ).orElse("").split(" *, *"));
     }
 
-    public boolean checkBoardMonitored(String id) {
+    private boolean checkBoardMonitored(String id) {
         return getCachedOptional(ConfigurationService.TRELLO_BOARDS)
                 .map(s -> s.split(" *, *"))
                 .map(Arrays::asList)

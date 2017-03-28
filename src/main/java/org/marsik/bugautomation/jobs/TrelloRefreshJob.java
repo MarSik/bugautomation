@@ -81,6 +81,8 @@ public class TrelloRefreshJob implements Runnable {
         List<String> boards = configurationService.getMonitoredBoards();
 
         // Process boards
+        Set<String> visitedCards = new HashSet<>();
+
         for (String boardId: boards) {
             logger.info("Refreshing trello board {}", boardId);
             Board trBoard = trello.getBoardWithData(boardId, "all", "all", "all");
@@ -110,7 +112,6 @@ public class TrelloRefreshJob implements Runnable {
                     });
 
             // Process cards
-            Set<String> visitedCards = new HashSet<>();
             for (Card trCard: trBoard.getCards()) {
                 visitedCards.add(trCard.getId());
                 String status = idListToStatus.get(trCard.getIdList());
@@ -131,7 +132,7 @@ public class TrelloRefreshJob implements Runnable {
                         .labels(new HashSet<>())
                         .fields(new HashMap<>())
                         .blocks(new HashSet<>())
-                        .closed(trCard.getClosed())
+                        .closed(trCard.getClosed() == null ? false : trCard.getClosed())
                         .build();
 
                 logger.debug("Found card {} at {}#{}", kiCard.getTitle(), kiCard.getStatus(), kiCard.getPos());
@@ -225,13 +226,13 @@ public class TrelloRefreshJob implements Runnable {
 
                 factService.addOrUpdateFact(kiCard);
             }
-
-            // Forget about removed cards
-            ruleGlobalsService.getTrelloCards().stream()
-                    .filter(c -> !visitedCards.contains(c.getId()))
-                    .peek(c -> logger.info("Forgetting about card: {} ({})", c.getTitle(), c.getId()))
-                    .forEach(factService::removeFact);
         }
+
+        // Forget about removed cards
+        ruleGlobalsService.getTrelloCards().stream()
+                .filter(c -> !visitedCards.contains(c.getId()))
+                .peek(c -> logger.info("Forgetting about card: {} ({})", c.getTitle(), c.getId()))
+                .forEach(factService::removeFact);
 
         long elapsedTime = System.nanoTime() - startTime;
 

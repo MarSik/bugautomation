@@ -12,6 +12,8 @@ import javax.inject.Inject;
 import javax.servlet.ServletException;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import lombok.AllArgsConstructor;
+
 import org.jboss.weld.environment.se.Weld;
 import org.jboss.weld.environment.se.WeldContainer;
 import org.marsik.bugautomation.jobs.BugzillaRefreshJob;
@@ -39,11 +41,11 @@ public class Main {
     public void create() {
         scheduler = Executors.newScheduledThreadPool(3);
 
-        scheduler.scheduleWithFixedDelay(refreshRulesJob,
+        scheduler.scheduleWithFixedDelay(new SafeRunnable(refreshRulesJob),
                 0, 30, TimeUnit.SECONDS);
-        scheduler.scheduleWithFixedDelay(trelloRefreshJob,
+        scheduler.scheduleWithFixedDelay(new SafeRunnable(trelloRefreshJob),
                 0, 120, TimeUnit.SECONDS);
-        scheduler.scheduleWithFixedDelay(bugzillaRefreshJob,
+        scheduler.scheduleWithFixedDelay(new SafeRunnable(bugzillaRefreshJob),
                 0, 300, TimeUnit.SECONDS);
     }
 
@@ -66,6 +68,20 @@ public class Main {
             RestServer.build(8080, wc.getBeanManager());
         } catch (ServletException ex) {
             logger.error("Server failed", ex);
+        }
+    }
+
+    @AllArgsConstructor
+    private static class SafeRunnable implements Runnable {
+        private final Runnable task;
+
+        @Override
+        public void run() {
+            try {
+                task.run();
+            } catch (Exception ex) {
+                logger.error("The task {} failed with exception", task.getClass().getName(), ex);
+            }
         }
     }
 }

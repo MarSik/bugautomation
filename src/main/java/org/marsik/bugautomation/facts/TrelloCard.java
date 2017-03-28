@@ -23,7 +23,7 @@ public class TrelloCard {
 
     @NotNull
     TrelloBoard board;
-    Boolean closed;
+    boolean closed;
 
     String status;
     Double pos;

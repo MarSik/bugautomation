@@ -444,7 +444,7 @@ rule "cardStats"
   when
     $stats: Stats()
     $board: TrelloBoard(config.isBoardMonitored(id))
-    $card: TrelloCard(board == $board, $status : status, $owners : assignedTo)
+    $card: TrelloCard(board == $board, $status : status, $owners : assignedTo, closed != true)
     User($name: name) from $owners
   then
     $stats.add(SingleStat.SPRINT_CONTENT)
@@ -457,7 +457,7 @@ rule "cardStatsNoOwner"
   when
     $stats: Stats()
     $board: TrelloBoard(config.isBoardMonitored(id))
-    $card: TrelloCard(board == $board, $status : status, assignedTo.empty == true)
+    $card: TrelloCard(board == $board, $status : status, assignedTo.empty == true, closed != true)
   then
     $stats.add(SingleStat.SPRINT_CONTENT)
       .label("status", $status)

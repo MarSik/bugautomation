@@ -57,6 +57,6 @@ public class RefreshRulesJob implements Runnable {
 
         kSession.delete(statsHandle);
         statsService.merge(stats);
-        logger.info("All rules processed in {} ms", (float)elapsedTime/1000000);
+        logger.info("All rules processed in {} ms", (float) elapsedTime / 1000000);
     }
 }
