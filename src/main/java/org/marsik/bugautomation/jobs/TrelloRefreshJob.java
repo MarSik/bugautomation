@@ -132,7 +132,7 @@ public class TrelloRefreshJob implements Runnable {
                         .labels(new HashSet<>())
                         .fields(new HashMap<>())
                         .blocks(new HashSet<>())
-                        .closed(trCard.getClosed() == null ? false : trCard.getClosed())
+                        .closed(Optional.ofNullable(trCard.getClosed()).orElse(false))
                         .build();
 
                 logger.debug("Found card {} at {}#{}", kiCard.getTitle(), kiCard.getStatus(), kiCard.getPos());

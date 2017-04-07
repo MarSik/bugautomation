@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -47,7 +48,7 @@ public class BugProxy {
     }
 
     public List<String> getVerified() {
-        return Arrays.asList(getAs("cf_verified", String[].class));
+        return getList("cf_verified");
     }
 
     public String get(String key) {
@@ -57,6 +58,12 @@ public class BugProxy {
     @SuppressWarnings("unchecked")
     private <T> T getAs(String key, Class<T> cls) {
         return (T)map.get(key);
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T> List<T> getList(String key) {
+        T[] val = (T[])map.get(key);
+        return Optional.ofNullable(val).map(Arrays::asList).orElse(Collections.emptyList());
     }
 
     public String getAssignedTo() {
@@ -81,8 +88,9 @@ public class BugProxy {
         else return value;
     }
 
+    @SuppressWarnings("unchecked")
     public void loadFlags(BugProxy data) {
-        for (Object flag0: data.getAs("flags", Object[].class)) {
+        for (Object flag0: data.getList("flags")) {
             Map<String,Object> flag = (Map<String,Object>)flag0;
             flags.add(new BugzillaBugFlag(flag));
         }
@@ -93,11 +101,11 @@ public class BugProxy {
     }
 
     public List<String> getKeywords() {
-        return Arrays.asList(getAs("keywords", String[].class));
+        return getList("keywords");
     }
 
     public List<String> getBlocks() {
-        return Arrays.asList(getAs("blocks", Integer[].class)).stream()
+        return getList("blocks").stream()
                 .map(String::valueOf).collect(Collectors.toList());
     }
 
