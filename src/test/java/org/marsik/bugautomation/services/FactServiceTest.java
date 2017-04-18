@@ -234,6 +234,28 @@ public class FactServiceTest {
     }
 
     @Test
+    public void testClosedCardRealIdNoBugPresent() throws Exception {
+        TrelloCard card1 = TrelloCard.builder()
+                .id("a")
+                .closed(true)
+                .board(board)
+                .status(TRELLO_BACKLOG)
+                .pos(1.0)
+                .bug(new Bug("1234567"))
+                .blocks(Collections.emptySet())
+                .labels(Collections.emptySet())
+                .assignedTo(new HashSet<>())
+                .build();
+
+        factService.addFact(card1);
+
+        trigger();
+
+        verify(trelloActions, never()).moveCard(card1, board, "done");
+        assertThat(card1.getLabels()).isEmpty();
+    }
+
+    @Test
     public void testDoneOldNoMove() throws Exception {
         BugzillaBug bug1 = newBug(1, BugzillaStatus.CLOSED)
                 .build();
