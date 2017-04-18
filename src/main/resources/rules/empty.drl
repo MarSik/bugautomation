@@ -79,7 +79,7 @@ end
 rule "unknownBug"
   when
     $board: TrelloBoard(config.isBoardMonitored(id))
-    $card: TrelloCard($bug : bug, bug != null, board == $board, status not str[startsWith] config.getDonelog($board))
+    $card: TrelloCard($bug : bug, bug != null, board == $board, !closed, status not str[startsWith] config.getDonelog($board))
     not(exists BugzillaBug($bug == bug))
     not(exists Bug(this == $bug))
   then
