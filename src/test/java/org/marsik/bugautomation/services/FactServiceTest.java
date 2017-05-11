@@ -190,6 +190,43 @@ public class FactServiceTest {
     }
 
     @Test
+    public void testDoneBugDuplicateCard() throws Exception {
+        BugzillaBug bug1 = newBug(1, BugzillaStatus.MODIFIED)
+                .build();
+
+        TrelloCard card1 = TrelloCard.builder()
+                .id("a")
+                .closed(false)
+                .board(board)
+                .status("done")
+                .pos(1.0)
+                .bug(bug1.getBug())
+                .blocks(Collections.emptySet())
+                .assignedTo(new HashSet<>())
+                .build();
+
+        TrelloCard card2 = TrelloCard.builder()
+                .id("b")
+                .closed(false)
+                .board(board)
+                .status(TRELLO_BACKLOG)
+                .pos(1.0)
+                .bug(bug1.getBug())
+                .blocks(Collections.emptySet())
+                .assignedTo(new HashSet<>())
+                .build();
+
+        factService.addFact(bug1);
+        factService.addFact(card1);
+        factService.addFact(card2);
+
+        trigger();
+
+        verify(trelloActions, never()).moveCard(card1, board, "documentation");
+        verify(trelloActions).moveCard(card2, board, "documentation");
+    }
+
+    @Test
     public void testCardArtificialId() throws Exception {
         TrelloCard card1 = TrelloCard.builder()
                 .id("a")
