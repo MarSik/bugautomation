@@ -1,5 +1,6 @@
 package org.marsik.bugautomation.services;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.ws.rs.NotFoundException;
@@ -24,7 +25,7 @@ import org.marsik.bugautomation.trello.TrelloList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Singleton
+@ApplicationScoped
 public class TrelloActionsImpl implements TrelloActions {
     private static final Logger logger = LoggerFactory.getLogger(TrelloActionsImpl.class);
 

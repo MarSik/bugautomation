@@ -1,5 +1,6 @@
 package org.marsik.bugautomation.services;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
@@ -9,7 +10,7 @@ import org.marsik.bugautomation.facts.TrelloCard;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Singleton
+@ApplicationScoped
 public class InternalActions {
     private static final Logger logger = LoggerFactory.getLogger(InternalActions.class);
 

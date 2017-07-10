@@ -1,11 +1,12 @@
 package org.marsik.bugautomation.services;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Singleton;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.marsik.bugautomation.stats.Stats;
 
-@Singleton
+@ApplicationScoped
 public class StatsService {
     private AtomicReference<Stats> stats = new AtomicReference<>();
 

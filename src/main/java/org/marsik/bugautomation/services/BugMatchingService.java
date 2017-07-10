@@ -1,5 +1,6 @@
 package org.marsik.bugautomation.services;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Singleton;
 import java.lang.ref.WeakReference;
 import java.util.Optional;
@@ -12,7 +13,7 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import org.marsik.bugautomation.facts.Bug;
 
-@Singleton
+@ApplicationScoped
 public class BugMatchingService {
     BiMap<String, WeakReference<Bug>> bzIdToBug = HashBiMap.create();
 

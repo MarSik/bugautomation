@@ -10,7 +10,7 @@
 
     <properties>
         <java.version>1.8</java.version>
-        <drools-runtime.version>6.4.0.Final</drools-runtime.version>
+        <drools-runtime.version>7.0.0.Final</drools-runtime.version>
         <cdi.version>1.2</cdi.version>
         <weld.version>2.4.0.Final</weld.version>
         <lombok.version>1.16.8</lombok.version>
@@ -66,6 +66,11 @@
         <dependency>
             <groupId>org.drools</groupId>
             <artifactId>drools-compiler</artifactId>
+            <version>${drools-runtime.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.drools</groupId>
+            <artifactId>drools-cdi</artifactId>
             <version>${drools-runtime.version}</version>
         </dependency>
 

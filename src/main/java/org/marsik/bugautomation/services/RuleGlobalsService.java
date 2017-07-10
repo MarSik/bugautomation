@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import javax.annotation.PostConstruct;
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
@@ -20,7 +21,7 @@ import org.kie.api.runtime.rule.QueryResultsRow;
 import org.marsik.bugautomation.facts.BugzillaBug;
 import org.marsik.bugautomation.facts.TrelloCard;
 
-@Singleton
+@ApplicationScoped
 public class RuleGlobalsService {
     @Inject
     @KSession("bug-rules")

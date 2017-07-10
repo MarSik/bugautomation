@@ -1,6 +1,7 @@
 package org.marsik.bugautomation.services;
 
 import javax.annotation.PostConstruct;
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.util.ArrayList;
@@ -17,7 +18,7 @@ import org.marsik.bugautomation.facts.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Singleton
+@ApplicationScoped
 public class UserMatchingService {
     private static final Logger log = LoggerFactory.getLogger(UserMatchingService.class);
 

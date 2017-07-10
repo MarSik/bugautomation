@@ -1,5 +1,6 @@
 package org.marsik.bugautomation.services;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.validation.constraints.NotNull;
@@ -11,7 +12,7 @@ import org.kie.api.cdi.KSession;
 import org.kie.api.runtime.KieSession;
 import org.kie.api.runtime.rule.FactHandle;
 
-@Singleton
+@ApplicationScoped
 public class FactService {
     @Inject
     @KSession("bug-rules")
