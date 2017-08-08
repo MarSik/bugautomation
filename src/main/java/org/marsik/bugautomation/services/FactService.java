@@ -29,19 +29,26 @@ public class FactService {
     }
 
     public void addFact(@NotNull Object o) {
-        FactHandle handle = kSession.insert(o);
-        handles.put(o, handle);
+        synchronized (kSession) {
+            FactHandle handle = kSession.insert(o);
+            handles.put(o, handle);
+        }
     }
 
     public void removeFact(@NotNull Object o) {
         if (handles.containsKey(o)) {
-            kSession.delete(handles.get(o));
-            handles.remove(o);
+            synchronized (kSession) {
+                kSession.delete(handles.get(o));
+                handles.remove(o);
+            }
         }
     }
 
     public void updateFact(@NotNull Object oldValue, @NotNull Object newValue) {
-        kSession.update(handles.get(oldValue), newValue);
+        synchronized (kSession) {
+            kSession.update(handles.get(oldValue), newValue);
+        }
+
         if (!Objects.equals(newValue, oldValue)) {
             handles.put(newValue, handles.get(oldValue));
             handles.remove(oldValue);
@@ -49,7 +56,9 @@ public class FactService {
     }
 
     public void clear() {
-        kSession.getFactHandles().stream().forEach(kSession::delete);
+        synchronized (kSession) {
+            kSession.getFactHandles().stream().forEach(kSession::delete);
+        }
         handles.clear();
     }
 }

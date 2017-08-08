@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 
 public class RefreshRulesJob implements Runnable {
     private static final Logger logger = LoggerFactory.getLogger(RefreshRulesJob.class);
+    public static final int FIRE_MAX_RULES = 100;
 
     @Inject
     @KSession("bug-rules")
@@ -50,7 +51,13 @@ public class RefreshRulesJob implements Runnable {
             kSession.addEventListener(new DebugAgendaEventListener());
         }
 
-        kSession.fireAllRules();
+        int rulesFired = FIRE_MAX_RULES;
+        while (rulesFired > 0) {
+            synchronized (kSession) {
+                rulesFired = kSession.fireAllRules(FIRE_MAX_RULES);
+            }
+        }
+
         long elapsedTime = System.nanoTime() - startTime;
         stats.add(SingleStat.TRIGGER_TIME)
                 .value((float) elapsedTime);

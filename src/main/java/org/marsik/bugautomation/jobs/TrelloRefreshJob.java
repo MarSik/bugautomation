@@ -1,6 +1,10 @@
 package org.marsik.bugautomation.jobs;
 
 import javax.inject.Inject;
+import javax.validation.ConstraintViolation;
+import javax.validation.Validation;
+import javax.validation.Validator;
+
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
@@ -59,6 +63,8 @@ public class TrelloRefreshJob implements Runnable {
     RuleGlobalsService ruleGlobalsService;
 
     @Inject StatsService statsService;
+
+    private final Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
 
     private static final Pattern CUSTOM_FIELDS_GROUP_RE = Pattern.compile("\\{\\{ *(([a-zA-Z0-9]+[:=][a-zA-Z0-9@.:/_=?-]*) *)* *\\}\\}");
     private static final Pattern CUSTOM_FIELDS_RE = Pattern.compile("([a-zA-Z0-9]+)[=:]([a-zA-Z0-9@.:/_=?-]*)");
@@ -224,7 +230,15 @@ public class TrelloRefreshJob implements Runnable {
                     factService.addOrUpdateFact(kiCard.getBug());
                 }
 
-                factService.addOrUpdateFact(kiCard);
+                final Set<ConstraintViolation<TrelloCard>> violations = validator.validate(kiCard);
+                if (violations.isEmpty()) {
+                    factService.addOrUpdateFact(kiCard);
+                } else {
+                    violations.forEach(violation -> {
+                        logger.error("Invalid trello card {}: {}", kiCard.getId(), violation.toString());
+                    });
+                    factService.removeFact(kiCard);
+                }
             }
         }
 
