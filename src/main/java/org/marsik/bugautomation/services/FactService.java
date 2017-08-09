@@ -24,7 +24,8 @@ public class FactService {
             if (handle == null) {
                 s.insert(o);
             } else {
-                s.update(handle, o);
+                s.delete(handle);
+                s.insert(o);
             }
         });
     }

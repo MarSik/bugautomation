@@ -116,7 +116,7 @@ public class TrelloActionsImpl implements TrelloActions {
         one.setPos(two.getPos());
         two.setPos(pos0);
 
-        logger.info("Switching position of two cards");
+        logger.info("Switching position of {} ({}) and {} ({})", one.getId(), one.getBug(), two.getId(), two.getBug());
         try {
             trello.updateCard(one.getId(), Collections.singletonMap("pos", one.getPos()));
             factService.addOrUpdateFact(one);
