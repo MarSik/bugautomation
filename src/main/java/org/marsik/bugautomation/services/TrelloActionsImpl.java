@@ -84,6 +84,7 @@ public class TrelloActionsImpl implements TrelloActions {
                 .board(kiBoard)
                 .assignedTo(new HashSet<>(Collections.singletonList(assignTo)))
                 .labels(new HashSet<>())
+                .status(trList.get().getName().replace(" ", "").toLowerCase())
                 .build();
 
         final HashMap<String, Object> attrMap = new HashMap<>();

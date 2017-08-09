@@ -19,6 +19,7 @@ import lombok.EqualsAndHashCode;
 @Builder
 @EqualsAndHashCode(of = "id")
 public class TrelloCard {
+    @NotNull
     String id;
 
     @NotNull
