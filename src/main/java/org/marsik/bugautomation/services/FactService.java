@@ -18,47 +18,36 @@ public class FactService {
     @KSession("bug-rules")
     KieSession kSession;
 
-    Map<Object, FactHandle> handles = new ConcurrentHashMap<>();
-
     public void addOrUpdateFact(@NotNull Object o) {
-        if (handles.containsKey(o)) {
-            updateFact(o, o);
-        } else {
-            addFact(o);
-        }
+        kSession.submit((s) -> {
+            FactHandle handle = s.getFactHandle(o);
+            if (handle == null) {
+                s.insert(o);
+            } else {
+                s.update(handle, o);
+            }
+        });
     }
 
     public void addFact(@NotNull Object o) {
-        synchronized (kSession) {
-            FactHandle handle = kSession.insert(o);
-            handles.put(o, handle);
-        }
+        kSession.submit((s) -> s.insert(o));
     }
 
     public void removeFact(@NotNull Object o) {
-        if (handles.containsKey(o)) {
-            synchronized (kSession) {
-                kSession.delete(handles.get(o));
-                handles.remove(o);
-            }
-        }
+        kSession.submit((s) -> {
+            FactHandle handle = s.getFactHandle(o);
+            s.delete(handle);
+        });
     }
 
     public void updateFact(@NotNull Object oldValue, @NotNull Object newValue) {
-        synchronized (kSession) {
-            kSession.update(handles.get(oldValue), newValue);
-        }
-
-        if (!Objects.equals(newValue, oldValue)) {
-            handles.put(newValue, handles.get(oldValue));
-            handles.remove(oldValue);
-        }
+        kSession.submit((s) -> {
+            FactHandle handle = s.getFactHandle(oldValue);
+            s.update(handle, newValue);
+        });
     }
 
     public void clear() {
-        synchronized (kSession) {
-            kSession.getFactHandles().stream().forEach(kSession::delete);
-        }
-        handles.clear();
+        kSession.submit(s -> s.getFactHandles().stream().forEach(s::delete));
     }
 }
