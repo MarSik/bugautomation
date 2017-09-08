@@ -1,13 +1,17 @@
 package org.marsik.bugautomation.services;
 
+import java.util.Collection;
+
 import org.marsik.bugautomation.facts.BugzillaBug;
+import org.marsik.bugautomation.facts.GenericIssue;
+import org.marsik.bugautomation.facts.GithubIssue;
 import org.marsik.bugautomation.facts.TrelloBoard;
 import org.marsik.bugautomation.facts.TrelloCard;
 import org.marsik.bugautomation.facts.TrelloLabel;
 import org.marsik.bugautomation.facts.User;
 
 public interface TrelloActions {
-    void createCard(TrelloBoard kiBoard, String listName, BugzillaBug bug, User assignTo);
+    void createCard(TrelloBoard kiBoard, String listName, GenericIssue bug, Collection<User> assignTo);
 
     void switchCards(TrelloCard one, TrelloCard two);
 

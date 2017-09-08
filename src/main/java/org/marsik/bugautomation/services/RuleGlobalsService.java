@@ -19,6 +19,7 @@ import org.kie.api.runtime.rule.FactHandle;
 import org.kie.api.runtime.rule.QueryResults;
 import org.kie.api.runtime.rule.QueryResultsRow;
 import org.marsik.bugautomation.facts.BugzillaBug;
+import org.marsik.bugautomation.facts.GithubIssue;
 import org.marsik.bugautomation.facts.TrelloCard;
 
 @ApplicationScoped
@@ -68,5 +69,10 @@ public class RuleGlobalsService {
     @SuppressWarnings("unchecked")
     public Collection<TrelloCard> getTrelloCards() {
         return (Collection<TrelloCard>) kSession.getObjects(o -> o instanceof TrelloCard);
+    }
+
+    @SuppressWarnings("unchecked")
+    public Collection<GithubIssue> getGithubIssues() {
+        return (Collection<GithubIssue>) kSession.getObjects(o -> o instanceof GithubIssue);
     }
 }

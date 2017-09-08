@@ -17,6 +17,7 @@ import lombok.AllArgsConstructor;
 import org.jboss.weld.environment.se.Weld;
 import org.jboss.weld.environment.se.WeldContainer;
 import org.marsik.bugautomation.jobs.BugzillaRefreshJob;
+import org.marsik.bugautomation.jobs.GithubRefreshJob;
 import org.marsik.bugautomation.jobs.RefreshRulesJob;
 import org.marsik.bugautomation.jobs.TrelloRefreshJob;
 import org.marsik.bugautomation.server.RestServer;
@@ -37,6 +38,9 @@ public class Main {
     @Inject
     BugzillaRefreshJob bugzillaRefreshJob;
 
+    @Inject
+    GithubRefreshJob githubRefreshJob;
+
     @PostConstruct
     public void create() {
         scheduler = Executors.newScheduledThreadPool(3);
@@ -44,6 +48,8 @@ public class Main {
         scheduler.scheduleWithFixedDelay(new SafeRunnable(refreshRulesJob),
                 0, 30, TimeUnit.SECONDS);
         scheduler.scheduleWithFixedDelay(new SafeRunnable(trelloRefreshJob),
+                0, 120, TimeUnit.SECONDS);
+        scheduler.scheduleWithFixedDelay(new SafeRunnable(githubRefreshJob),
                 0, 120, TimeUnit.SECONDS);
         scheduler.scheduleWithFixedDelay(new SafeRunnable(bugzillaRefreshJob),
                 0, 300, TimeUnit.SECONDS);

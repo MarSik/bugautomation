@@ -3,16 +3,21 @@ package org.marsik.bugautomation.services;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.UriBuilder;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.marsik.bugautomation.facts.BugzillaBug;
+import org.marsik.bugautomation.facts.GenericIssue;
+import org.marsik.bugautomation.facts.GithubIssue;
 import org.marsik.bugautomation.facts.TrelloBoard;
 import org.marsik.bugautomation.facts.TrelloCard;
 import org.marsik.bugautomation.facts.TrelloLabel;
@@ -51,7 +56,7 @@ public class TrelloActionsImpl implements TrelloActions {
     }
 
     @Override
-    public void createCard(TrelloBoard kiBoard, String listName, BugzillaBug bug, User assignTo) {
+    public void createCard(TrelloBoard kiBoard, String listName, GenericIssue bug, Collection<User> assignTo) {
         TrelloClientBuilder builder = getTrello();
         if (builder == null) {
             logger.warn("Trello not configured, can't create card.");
@@ -60,45 +65,53 @@ public class TrelloActionsImpl implements TrelloActions {
 
         TrelloClient trello = builder.build();
 
-        final Optional<String> bugzillaUrl = configurationService.get(ConfigurationService.BUGZILLA_URL);
-        String desc = "";
-        if (bugzillaUrl.isPresent()) {
-            URI uri = UriBuilder.fromUri(bugzillaUrl.get())
-                    .segment(bug.getId())
-                    .build();
-            desc = uri.toString();
+        String desc = bug.getUrl(configurationService).orElse("");
+
+        final Optional<TrelloList> trList;
+        try {
+            java.util.List<TrelloList> trLists = trello.getListByBoard(kiBoard.getId());
+            trList = trLists.stream().filter(l -> l.getName().equalsIgnoreCase(listName)).findFirst();
+        } catch (ClientErrorException ex) {
+            logger.error("Could not retrieve list to create a card for.", ex);
+            return;
         }
 
-        java.util.List<TrelloList> trLists = trello.getListByBoard(kiBoard.getId());
-        Optional<TrelloList> trList = trLists.stream().filter(l -> l.getName().equalsIgnoreCase(listName)).findFirst();
-
         if (!trList.isPresent()) {
-            logger.error("Could not find list {}/{} to create a card for bug#{}", kiBoard.getName(), listName, bug.getId());
+            logger.error("Could not find list {}/{} to create a card for ", kiBoard.getName(), listName, bug.getTitleId());
             return;
         }
 
         TrelloCard kiCard = TrelloCard.builder()
-                .title(bug.getId() + " - " + bug.getTitle())
+                .title(bug.getTitleId() + " - " + bug.getTitle())
                 .description(desc)
                 .bug(bug.getBug())
                 .board(kiBoard)
-                .assignedTo(new HashSet<>(Collections.singletonList(assignTo)))
+                .assignedTo(new HashSet<>(assignTo))
                 .labels(new HashSet<>())
                 .status(trList.get().getName().replace(" ", "").toLowerCase())
                 .build();
 
         final HashMap<String, Object> attrMap = new HashMap<>();
-        userMatchingService.getTrello(assignTo)
-                .ifPresent(trUser -> attrMap.put("idMembers", trUser));
+        String users = assignTo.stream()
+                .filter(kiBoard.getMembers()::contains)
+                .map(userMatchingService::getTrello)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .collect(Collectors.joining(","));
 
+        attrMap.put("idMembers", users);
         attrMap.put("name", kiCard.getTitle());
         attrMap.put("desc", kiCard.getDescription());
 
-        Card trCard = trello.createCard(trList.get().getId(), attrMap);
-        if (trCard != null) {
-            kiCard.setId(trCard.getId());
-            kiCard.setPos(trCard.getPos());
-            factService.addFact(kiCard);
+        try {
+            Card trCard = trello.createCard(trList.get().getId(), attrMap);
+            if (trCard != null) {
+                kiCard.setId(trCard.getId());
+                kiCard.setPos(trCard.getPos());
+                factService.addFact(kiCard);
+            }
+        } catch (ClientErrorException ex) {
+            logger.error("Could not create card.", ex);
         }
     }
 

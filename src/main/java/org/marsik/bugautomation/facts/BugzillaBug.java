@@ -1,19 +1,31 @@
 package org.marsik.bugautomation.facts;
 
+import java.net.URI;
 import java.time.LocalDateTime;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Optional;
 import java.util.Set;
 
 import javax.validation.constraints.NotNull;
+import javax.ws.rs.core.UriBuilder;
+
+import org.hibernate.validator.constraints.NotEmpty;
+import org.marsik.bugautomation.services.ConfigurationService;
 
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @Data
-@EqualsAndHashCode(of = "id")
+@EqualsAndHashCode(of = "uid")
 @Builder
-public class BugzillaBug {
+public class BugzillaBug implements GenericIssue {
     String id;
+
+    @NotNull
+    @NotEmpty
+    String uid;
 
     String title;
     String description;
@@ -72,5 +84,28 @@ public class BugzillaBug {
 
     public boolean isTargeted() {
         return !isUntargeted();
+    }
+
+    @Override
+    public Collection<User> getAssignedUsers() {
+        return Collections.singletonList(assignedTo);
+    }
+
+    @Override
+    public Optional<String> getUrl(ConfigurationService configuration) {
+        final Optional<String> bugzillaUrl = configuration.get(ConfigurationService.BUGZILLA_URL);
+        if (bugzillaUrl.isPresent()) {
+            URI uri = UriBuilder.fromUri(bugzillaUrl.get())
+                    .segment(bug.getId())
+                    .build();
+            return Optional.of(uri.toString());
+        } else {
+            return Optional.empty();
+        }
+    }
+
+    @Override
+    public String getTitleId() {
+        return "bz#" + getId();
     }
 }

@@ -169,6 +169,7 @@ public class BugzillaRefreshJob implements Runnable {
         for (BugProxy issue : i) {
              BugzillaBug.BugzillaBugBuilder bugzillaBugBuilder = BugzillaBug.builder()
                      .id(issue.getId())
+                     .uid("bz-" + issue.getId())
                      .community(issue.getCommunity().toLowerCase().trim().replace(" ", ""))
                      .title(issue.getSummary())
                      .description(issue.getDescription())

@@ -17,6 +17,9 @@ public interface ConfigurationService {
     String BUGZILLA_USERNAME = "bugzilla.username";
     String BUGZILLA_PASSWORD = "bugzilla.password";
 
+    String GITHUB_USER_AGENT = "github.useragent";
+    String GITHUB_WATCH = "github.watch";
+
     Optional<String> get(String key);
 
     String getCached(String key);

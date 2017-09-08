@@ -2,6 +2,7 @@ package org.marsik.bugautomation.facts;
 
 import javax.validation.constraints.NotNull;
 import java.time.Instant;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -41,7 +42,10 @@ public class TrelloCard {
     Set<TrelloLabel> labels;
 
     Bug bug;
-    Set<Bug> blocks;
+
+    @NotNull
+    @Builder.Default
+    Set<Bug> blocks = new HashSet<>();
 
     /**
      * This field holds the importance of the card. Higher numbers are more important.

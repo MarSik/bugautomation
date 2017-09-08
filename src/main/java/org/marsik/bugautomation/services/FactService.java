@@ -4,6 +4,8 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.validation.constraints.NotNull;
+
+import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -26,6 +28,20 @@ public class FactService {
             } else {
                 s.delete(handle);
                 s.insert(o);
+            }
+        });
+    }
+
+    public void addOrUpdateFacts(@NotNull Collection<?> os) {
+        kSession.submit((s) -> {
+            for (Object o: os) {
+                FactHandle handle = s.getFactHandle(o);
+                if (handle == null) {
+                    s.insert(o);
+                } else {
+                    s.delete(handle);
+                    s.insert(o);
+                }
             }
         });
     }

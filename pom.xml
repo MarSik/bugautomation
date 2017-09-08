@@ -13,7 +13,7 @@
         <drools-runtime.version>7.0.0.Final</drools-runtime.version>
         <cdi.version>1.2</cdi.version>
         <weld.version>2.4.0.Final</weld.version>
-        <lombok.version>1.16.8</lombok.version>
+        <lombok.version>1.16.18</lombok.version>
         <assertj.version>3.4.1</assertj.version>
         <resteasy.version>3.0.19.Final</resteasy.version>
         <hystrix.version>1.5.5</hystrix.version>

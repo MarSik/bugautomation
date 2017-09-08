@@ -99,6 +99,7 @@ public class FactServiceTest {
     private BugzillaBug.BugzillaBugBuilder newBug(Integer id, BugzillaStatus status) {
         return BugzillaBug.builder()
                 .id(id.toString())
+                .uid("bz#" + id.toString())
                 .targetMilestone("")
                 .priority(BugzillaPriorityLevel.UNSPECIFIED)
                 .severity(BugzillaPriorityLevel.UNSPECIFIED)

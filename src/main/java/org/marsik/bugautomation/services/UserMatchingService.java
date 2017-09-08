@@ -26,6 +26,7 @@ public class UserMatchingService {
 
     BiMap<String, User> bugzillaToUser = HashBiMap.create();
     BiMap<String, User> trelloToUser = HashBiMap.create();
+    BiMap<String, User> githubToUser = HashBiMap.create();
 
     @Inject
     ConfigurationService configurationService;
@@ -35,7 +36,7 @@ public class UserMatchingService {
         loadUsers(configurationService.getProperties());
     }
 
-    public User createUser(String name, Collection<String> usernames, Collection<String> emails) {
+    public User createUser(String name, Collection<String> usernames, Collection<String> emails, Collection<String> githubNicks) {
         User user = new User(name);
 
         users.put(user.getName(), user);
@@ -48,6 +49,10 @@ public class UserMatchingService {
             bugzillaToUser.put(email, user);
         }
 
+        for (String gname: githubNicks) {
+            githubToUser.put(gname.toLowerCase(), user);
+        }
+
         return user;
     }
 
@@ -56,7 +61,7 @@ public class UserMatchingService {
 
         if (user == null) {
             log.warn("Unknown user identified just by bugzilla {} - matching will not work", email);
-            user = createUser("bz:"+email, Collections.emptyList(), Collections.singletonList(email));
+            user = createUser("bz:"+email, Collections.emptyList(), Collections.singletonList(email), Collections.emptyList());
         }
 
         return Optional.of(user);
@@ -67,7 +72,18 @@ public class UserMatchingService {
 
         if (user == null) {
             log.warn("Unknown user identified just by trello {} - matching will not work", username);
-            user = createUser("tr:"+username, Collections.singletonList(username), Collections.emptyList());
+            user = createUser("tr:"+username, Collections.singletonList(username), Collections.emptyList(), Collections.emptyList());
+        }
+
+        return Optional.of(user);
+    }
+
+    public Optional<User> getByGithub(String username) {
+        User user = githubToUser.get(username.toLowerCase());
+
+        if (user == null) {
+            log.warn("Unknown user identified just by GitHub {} - matching will not work", username);
+            user = createUser("gh:"+username, Collections.emptyList(), Collections.emptyList(), Collections.singletonList(username));
         }
 
         return Optional.of(user);
@@ -83,6 +99,11 @@ public class UserMatchingService {
         return userToBz.containsKey(user) ? Optional.of(userToBz.get(user)) : Optional.empty();
     }
 
+    public Optional<String> getGithub(User user) {
+        final BiMap<User, String> userToGh = githubToUser.inverse();
+        return userToGh.containsKey(user) ? Optional.of(userToGh.get(user)) : Optional.empty();
+    }
+
     public List<User> loadUsers(Properties config) {
         List<String> usernames = getUserNames(config);
         List<User> users = new ArrayList<>();
@@ -90,10 +111,12 @@ public class UserMatchingService {
         for (String username: usernames) {
             String bzEmail = config.getProperty("user." + username + ".bugzilla");
             String trId = config.getProperty("user." + username + ".trello");
+            String ghNicks = config.getProperty("user." + username + ".github");
 
             User user = createUser(username,
                     parseNames(trId),
-                    parseNames(bzEmail));
+                    parseNames(bzEmail),
+                    parseNames(ghNicks));
 
             log.info("Loaded user {} - BZ:{}, Trello:{}",
                     user.getName(),
