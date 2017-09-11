@@ -1,4 +1,9 @@
 #!/bin/sh -x
+if [ ! -r /etc/bugautomation/config.properties ]; then
+  echo "Please configure the tool by placing config.properties to /etc/bugautomation"
+  exit 1
+fi
+
 /opt/prometheus/prometheus*/prometheus -config.file=/opt/bugautomation/prometheus.yml -storage.local.path=/var/lib/prometheus &
 PROMETHEUS=$!
 

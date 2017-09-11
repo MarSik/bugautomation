@@ -2,6 +2,8 @@
 
 [![Build Status](https://travis-ci.org/MarSik/bugautomation.svg?branch=master)](https://travis-ci.org/MarSik/bugautomation)
 
+[![CircleCI](https://circleci.com/gh/MarSik/bugautomation.svg?style=svg)](https://circleci.com/gh/MarSik/bugautomation)
+
 This server will monitor multiple bug sources and keep them in sync using drools rules.
 
 It currently supports bugzilla and Trello.
