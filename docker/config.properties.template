@@ -1,0 +1,58 @@
+trello.appkey=<appkey>
+trello.token=<token>
+trello.boards=<comma separated list of board ids>
+
+bugzilla.url=https://bugzilla.redhat.com
+bugzilla.owners=<comma separated list of bugzilla emails>
+bugzilla.teams=<comma separated list of bugzilla teams>
+
+bugzilla.username=<username>
+bugzilla.password=<password>
+
+# For each user X define
+#user.x.bugzilla=<bugzilla email>
+#user.x.trello=<trello id>
+#user.x.github=<github username>
+
+# Define trello columns for new cards and for done cards
+cfg.backlog.sprint=todo
+cfg.done.sprint=done
+
+# Example release configuration
+
+release.future.prefix=ovirt-4.2.
+release.future.release=ovirt-4.2.0
+
+release.map.ovirt-4.1.0-alpha=ovirt-4.1.0
+release.map.ovirt-4.1.0-ga=ovirt-4.1.0
+release.map.ovirt-4.1.0-rc=ovirt-4.1.0
+release.map.ovirt-4.1.0-beta=ovirt-4.1.0
+
+release.fixbefore.ovirt-4.1.0=ovirt-4.2.0
+release.fixbefore.ovirt-4.1.2=ovirt-4.2.0
+release.fixbefore.ovirt-4.1.3=ovirt-4.2.0
+release.fixbefore.ovirt-4.1.4=ovirt-4.2.0
+release.fixbefore.ovirt-4.1.5=ovirt-4.2.0
+release.fixbefore.ovirt-4.1.6=ovirt-4.2.0
+release.fixbefore.ovirt-3.6.11=ovirt-4.1.2
+release.fixbefore.ovirt-4.0.7=ovirt-4.1.1
+
+# Example scoring configuration
+
+release.ovirt-3.6.9=500
+release.ovirt-3.6.10=500
+release.ovirt-4.0.5=500
+release.ovirt-4.0.6=500
+release.ovirt-4.1.0=500
+release.ovirt-4.1.1=500
+release.ovirt-4.0.7=500
+release.ovirt-3.6.11=500
+release.ovirt-4.0.8=500
+release.ovirt-4.1.2=500
+release.ovirt-4.1.3=500
+release.ovirt-4.1.4=500
+release.ovirt-4.1.5=500
+
+release.ovirt-4.1.6=400
+release.ovirt-4.1.7=300
+release.ovirt-4.2.0=300
