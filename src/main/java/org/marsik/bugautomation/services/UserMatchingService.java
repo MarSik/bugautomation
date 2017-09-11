@@ -118,10 +118,11 @@ public class UserMatchingService {
                     parseNames(bzEmail),
                     parseNames(ghNicks));
 
-            log.info("Loaded user {} - BZ:{}, Trello:{}",
+            log.info("Loaded user {} - BZ:{}, Trello:{}, GitHub:{}",
                     user.getName(),
                     getBugzilla(user).orElse("-none-"),
-                    getTrello(user).orElse("-none-"));
+                    getTrello(user).orElse("-none-"),
+                    getGithub(user).orElse("-none-"));
 
             users.add(user);
         }

@@ -106,6 +106,6 @@ public class BugzillaBug implements GenericIssue {
 
     @Override
     public String getTitleId() {
-        return "bz#" + getId();
+        return "rhbz#" + getId();
     }
 }

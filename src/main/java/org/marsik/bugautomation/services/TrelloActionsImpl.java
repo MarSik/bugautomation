@@ -101,7 +101,14 @@ public class TrelloActionsImpl implements TrelloActions {
 
         attrMap.put("idMembers", users);
         attrMap.put("name", kiCard.getTitle());
-        attrMap.put("desc", kiCard.getDescription());
+
+        String description = kiCard.getDescription();
+
+        if (kiCard.getBug() != null) {
+            description += "\n\n{{ id:" + kiCard.getBug().getId() + " }}";
+        }
+
+        attrMap.put("desc", description);
 
         try {
             Card trCard = trello.createCard(trList.get().getId(), attrMap);

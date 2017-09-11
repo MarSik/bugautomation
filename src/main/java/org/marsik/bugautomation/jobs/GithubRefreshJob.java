@@ -128,7 +128,7 @@ public class GithubRefreshJob implements Runnable {
                         .uid(bug.getId())
                         .bug(bug)
                         .title(issue.getTitle())
-                        .description(issue.getBody() + "\n\n{{ bug:" + bug.getId() + " }}")
+                        .description(issue.getBody())
                         .githubUrl(issue.getHtml_url())
                         .repo(repo.getRepo())
                         .repoOwner(repo.getOwner())
