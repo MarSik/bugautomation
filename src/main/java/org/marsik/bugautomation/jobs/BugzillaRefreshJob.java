@@ -4,16 +4,20 @@ import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
 import java.net.MalformedURLException;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
@@ -58,6 +62,10 @@ public class BugzillaRefreshJob implements Runnable {
     @Inject
     RuleGlobalsService ruleGlobalsService;
 
+    // Record the last changed time of a bug we retrieved
+    // to not retrieve it again when no change happened
+    private Map<String, Date> changedMap = new HashMap<>();
+
     @Override
     public void run() {
         final Optional<String> bugzillaUrl = configurationService.get(ConfigurationService.BUGZILLA_URL);
@@ -86,6 +94,7 @@ public class BugzillaRefreshJob implements Runnable {
         AuthorizationCallback authCallback = new AuthorizationCallback(bugzillaUsername.get(), bugzillaPassword.get());
         session.setAuthorizationCallback(authCallback);
 
+        Set<String> bugIds = new HashSet<>(); // updated bugs
         Map<String, BugzillaBug> retrievedBugs = new HashMap<>();
 
         if (session.open()) {
@@ -99,8 +108,8 @@ public class BugzillaRefreshJob implements Runnable {
                     searchData.put("assigned_to", owner);
                 }
                 populateSearchData(searchData);
-                Map<String, BugzillaBug> bugs = searchAndProcess(session, searchData);
-                retrievedBugs.putAll(bugs);
+                Iterable<BugProxy> i = session.searchBugs(searchData);
+                consumeIfNewer(i, bug -> bugIds.add(bug.getId()));
             }
 
             // Search bugs by teams
@@ -110,15 +119,31 @@ public class BugzillaRefreshJob implements Runnable {
                     searchData.put("cf_ovirt_team", team);
                 }
                 populateSearchData(searchData);
-                Map<String, BugzillaBug> bugs = searchAndProcess(session, searchData);
-                retrievedBugs.putAll(bugs);
+                Iterable<BugProxy> i = session.searchBugs(searchData);
+                consumeIfNewer(i, bug -> bugIds.add(bug.getId()));
             }
 
-            // Load flags
-            for (BugProxy bzExtra: session.getExtra(retrievedBugs.keySet())) {
-                bzExtra.loadFlags(bzExtra);
-                retrievedBugs.get(bzExtra.getId()).setFlags(bzExtra.getFlags());
+            // Remember the full list temporarily to keep them in the fact database
+            Set<String> allKnownBugs = new HashSet<>(bugIds);
+
+            // Retrieve all changed bugs in chunks
+            while (!bugIds.isEmpty()) {
+                List<String> chunk = bugIds.stream().limit(100).collect(Collectors.toList());
+                bugIds.removeAll(chunk);
+                retrievedBugs.putAll(retrieveAndProcess(session, chunk));
+
+                // Load flags
+                for (BugProxy bzExtra: session.getExtra(chunk)) {
+                    bzExtra.loadFlags(bzExtra);
+                    retrievedBugs.get(bzExtra.getId()).setFlags(bzExtra.getFlags());
+                }
             }
+
+            logger.info("Retrieved {} changed bugs out of {} total.",
+                    retrievedBugs.size(), allKnownBugs.size());
+
+            // Close the session
+            session.close();
 
             // Update fact database
             retrievedBugs.values().stream().forEach(factService::addOrUpdateFact);
@@ -126,17 +151,15 @@ public class BugzillaRefreshJob implements Runnable {
             // Forget about bugs that were assigned out of scope
             Collection<BugzillaBug> bugsToRemove = ruleGlobalsService.getBugzillaBugs();
             bugsToRemove = bugsToRemove.stream()
-                    .filter(b -> !retrievedBugs.containsKey(b.getId()))
+                    .filter(b -> !allKnownBugs.contains(b.getId()))
                     .collect(Collectors.toList());
 
             logger.info("Forgetting about bugs: {}", bugsToRemove.stream()
                     .map(BugzillaBug::getId).collect(Collectors.toList()));
 
             bugsToRemove.stream()
+                    .peek(b -> changedMap.remove(b.getId()))
                     .forEach(factService::removeFact);
-
-            // Close the session
-            session.close();
 
             finished.set(true);
             long elapsedTime = System.nanoTime() - startTime;
@@ -150,6 +173,13 @@ public class BugzillaRefreshJob implements Runnable {
 
     }
 
+    private void consumeIfNewer(Iterable<BugProxy> list, Consumer<BugProxy> consumer) {
+        StreamSupport.stream(list.spliterator(), false)
+                .filter(bug -> !Objects.equals(bug.getLastChangeTime(), changedMap.get(bug.getId())))
+                .peek(bug -> changedMap.put(bug.getId(), bug.getLastChangeTime()))
+                .forEach(consumer);
+    }
+
     private String[] splitNames(@NotNull String commaSeparatedNames) {
         return commaSeparatedNames.split(" *, *");
     }
@@ -161,11 +191,14 @@ public class BugzillaRefreshJob implements Runnable {
         searchData.put("bug_status", "MODIFIED");
         searchData.put("bug_status", "ON_QA");
         searchData.put("bug_status", "VERIFIED");
+
+        searchData.put("include_fields", "id");
+        searchData.put("include_fields", "last_change_time");
     }
 
-    private Map<String, BugzillaBug> searchAndProcess(BugzillaClient session, Multimap<String, Object> searchData) {
+    private Map<String, BugzillaBug> retrieveAndProcess(BugzillaClient session, List<String> bugIds) {
         Map<String, BugzillaBug> kiBugs = new HashMap<>();
-        Iterable<BugProxy> i = session.searchBugs(searchData);
+        Iterable<BugProxy> i = session.getBugs(bugIds);
         for (BugProxy issue : i) {
              BugzillaBug.BugzillaBugBuilder bugzillaBugBuilder = BugzillaBug.builder()
                      .id(issue.getId())

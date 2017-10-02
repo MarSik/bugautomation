@@ -2,6 +2,7 @@ package org.marsik.bugautomation.bugzilla;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +26,14 @@ public class BugProxy {
 
     public String getId() {
         return (String)map.get("id").toString();
+    }
+
+    public Date getDate(String key) {
+        return (Date)this.getAs(key, Date.class);
+    }
+
+    public Date getLastChangeTime() {
+        return this.getDate("last_change_time");
     }
 
     public String getSummary() {

@@ -49,8 +49,8 @@ public class Main {
                 0, 30, TimeUnit.SECONDS);
         scheduler.scheduleWithFixedDelay(new SafeRunnable(trelloRefreshJob),
                 0, 120, TimeUnit.SECONDS);
-        scheduler.scheduleWithFixedDelay(new SafeRunnable(githubRefreshJob),
-                0, 120, TimeUnit.SECONDS);
+        // scheduler.scheduleWithFixedDelay(new SafeRunnable(githubRefreshJob),
+        //        0, 15*60, TimeUnit.SECONDS);
         scheduler.scheduleWithFixedDelay(new SafeRunnable(bugzillaRefreshJob),
                 0, 300, TimeUnit.SECONDS);
     }
