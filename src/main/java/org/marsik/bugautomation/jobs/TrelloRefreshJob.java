@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -69,6 +70,8 @@ public class TrelloRefreshJob implements Runnable {
     private static final Pattern CUSTOM_FIELDS_GROUP_RE = Pattern.compile("\\{\\{ *(([a-zA-Z0-9]+[:=][a-zA-Z0-9@.:/_=?-]*) *)* *\\}\\}");
     private static final Pattern CUSTOM_FIELDS_RE = Pattern.compile("([a-zA-Z0-9]+)[=:]([a-zA-Z0-9@.:/_=?-]*)");
 
+    private Map<String, Instant> lastCardActivity = new HashMap<>();
+
     @Override
     public void run() {
 
@@ -120,6 +123,14 @@ public class TrelloRefreshJob implements Runnable {
             // Process cards
             for (Card trCard: trBoard.getCards()) {
                 visitedCards.add(trCard.getId());
+
+                // Skip processing cards with no update
+                if (Objects.equals(trCard.getDateLastActivity(), lastCardActivity.get(trCard.getId()))) {
+                    continue;
+                } else {
+                    lastCardActivity.put(trCard.getId(), trCard.getDateLastActivity());
+                }
+
                 String status = idListToStatus.get(trCard.getIdList());
                 if (status == null) {
                     TrelloList list = idToListMap.get(trCard.getIdList());
@@ -246,6 +257,7 @@ public class TrelloRefreshJob implements Runnable {
         ruleGlobalsService.getTrelloCards().stream()
                 .filter(c -> !visitedCards.contains(c.getId()))
                 .peek(c -> logger.info("Forgetting about card: {} ({})", c.getTitle(), c.getId()))
+                .peek(c -> lastCardActivity.remove(c.getId()))
                 .forEach(factService::removeFact);
 
         long elapsedTime = System.nanoTime() - startTime;

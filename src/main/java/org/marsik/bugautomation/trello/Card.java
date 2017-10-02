@@ -1,6 +1,8 @@
 package org.marsik.bugautomation.trello;
 
 import javax.xml.bind.annotation.XmlRootElement;
+
+import java.time.Instant;
 import java.util.List;
 
 import lombok.Data;
@@ -27,4 +29,6 @@ public class Card extends BaseObject {
     private List<Label> labels;
 
     private Boolean closed;
+
+    Instant dateLastActivity;
 }
