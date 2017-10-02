@@ -101,6 +101,9 @@ public class BugzillaRefreshJob implements Runnable {
             logger.info("Refreshing bugzilla bugs");
             long startTime = System.nanoTime();
 
+            // Remember the full list temporarily to keep them in the fact database
+            Set<String> allKnownBugs = new HashSet<>();
+
             // Search bugs by users
             Multimap<String, Object> searchData = ArrayListMultimap.create();
             if (bugzillaOwners.isPresent() && !bugzillaOwners.get().trim().isEmpty()) {
@@ -109,6 +112,7 @@ public class BugzillaRefreshJob implements Runnable {
                 }
                 populateSearchData(searchData);
                 Iterable<BugProxy> i = session.searchBugs(searchData);
+                i.forEach(b -> allKnownBugs.add(b.getId()));
                 consumeIfNewer(i, bug -> bugIds.add(bug.getId()));
             }
 
@@ -120,11 +124,9 @@ public class BugzillaRefreshJob implements Runnable {
                 }
                 populateSearchData(searchData);
                 Iterable<BugProxy> i = session.searchBugs(searchData);
+                i.forEach(b -> allKnownBugs.add(b.getId()));
                 consumeIfNewer(i, bug -> bugIds.add(bug.getId()));
             }
-
-            // Remember the full list temporarily to keep them in the fact database
-            Set<String> allKnownBugs = new HashSet<>(bugIds);
 
             // Retrieve all changed bugs in chunks
             while (!bugIds.isEmpty()) {
