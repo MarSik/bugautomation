@@ -34,7 +34,7 @@ public class RefreshRulesJob implements Runnable {
     public void run() {
         if (!BugzillaRefreshJob.getFinished().get()
                 || !TrelloRefreshJob.getFinished().get()
-                || !GithubRefreshJob.getFinished().get()) {
+                /*|| !GithubRefreshJob.getFinished().get()*/) {
             logger.info("Delaying rules until the initial data collection finishes.");
             return;
         }
