@@ -8,6 +8,7 @@ import javax.validation.Validator;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -70,7 +71,7 @@ public class TrelloRefreshJob implements Runnable {
     private static final Pattern CUSTOM_FIELDS_GROUP_RE = Pattern.compile("\\{\\{ *(([a-zA-Z0-9]+[:=][a-zA-Z0-9@.:/_=?-]*) *)* *\\}\\}");
     private static final Pattern CUSTOM_FIELDS_RE = Pattern.compile("([a-zA-Z0-9]+)[=:]([a-zA-Z0-9@.:/_=?-]*)");
 
-    private Map<String, Instant> lastCardActivity = new HashMap<>();
+    private Map<String, String> lastCardActivity = new HashMap<>();
 
     @Override
     public void run() {

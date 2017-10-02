@@ -3,6 +3,7 @@ package org.marsik.bugautomation.trello;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import java.time.Instant;
+import java.util.Date;
 import java.util.List;
 
 import lombok.Data;
@@ -30,5 +31,5 @@ public class Card extends BaseObject {
 
     private Boolean closed;
 
-    Instant dateLastActivity;
+    String dateLastActivity;
 }
