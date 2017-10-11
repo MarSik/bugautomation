@@ -383,6 +383,7 @@ rule "orderBacklogByPmPriority"
 
     $card1: TrelloCard(bug == $bug1, board == $board, status == config.getBacklog($board))
     $card2: TrelloCard(bug == $bug2, board == $board, status == config.getBacklog($board), sameScore($card1), below($card1))
+    not (exists TrelloCard(board == $board, status == $card1.status, below($card1), above($card2)))
   then
     trello.switchCards($card1, $card2);
 end
@@ -396,6 +397,7 @@ rule "orderBacklogByPmScore"
 
     $card1: TrelloCard(bug == $bug1, board == $board, status == config.getBacklog($board))
     $card2: TrelloCard(bug == $bug2, board == $board, status == config.getBacklog($board), sameScore($card1), below($card1))
+    not (exists TrelloCard(board == $board, status == $card1.status, below($card1), above($card2)))
   then
     trello.switchCards($card1, $card2);
 end
@@ -409,6 +411,7 @@ rule "orderBacklogByBugBlocks"
 
     $card1: TrelloCard(bug == $bug1, board == $board, status == config.getBacklog($board))
     $card2: TrelloCard(bug == $bug2, board == $board, status == config.getBacklog($board), sameScore($card1), below($card1))
+    not (exists TrelloCard(board == $board, status == $card1.status, below($card1), above($card2)))
   then
     trello.switchCards($card1, $card2);
 end
@@ -419,6 +422,7 @@ rule "orderBacklogByCardBlocks"
 
     $card1: TrelloCard($bug : bug, board == $board, status == config.getBacklog($board))
     $card2: TrelloCard($bug memberOf blocks, board == $board, status == config.getBacklog($board), sameScore($card1), below($card1))
+    not (exists TrelloCard(board == $board, status == $card1.status, below($card1), above($card2)))
   then
     trello.switchCards($card1, $card2);
 end
@@ -430,6 +434,7 @@ rule "orderBacklogByScore"
 
     $card1: TrelloCard(board == $board, status == config.getBacklog($board))
     $card2: TrelloCard(board == $board, status == config.getBacklog($board), moreImportant($card1), below($card1))
+    not (exists TrelloCard(board == $board, status == $card1.status, below($card1), above($card2)))
   then
     trello.switchCards($card1, $card2);
 end
