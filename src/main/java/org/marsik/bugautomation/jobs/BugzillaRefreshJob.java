@@ -1,5 +1,6 @@
 package org.marsik.bugautomation.jobs;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
 import java.net.MalformedURLException;
@@ -38,6 +39,7 @@ import org.marsik.bugautomation.stats.Stats;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@ApplicationScoped
 public class BugzillaRefreshJob implements Runnable {
     private static final Logger logger = LoggerFactory.getLogger(BugzillaRefreshJob.class);
     private static final AtomicBoolean finished = new AtomicBoolean(false);

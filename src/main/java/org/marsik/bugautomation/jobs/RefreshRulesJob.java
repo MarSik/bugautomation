@@ -1,5 +1,6 @@
 package org.marsik.bugautomation.jobs;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import org.kie.api.cdi.KSession;
@@ -17,15 +18,12 @@ import org.marsik.bugautomation.stats.Stats;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@ApplicationScoped
 public class RefreshRulesJob implements Runnable {
     private static final Logger logger = LoggerFactory.getLogger(RefreshRulesJob.class);
 
     @Inject
-    @KSession("bug-rules")
     KieSession kSession;
-
-    @Inject
-    RuleGlobalsService ruleGlobalsService;
 
     @Inject
     StatsService statsService;

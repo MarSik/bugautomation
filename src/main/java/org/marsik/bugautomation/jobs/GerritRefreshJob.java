@@ -1,5 +1,6 @@
 package org.marsik.bugautomation.jobs;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import org.marsik.bugautomation.services.BugMatchingService;
@@ -10,6 +11,7 @@ import org.marsik.bugautomation.services.UserMatchingService;
 /**
  * Use https://github.com/uwolfer/gerrit-rest-java-client
  */
+@ApplicationScoped
 public class GerritRefreshJob implements Runnable {
     @Inject
     FactService factService;

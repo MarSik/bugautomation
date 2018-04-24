@@ -2,20 +2,14 @@ package org.marsik.bugautomation.services;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.inject.Singleton;
 
-import org.kie.api.cdi.KSession;
 import org.kie.api.runtime.KieSession;
-import org.kie.api.runtime.ObjectFilter;
-import org.kie.api.runtime.rule.FactHandle;
 import org.kie.api.runtime.rule.QueryResults;
 import org.kie.api.runtime.rule.QueryResultsRow;
 import org.marsik.bugautomation.facts.BugzillaBug;
@@ -24,10 +18,6 @@ import org.marsik.bugautomation.facts.TrelloCard;
 
 @ApplicationScoped
 public class RuleGlobalsService {
-    @Inject
-    @KSession("bug-rules")
-    KieSession kSession;
-
     @Inject
     InternalActions internalActions;
 
@@ -39,6 +29,9 @@ public class RuleGlobalsService {
 
     @Inject
     ConfigurationService configurationService;
+
+    @Inject
+    KieSession kSession;
 
     @PostConstruct
     public void init() {

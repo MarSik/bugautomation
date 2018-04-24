@@ -62,11 +62,6 @@
         <!-- Rule system //-->
         <dependency>
             <groupId>org.kie</groupId>
-            <artifactId>kie-ci</artifactId>
-            <version>${drools-runtime.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.kie</groupId>
             <artifactId>kie-api</artifactId>
             <version>${drools-runtime.version}</version>
         </dependency>
@@ -175,6 +170,11 @@
             <groupId>com.google.code.findbugs</groupId>
             <artifactId>annotations</artifactId>
             <version>${version.findbugs.annotations}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.reflections</groupId>
+            <artifactId>reflections</artifactId>
+            <version>0.9.11</version>
         </dependency>
 
         <!-- Testing libs //-->

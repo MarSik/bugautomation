@@ -1,5 +1,6 @@
 package org.marsik.bugautomation.services;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Singleton;
 import javax.validation.constraints.NotNull;
 import java.io.File;
@@ -20,7 +21,7 @@ import com.google.common.cache.LoadingCache;
 import org.apache.commons.io.IOUtils;
 import org.marsik.bugautomation.facts.TrelloBoard;
 
-@Singleton
+@ApplicationScoped
 public class ConfigurationServiceProperties implements ConfigurationService {
 
     private LoadingCache<String, String> cache;

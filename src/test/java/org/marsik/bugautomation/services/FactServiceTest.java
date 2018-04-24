@@ -40,7 +40,6 @@ import org.slf4j.LoggerFactory;
 @RunWith(WeldJUnit4Runner.class)
 public class FactServiceTest {
     @Inject
-    @KSession("bug-rules")
     KieSession kSession;
 
     @Mock
@@ -442,6 +441,31 @@ public class FactServiceTest {
         trigger();
 
         verify(trelloActions).assignLabelToCard(card1, "triage");
+    }
+
+    @Test
+    public void testNeedsTriageButArchived() throws Exception {
+        BugzillaBug bug1 = newBug(1, BugzillaStatus.ASSIGNED)
+                .build();
+
+        TrelloCard card1 = TrelloCard.builder()
+                .id("a")
+                .closed(true)
+                .board(board)
+                .status(TRELLO_BACKLOG)
+                .pos(1.0)
+                .blocks(Collections.emptySet())
+                .assignedTo(new HashSet<>())
+                .bug(bug1.getBug())
+                .build();
+
+
+        factService.addFact(bug1);
+        factService.addFact(card1);
+
+        trigger();
+
+        verify(trelloActions, never()).assignLabelToCard(card1, "triage");
     }
 
     @Test
@@ -875,6 +899,46 @@ public class FactServiceTest {
                 .isNotNull()
                 .isGreaterThan(card1.getScore());
         verify(trelloActions).switchCards(card1, card2);
+    }
+
+    @Test
+    public void testOrderWithScoreAndArchivedInBetween() throws Exception {
+        BugzillaBug bug2 = newBug(2, BugzillaStatus.ASSIGNED)
+                .build();
+
+        BugzillaBug bug1 = newBug(1, BugzillaStatus.ASSIGNED)
+                .build();
+
+        BugzillaBug bugOld = newBug(1, BugzillaStatus.CLOSED)
+                .build();
+
+        TrelloCard card1 = cardForBug(bug1, 1.0)
+                .score(100)
+                .build();
+
+        TrelloCard card2 = cardForBug(bug2, 2.0)
+                .score(200)
+                .build();
+
+        TrelloCard card3 = cardForBug(bugOld, 1.5)
+                .score(600)
+                .build();
+
+        factService.addFact(bug1);
+        factService.addFact(bug2);
+        factService.addFact(bugOld);
+        factService.addFact(card1);
+        factService.addFact(card2);
+        factService.addFact(card3);
+
+        trigger();
+
+        assertThat(card2.getScore())
+                .isNotNull()
+                .isGreaterThan(card1.getScore());
+        verify(trelloActions).switchCards(card1, card2);
+        verify(trelloActions, never()).switchCards(card1, card3);
+        verify(trelloActions, never()).switchCards(card2, card3);
     }
 
     @Test

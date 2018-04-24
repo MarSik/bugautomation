@@ -17,7 +17,6 @@ import org.kie.api.runtime.rule.FactHandle;
 @ApplicationScoped
 public class FactService {
     @Inject
-    @KSession("bug-rules")
     KieSession kSession;
 
     public void addOrUpdateFact(@NotNull Object o) {

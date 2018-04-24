@@ -1,13 +1,14 @@
 package org.marsik.bugautomation;
 
-import java.util.concurrent.ExecutorService;
+import java.io.IOException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 import javax.servlet.ServletException;
 
@@ -16,18 +17,28 @@ import lombok.AllArgsConstructor;
 
 import org.jboss.weld.environment.se.Weld;
 import org.jboss.weld.environment.se.WeldContainer;
+import org.kie.api.runtime.KieSession;
 import org.marsik.bugautomation.jobs.BugzillaRefreshJob;
 import org.marsik.bugautomation.jobs.GithubRefreshJob;
 import org.marsik.bugautomation.jobs.RefreshRulesJob;
 import org.marsik.bugautomation.jobs.TrelloRefreshJob;
+import org.marsik.bugautomation.rules.RuleLoader;
 import org.marsik.bugautomation.server.RestServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@ApplicationScoped
 public class Main {
     private static final Logger logger = LoggerFactory.getLogger(Main.class);
 
     private ScheduledExecutorService scheduler;
+
+    @Produces
+    @ApplicationScoped
+    public KieSession initSession() throws IOException {
+        return RuleLoader.loadKieBase("rules", null)
+                .newKieSession();
+    }
 
     @Inject
     RefreshRulesJob refreshRulesJob;

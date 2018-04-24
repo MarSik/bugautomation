@@ -72,6 +72,8 @@ public class TrelloCard {
                 || dueDate != null;
     }
 
+    public boolean isVisible() { return !isClosed(); }
+
     public boolean isUntargeted() {
         return !isTargeted();
     }

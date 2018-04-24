@@ -39,7 +39,7 @@ rule "bugAssignment"
   when
     $bz: BugzillaBug($bug : bug, $user : assignedTo)
     $board: TrelloBoard(config.isBoardMonitored(id), $user memberOf members)
-    $card: TrelloCard(bug == $bug, board == $board, $user not memberOf assignedTo)
+    $card: TrelloCard(visible, bug == $bug, board == $board, $user not memberOf assignedTo)
   then
     trello.assignCard($card, $user);
 end
@@ -49,7 +49,7 @@ rule "closedBug"
   when
     $bz: BugzillaBug($bug : bug, $user : assignedTo, status == BugzillaStatus.CLOSED)
     $board: TrelloBoard(config.isBoardMonitored(id))
-    $card: TrelloCard(bug == $bug, board == $board, status not str[startsWith] config.getDonelog($board))
+    $card: TrelloCard(visible, bug == $bug, board == $board, status not str[startsWith] config.getDonelog($board))
   then
     trello.moveCard($card, $board, config.getDonelog($board));
 end
@@ -60,7 +60,7 @@ rule "documentBug"
     $bz: BugzillaBug($bug : bug, done == true, $flags: flags)
     not(exists BugzillaBugFlag(flag == "requires_doc_text-") from $flags)
     $board: TrelloBoard(config.isBoardMonitored(id))
-    $card: TrelloCard(bug == $bug, board == $board, status not str[startsWith] config.getDonelog($board), status != "documentation")
+    $card: TrelloCard(visible, bug == $bug, board == $board, status not str[startsWith] config.getDonelog($board), status != "documentation")
   then
     trello.moveCard($card, $board, "documentation");
 end
@@ -71,7 +71,7 @@ rule "doneBug"
     $bz: BugzillaBug($bug : bug, done == true, $flags: flags)
     BugzillaBugFlag(flag == "requires_doc_text-") from $flags
     $board: TrelloBoard(config.isBoardMonitored(id))
-    $card: TrelloCard(bug == $bug, board == $board, status not str[startsWith] config.getDonelog($board))
+    $card: TrelloCard(visible, bug == $bug, board == $board, status not str[startsWith] config.getDonelog($board))
   then
     trello.moveCard($card, $board, config.getDonelog($board));
 end
@@ -80,7 +80,7 @@ end
 rule "unknownBug"
   when
     $board: TrelloBoard(config.isBoardMonitored(id))
-    $card: TrelloCard($bug : bug, bug != null, board == $board, !closed, status not str[startsWith] config.getDonelog($board))
+    $card: TrelloCard(visible, $bug : bug, bug != null, board == $board, !closed, status not str[startsWith] config.getDonelog($board))
     not(exists GenericIssue($bug == bug))
     not(exists Bug(this == $bug))
   then
@@ -93,7 +93,7 @@ rule "openBug"
   when
     $bz: GenericIssue($bug : bug, done == false)
     $board: TrelloBoard(config.isBoardMonitored(id))
-    $card: TrelloCard(bug == $bug, board == $board, status str[startsWith] config.getDonelog($board) || status == "documentation")
+    $card: TrelloCard(visible, bug == $bug, board == $board, status str[startsWith] config.getDonelog($board) || status == "documentation")
   then
     trello.moveCard($card, $board, config.getBacklog($board));
 end
@@ -115,7 +115,7 @@ rule "modifiedBug"
   when
     $bz: BugzillaBug($bug : bug, $user : assignedTo, status == BugzillaStatus.POST)
     $board: TrelloBoard(config.isBoardMonitored(id))
-    $card: TrelloCard(bug == $bug, board == $board, status == config.getBacklog($board))
+    $card: TrelloCard(visible, bug == $bug, board == $board, status == config.getBacklog($board))
   then
     trello.moveCard($card, $board, "In Progress");
 end
@@ -126,7 +126,7 @@ rule "blockerBug"
     $bz: BugzillaBug($bug : bug, status != BugzillaStatus.CLOSED, $flags: flags)
     BugzillaBugFlag(flag == "blocker+") from $flags
     $board: TrelloBoard(config.isBoardMonitored(id))
-    $card: TrelloCard(bug == $bug, board == $board, $labels: labels)
+    $card: TrelloCard(visible, bug == $bug, board == $board, $labels: labels)
     not(exists TrelloLabel(name == "blocker") from $labels)
   then
     trello.assignLabelToCard($card, "blocker");
@@ -137,7 +137,7 @@ rule "regressionBug"
   when
     $bz: BugzillaBug($bug : bug, status != BugzillaStatus.CLOSED, "regression" memberOf keywords)
     $board: TrelloBoard(config.isBoardMonitored(id))
-    $card: TrelloCard(bug == $bug, board == $board, $labels: labels)
+    $card: TrelloCard(visible, bug == $bug, board == $board, $labels: labels)
     not(exists TrelloLabel(name == "blocker") from $labels)
   then
     trello.assignLabelToCard($card, "blocker");
@@ -149,7 +149,7 @@ rule "notABlockerBug"
     $bz: BugzillaBug($bug : bug, status != BugzillaStatus.CLOSED, $flags: flags, "regression" not memberOf keywords)
     not (exists BugzillaBugFlag(flag == "blocker+") from $flags)
     $board: TrelloBoard(config.isBoardMonitored(id))
-    $card: TrelloCard(bug == $bug, board == $board, $labels: labels)
+    $card: TrelloCard(visible, bug == $bug, board == $board, $labels: labels)
     $label: TrelloLabel(name == "blocker") from $labels
   then
     trello.removeLabelFromCard($card, $label);
@@ -161,7 +161,7 @@ rule "failedQA"
     $bz: BugzillaBug($bug : bug, status != BugzillaStatus.CLOSED, "failedqa" memberOf keywords || "failedqa" memberOf verified)
 
     $board: TrelloBoard(config.isBoardMonitored(id))
-    $card: TrelloCard(bug == $bug, board == $board, $labels: labels)
+    $card: TrelloCard(visible, bug == $bug, board == $board, $labels: labels)
     not(exists TrelloLabel(name == "failedqa") from $labels)
   then
     trello.assignLabelToCard($card, "failedqa");
@@ -173,7 +173,7 @@ rule "notFailedQABug"
     $bz: BugzillaBug($bug : bug, status != BugzillaStatus.CLOSED, "failedqa" not memberOf keywords, "failedqa" not memberOf verified)
 
     $board: TrelloBoard(config.isBoardMonitored(id))
-    $card: TrelloCard(bug == $bug, board == $board, $labels: labels)
+    $card: TrelloCard(visible, bug == $bug, board == $board, $labels: labels)
     $label: TrelloLabel(name == "failedqa") from $labels
   then
     trello.removeLabelFromCard($card, $label);
@@ -190,7 +190,7 @@ rule "needsTriage"
     not(exists BugzillaBugFlag(futureFlag()) from $flags)
 
     $board: TrelloBoard(config.isBoardMonitored(id))
-    $card: TrelloCard(bug == $bug, board == $board, $labels: labels)
+    $card: TrelloCard(visible, bug == $bug, board == $board, $labels: labels)
     not(exists TrelloLabel(name == "triage") from $labels)
   then
     trello.assignLabelToCard($card, "triage");
@@ -200,7 +200,7 @@ end
 rule "cardNeedsTriage"
   when
     $board: TrelloBoard(config.isBoardMonitored(id))
-    $card: TrelloCard($bug : bug, $blocks: blocks, board == $board, $labels: labels,
+    $card: TrelloCard(visible, $bug : bug, $blocks: blocks, board == $board, $labels: labels,
       status not str[startsWith] config.getDonelog($board), status not str[startsWith] "documentation",
       score == 0, untargeted)
     not(exists TrelloLabel(name == "triage") from $labels)
@@ -217,7 +217,7 @@ rule "alreadyTriaged"
       || "futurefeature" memberOf keywords)
 
     $board: TrelloBoard(config.isBoardMonitored(id))
-    $card: TrelloCard(bug == $bug, board == $board, $labels: labels)
+    $card: TrelloCard(visible, bug == $bug, board == $board, $labels: labels)
     $label: TrelloLabel(name == "triage") from $labels
   then
     trello.removeLabelFromCard($card, $label);
@@ -226,7 +226,7 @@ end
 rule "alreadyTriagedCardDone"
   when
     $board: TrelloBoard(config.isBoardMonitored(id))
-    $card: TrelloCard(board == $board, status str[startsWith] config.getDonelog($board), $labels: labels)
+    $card: TrelloCard(visible, board == $board, status str[startsWith] config.getDonelog($board), $labels: labels)
     $label: TrelloLabel(name == "triage") from $labels
   then
     trello.removeLabelFromCard($card, $label);
@@ -235,7 +235,7 @@ end
 rule "alreadyTriagedDocumentation"
   when
     $board: TrelloBoard(config.isBoardMonitored(id))
-    $card: TrelloCard(board == $board, status str[startsWith] "documentation", $labels: labels)
+    $card: TrelloCard(visible, board == $board, status str[startsWith] "documentation", $labels: labels)
     $label: TrelloLabel(name == "triage") from $labels
   then
     trello.removeLabelFromCard($card, $label);
@@ -247,7 +247,7 @@ rule "alreadyTriagedFutureFlag"
     BugzillaBugFlag(futureFlag()) from $flags
 
     $board: TrelloBoard(config.isBoardMonitored(id))
-    $card: TrelloCard(bug == $bug, board == $board, $labels: labels)
+    $card: TrelloCard(visible, bug == $bug, board == $board, $labels: labels)
     $label: TrelloLabel(name == "triage") from $labels
   then
     trello.removeLabelFromCard($card, $label);
@@ -381,9 +381,9 @@ rule "orderBacklogByPmPriority"
 
     $board: TrelloBoard(config.isBoardMonitored(id))
 
-    $card1: TrelloCard(bug == $bug1, board == $board, status == config.getBacklog($board))
-    $card2: TrelloCard(bug == $bug2, board == $board, status == config.getBacklog($board), sameScore($card1), below($card1))
-    not (exists TrelloCard(board == $board, status == $card1.status, below($card1), above($card2)))
+    $card1: TrelloCard(visible, bug == $bug1, board == $board, status == config.getBacklog($board))
+    $card2: TrelloCard(visible, bug == $bug2, board == $board, status == config.getBacklog($board), sameScore($card1), below($card1))
+    not (exists TrelloCard(visible, board == $board, status == $card1.status, below($card1), above($card2)))
   then
     trello.switchCards($card1, $card2);
 end
@@ -395,9 +395,9 @@ rule "orderBacklogByPmScore"
 
     $board: TrelloBoard(config.isBoardMonitored(id))
 
-    $card1: TrelloCard(bug == $bug1, board == $board, status == config.getBacklog($board))
-    $card2: TrelloCard(bug == $bug2, board == $board, status == config.getBacklog($board), sameScore($card1), below($card1))
-    not (exists TrelloCard(board == $board, status == $card1.status, below($card1), above($card2)))
+    $card1: TrelloCard(visible, bug == $bug1, board == $board, status == config.getBacklog($board))
+    $card2: TrelloCard(visible, bug == $bug2, board == $board, status == config.getBacklog($board), sameScore($card1), below($card1))
+    not (exists TrelloCard(visible, board == $board, status == $card1.status, below($card1), above($card2)))
   then
     trello.switchCards($card1, $card2);
 end
@@ -409,9 +409,9 @@ rule "orderBacklogByBugBlocks"
 
     $board: TrelloBoard(config.isBoardMonitored(id))
 
-    $card1: TrelloCard(bug == $bug1, board == $board, status == config.getBacklog($board))
-    $card2: TrelloCard(bug == $bug2, board == $board, status == config.getBacklog($board), sameScore($card1), below($card1))
-    not (exists TrelloCard(board == $board, status == $card1.status, below($card1), above($card2)))
+    $card1: TrelloCard(visible, bug == $bug1, board == $board, status == config.getBacklog($board))
+    $card2: TrelloCard(visible, bug == $bug2, board == $board, status == config.getBacklog($board), sameScore($card1), below($card1))
+    not (exists TrelloCard(visible, board == $board, status == $card1.status, below($card1), above($card2)))
   then
     trello.switchCards($card1, $card2);
 end
@@ -420,9 +420,9 @@ rule "orderBacklogByCardBlocks"
   when
     $board: TrelloBoard(config.isBoardMonitored(id))
 
-    $card1: TrelloCard($bug : bug, board == $board, status == config.getBacklog($board))
-    $card2: TrelloCard($bug memberOf blocks, board == $board, status == config.getBacklog($board), sameScore($card1), below($card1))
-    not (exists TrelloCard(board == $board, status == $card1.status, below($card1), above($card2)))
+    $card1: TrelloCard(visible, $bug : bug, board == $board, status == config.getBacklog($board))
+    $card2: TrelloCard(visible, $bug memberOf blocks, board == $board, status == config.getBacklog($board), sameScore($card1), below($card1))
+    not (exists TrelloCard(visible, board == $board, status == $card1.status, below($card1), above($card2)))
   then
     trello.switchCards($card1, $card2);
 end
@@ -432,9 +432,9 @@ rule "orderBacklogByScore"
   when
     $board: TrelloBoard(config.isBoardMonitored(id))
 
-    $card1: TrelloCard(board == $board, status == config.getBacklog($board))
-    $card2: TrelloCard(board == $board, status == config.getBacklog($board), moreImportant($card1), below($card1))
-    not (exists TrelloCard(board == $board, status == $card1.status, below($card1), above($card2)))
+    $card1: TrelloCard(visible, board == $board, status == config.getBacklog($board))
+    $card2: TrelloCard(visible, board == $board, status == config.getBacklog($board), moreImportant($card1), below($card1))
+    not (exists TrelloCard(visible, board == $board, status == $card1.status, below($card1), above($card2)))
   then
     trello.switchCards($card1, $card2);
 end
@@ -450,7 +450,7 @@ rule "cardStats"
   when
     $stats: Stats()
     $board: TrelloBoard(config.isBoardMonitored(id))
-    $card: TrelloCard(board == $board, $status : status, $owners : assignedTo, closed != true)
+    $card: TrelloCard(visible, board == $board, $status : status, $owners : assignedTo, closed != true)
     User($name: name) from $owners
   then
     $stats.add(SingleStat.SPRINT_CONTENT)
@@ -463,7 +463,7 @@ rule "cardStatsNoOwner"
   when
     $stats: Stats()
     $board: TrelloBoard(config.isBoardMonitored(id))
-    $card: TrelloCard(board == $board, $status : status, assignedTo.empty == true, closed != true)
+    $card: TrelloCard(visible, board == $board, $status : status, assignedTo.empty == true, closed != true)
   then
     $stats.add(SingleStat.SPRINT_CONTENT)
       .label("status", $status)

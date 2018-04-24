@@ -1,5 +1,6 @@
 package org.marsik.bugautomation.jobs;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
@@ -42,6 +43,7 @@ import org.marsik.bugautomation.trello.TrelloList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@ApplicationScoped
 public class TrelloRefreshJob implements Runnable {
     private static final Logger logger = LoggerFactory.getLogger(TrelloRefreshJob.class);
     private static final AtomicBoolean finished = new AtomicBoolean(false);
@@ -64,7 +66,8 @@ public class TrelloRefreshJob implements Runnable {
     @Inject
     RuleGlobalsService ruleGlobalsService;
 
-    @Inject StatsService statsService;
+    @Inject
+    StatsService statsService;
 
     private final Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
 
@@ -135,6 +138,11 @@ public class TrelloRefreshJob implements Runnable {
                 String status = idListToStatus.get(trCard.getIdList());
                 if (status == null) {
                     TrelloList list = idToListMap.get(trCard.getIdList());
+                    if (list == null) {
+                        // Ignore cards on non-existing (archived) lists
+                        continue;
+                    }
+
                     idListToStatus.put(list.getId(), list.getName());
                     status = list.getName();
                 }
