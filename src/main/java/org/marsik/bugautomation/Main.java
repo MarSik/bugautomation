@@ -1,6 +1,8 @@
 package org.marsik.bugautomation;
 
 import java.io.IOException;
+import java.nio.file.Paths;
+import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -36,7 +38,10 @@ public class Main {
     @Produces
     @ApplicationScoped
     public KieSession initSession() throws IOException {
-        return RuleLoader.loadKieBase("rules", null)
+        return RuleLoader.loadKieBase("rules",
+                Optional.ofNullable(System.getProperty("rules"))
+                        .map(Paths::get)
+                        .orElse(null))
                 .newKieSession();
     }
 
