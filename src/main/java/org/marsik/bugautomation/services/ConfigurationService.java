@@ -34,4 +34,7 @@ public interface ConfigurationService {
     boolean isBoardMonitored(String id);
     String getBacklog(TrelloBoard board);
     String getDonelog(TrelloBoard board);
+    String getInProgress(TrelloBoard board);
+    String getDocumentation(TrelloBoard board);
+
 }

@@ -73,6 +73,8 @@ public class FactServiceTest {
         when(configurationService.isBoardMonitored("sprint")).thenReturn(true);
         when(configurationService.getBacklog(any())).thenReturn(TRELLO_BACKLOG);
         when(configurationService.getDonelog(any())).thenReturn("done");
+        when(configurationService.getDocumentation(any())).thenReturn("documentation");
+        when(configurationService.getInProgress(any())).thenReturn("in progress");
 
         when(configurationService.getCachedInt("release.ovirt-4.0.6", 0)).thenReturn(200);
 

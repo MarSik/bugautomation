@@ -164,4 +164,16 @@ public class ConfigurationServiceProperties implements ConfigurationService {
         final String backlog = getCached("cfg.done." + board.getId());
         return backlog == null ? "done" : backlog.toLowerCase();
     }
+
+    @Override
+    public String getInProgress(TrelloBoard board) {
+        final String backlog = getCached("cfg.inprogress." + board.getId());
+        return backlog == null ? "done" : backlog.toLowerCase();
+    }
+
+    @Override
+    public String getDocumentation(TrelloBoard board) {
+        final String backlog = getCached("cfg.documentation." + board.getId());
+        return backlog == null ? "done" : backlog.toLowerCase();
+    }
 }

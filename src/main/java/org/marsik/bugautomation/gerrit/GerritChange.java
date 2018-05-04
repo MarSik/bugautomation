@@ -17,7 +17,7 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = false)
 @XmlRootElement
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class GerritChange extends GerritMore{
+public class GerritChange extends GerritMore {
     String id;
 
     @SerializedName("_number")

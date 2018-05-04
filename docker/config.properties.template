@@ -15,8 +15,10 @@ bugzilla.password=<password>
 #user.x.github=<github username>
 
 # Define trello columns for new cards and for done cards
-cfg.backlog.sprint=todo
-cfg.done.sprint=done
+cfg.backlog.<board id>=todo
+cfg.done.<board id>=done
+cfg.inprogress.<board id>=in progress
+cfg.documentation.<board id>=documentation
 
 # Example release configuration
 

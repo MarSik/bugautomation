@@ -60,9 +60,9 @@ rule "documentBug"
     $bz: BugzillaBug($bug : bug, done == true, $flags: flags)
     not(exists BugzillaBugFlag(flag == "requires_doc_text-") from $flags)
     $board: TrelloBoard(config.isBoardMonitored(id))
-    $card: TrelloCard(visible, bug == $bug, board == $board, status not str[startsWith] config.getDonelog($board), status != "documentation")
+    $card: TrelloCard(visible, bug == $bug, board == $board, status not str[startsWith] config.getDonelog($board), status != config.getDocumentation($board))
   then
-    trello.moveCard($card, $board, "documentation");
+    trello.moveCard($card, $board, config.getDocumentation($board));
 end
 
 // A card for a finished bug (handed over to QE) should move to the Done column when no documentation is needed
@@ -93,7 +93,7 @@ rule "openBug"
   when
     $bz: GenericIssue($bug : bug, done == false)
     $board: TrelloBoard(config.isBoardMonitored(id))
-    $card: TrelloCard(visible, bug == $bug, board == $board, status str[startsWith] config.getDonelog($board) || status == "documentation")
+    $card: TrelloCard(visible, bug == $bug, board == $board, status str[startsWith] config.getDonelog($board) || status == config.getDocumentation($board))
   then
     trello.moveCard($card, $board, config.getBacklog($board));
 end
@@ -117,7 +117,7 @@ rule "modifiedBug"
     $board: TrelloBoard(config.isBoardMonitored(id))
     $card: TrelloCard(visible, bug == $bug, board == $board, status == config.getBacklog($board))
   then
-    trello.moveCard($card, $board, "In Progress");
+    trello.moveCard($card, $board, config.getInProgress($board));
 end
 
 // Add blocker label to all cards with blocker bugs
@@ -201,7 +201,7 @@ rule "cardNeedsTriage"
   when
     $board: TrelloBoard(config.isBoardMonitored(id))
     $card: TrelloCard(visible, $bug : bug, $blocks: blocks, board == $board, $labels: labels,
-      status not str[startsWith] config.getDonelog($board), status not str[startsWith] "documentation",
+      status not str[startsWith] config.getDonelog($board), status not str[startsWith] config.getDocumentation($board),
       score == 0, untargeted)
     not(exists TrelloLabel(name == "triage") from $labels)
     not(exists BugzillaBug(bug == $bug))
@@ -235,7 +235,7 @@ end
 rule "alreadyTriagedDocumentation"
   when
     $board: TrelloBoard(config.isBoardMonitored(id))
-    $card: TrelloCard(visible, board == $board, status str[startsWith] "documentation", $labels: labels)
+    $card: TrelloCard(visible, board == $board, status str[startsWith] config.getDocumentation($board), $labels: labels)
     $label: TrelloLabel(name == "triage") from $labels
   then
     trello.removeLabelFromCard($card, $label);
@@ -272,20 +272,6 @@ rule "alreadyTriagedCardScore"
     trello.removeLabelFromCard($card, $label);
 end
 
-// Mark all ZStream cards with insufficient flags
-rule "missingZStreamFlags"
-  when
-    $bz: BugzillaBug($bug : bug, $flags: flags, community == "redhat",
-      targetMilestone str[startsWith] "ovirt-3." || targetMilestone str[startsWith] "ovirt-4.0.")
-    not(exists BugzillaBugFlag(approves($bz.getTargetMilestone())) from $flags)
-
-    $board: TrelloBoard(config.isBoardMonitored(id))
-    $card: TrelloCard(bug == $bug, board == $board, $labels: labels)
-    not(exists TrelloLabel(name == "flags missing") from $labels)
-  then
-    trello.assignLabelToCard($card, "flags missing");
-end
-
 // Remove missing flags label when all necessary acks are present on a bug
 rule "okZStreamFlags"
   when
@@ -299,35 +285,11 @@ rule "okZStreamFlags"
     trello.removeLabelFromCard($card, $label);
 end
 
-// Remove missing flags label when the bug is not targeted to ZStream
-rule "zStreamFlagsNotNeededRelease"
-  when
-    $bz: BugzillaBug($bug : bug,
-      targetMilestone not str[startsWith] "ovirt-3.",
-      targetMilestone not str[startsWith] "ovirt-4.0.")
-
-    $board: TrelloBoard(config.isBoardMonitored(id))
-    $card: TrelloCard(bug == $bug, board == $board, $labels: labels)
-    $label: TrelloLabel(name == "flags missing") from $labels
-  then
-    trello.removeLabelFromCard($card, $label);
-end
-
-rule "zStreamFlagsNotNeededCommunity"
-  when
-    $bz: BugzillaBug($bug : bug, community != "redhat")
-    $board: TrelloBoard(config.isBoardMonitored(id))
-    $card: TrelloCard(bug == $bug, board == $board, $labels: labels)
-    $label: TrelloLabel(name == "flags missing") from $labels
-  then
-    trello.removeLabelFromCard($card, $label);
-end
-
 // Mark cards that are probably done or not needed, but need manual check
 rule "blocksClosedBug"
   when
     $board: TrelloBoard(config.isBoardMonitored(id))
-    $card: TrelloCard($blocks : blocks, blocks.empty == false, status not str[startsWith] "documentation", status not str[startsWith] config.getDonelog($board), board == $board, $labels: labels)
+    $card: TrelloCard($blocks : blocks, blocks.empty == false, status not str[startsWith] config.getDocumentation($board), status not str[startsWith] config.getDonelog($board), board == $board, $labels: labels)
     not(exists BugzillaBug(done == false, bug memberOf $blocks))
     not(exists TrelloLabel(name == "done?") from $labels)
   then
@@ -340,7 +302,7 @@ rule "blockedByUnclosedBug"
     $board: TrelloBoard(config.isBoardMonitored(id))
     $card: TrelloCard($bug : bug, status not str[startsWith] config.getDonelog($board), board == $board, $labels: labels)
     BugzillaBug($bug2 : bug, bug != $bug, $bug memberOf blocks, done == false)
-    exists TrelloCard(bug == $bug2, status not str[startsWith] config.getDonelog($board), status != "documentation", board == $board)
+    exists TrelloCard(bug == $bug2, status not str[startsWith] config.getDonelog($board), status != config.getDocumentation($board), board == $board)
     not(exists TrelloLabel(name == "waiting") from $labels)
   then
     trello.assignLabelToCard($card, "waiting");
@@ -351,7 +313,7 @@ rule "blockedByUnclosedCard"
     $board: TrelloBoard(config.isBoardMonitored(id))
     $card: TrelloCard($bug : bug, status not str[startsWith] config.getDonelog($board), board == $board, $labels: labels)
     not(exists BugzillaBug(bug == $bug, done == true))
-    exists TrelloCard(status not str[startsWith] config.getDonelog($board), status != "documentation", $bug memberOf blocks)
+    exists TrelloCard(status not str[startsWith] config.getDonelog($board), status != config.getDocumentation($board), $bug memberOf blocks)
     not(exists TrelloLabel(name == "waiting") from $labels)
   then
     trello.assignLabelToCard($card, "waiting");
@@ -361,9 +323,9 @@ rule "notBlockedByAnyUnclosedCardOrBugCard"
   when
     $board: TrelloBoard(config.isBoardMonitored(id))
     $card: TrelloCard($bug : bug, status not str[startsWith] config.getDonelog($board), board == $board, $labels: labels)
-    not TrelloCard(status not str[startsWith] config.getDonelog($board), status != "documentation", $bug memberOf blocks)
+    not TrelloCard(status not str[startsWith] config.getDonelog($board), status != config.getDocumentation($board), $bug memberOf blocks)
     (not BugzillaBug(done == false, bug != $bug, $bug memberOf blocks) or
-     not (BugzillaBug($bug2 : bug, done == false, bug != $bug, $bug memberOf blocks) and TrelloCard(bug == $bug2, status not str[startsWith] config.getDonelog($board), status != "documentation")))
+     not (BugzillaBug($bug2 : bug, done == false, bug != $bug, $bug memberOf blocks) and TrelloCard(bug == $bug2, status not str[startsWith] config.getDonelog($board), status != config.getDocumentation($board))))
     $label: TrelloLabel(name == "waiting") from $labels
   then
     trello.removeLabelFromCard($card, $label);
