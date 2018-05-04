@@ -24,10 +24,10 @@ global ConfigurationService config;
  * Synchronize cards with bugzilla
  */
 
-// A bugzilla bug exists that has no corresponding trello card
+// An open bugzilla bug exists that has no corresponding trello card
 rule "newBug"
   when
-    $bz: GenericIssue($bug : bug, $user : assignedUsers)
+    $bz: GenericIssue($bug : bug, $user : assignedUsers, done == false)
     $board: TrelloBoard(config.isBoardMonitored(id))
     not(exists TrelloCard(bug == $bug, board == $board))
   then

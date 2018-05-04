@@ -57,7 +57,12 @@ public class FactServiceTest {
     @Inject
     FactService factService;
 
-    private static final String TRELLO_BACKLOG = "todo";
+    // Use different names than the default to test whether
+    // rules obey the configuration
+    private static final String TRELLO_BACKLOG = "new";
+    private static final String TRELLO_DONE = "completed";
+    private static final String TRELLO_INPROGRESS = "wip";
+    private static final String TRELLO_DOCS = "docs";
 
     private TrelloBoard board;
     private User user = new User("test");
@@ -67,14 +72,14 @@ public class FactServiceTest {
         MockitoAnnotations.initMocks(this);
         when(configurationService.getCached("trello.boards")).thenReturn("sprint");
         when(configurationService.getCached("cfg.backlog.sprint")).thenReturn(TRELLO_BACKLOG);
-        when(configurationService.getCached("cfg.done.sprint")).thenReturn("done");
+        when(configurationService.getCached("cfg.done.sprint")).thenReturn(TRELLO_DONE);
         when(configurationService.getCached("release.future.prefix")).thenReturn("ovirt-4.1.");
         when(configurationService.getCached("release.future.release")).thenReturn("ovirt-4.1.0");
         when(configurationService.isBoardMonitored("sprint")).thenReturn(true);
         when(configurationService.getBacklog(any())).thenReturn(TRELLO_BACKLOG);
-        when(configurationService.getDonelog(any())).thenReturn("done");
-        when(configurationService.getDocumentation(any())).thenReturn("documentation");
-        when(configurationService.getInProgress(any())).thenReturn("in progress");
+        when(configurationService.getDonelog(any())).thenReturn(TRELLO_DONE);
+        when(configurationService.getDocumentation(any())).thenReturn(TRELLO_DOCS);
+        when(configurationService.getInProgress(any())).thenReturn(TRELLO_INPROGRESS);
 
         when(configurationService.getCachedInt("release.ovirt-4.0.6", 0)).thenReturn(200);
 
@@ -188,7 +193,7 @@ public class FactServiceTest {
 
         trigger();
 
-        verify(trelloActions).moveCard(card1, board, "documentation");
+        verify(trelloActions).moveCard(card1, board, TRELLO_DOCS);
     }
 
     @Test
@@ -200,7 +205,7 @@ public class FactServiceTest {
                 .id("a")
                 .closed(false)
                 .board(board)
-                .status("done")
+                .status(TRELLO_DONE)
                 .pos(1.0)
                 .bug(bug1.getBug())
                 .blocks(Collections.emptySet())
@@ -224,8 +229,8 @@ public class FactServiceTest {
 
         trigger();
 
-        verify(trelloActions, never()).moveCard(card1, board, "documentation");
-        verify(trelloActions).moveCard(card2, board, "documentation");
+        verify(trelloActions, never()).moveCard(card1, board, TRELLO_DOCS);
+        verify(trelloActions).moveCard(card2, board, TRELLO_DOCS);
     }
 
     @Test
@@ -246,8 +251,8 @@ public class FactServiceTest {
 
         trigger();
 
-        verify(trelloActions, never()).moveCard(card1, board, "documentation");
-        verify(trelloActions, never()).moveCard(card1, board, "done");
+        verify(trelloActions, never()).moveCard(card1, board, TRELLO_DOCS);
+        verify(trelloActions, never()).moveCard(card1, board, TRELLO_DONE);
     }
 
     @Test
@@ -268,7 +273,7 @@ public class FactServiceTest {
 
         trigger();
 
-        verify(trelloActions).moveCard(card1, board, "done");
+        verify(trelloActions).moveCard(card1, board, TRELLO_DONE);
         assertThat(card1.getLabels()).isEmpty();
     }
 
@@ -290,7 +295,7 @@ public class FactServiceTest {
 
         trigger();
 
-        verify(trelloActions, never()).moveCard(card1, board, "done");
+        verify(trelloActions, never()).moveCard(card1, board, TRELLO_DONE);
         assertThat(card1.getLabels()).isEmpty();
     }
 
@@ -303,7 +308,7 @@ public class FactServiceTest {
                 .id("a")
                 .closed(false)
                 .board(board)
-                .status("done before X")
+                .status(TRELLO_DONE + " before X")
                 .pos(1.0)
                 .bug(bug1.getBug())
                 .blocks(Collections.emptySet())
@@ -316,7 +321,7 @@ public class FactServiceTest {
 
         trigger();
 
-        verify(trelloActions, never()).moveCard(card1, board, "done");
+        verify(trelloActions, never()).moveCard(card1, board, TRELLO_DONE);
     }
 
     @Test
@@ -328,7 +333,7 @@ public class FactServiceTest {
                 .id("a")
                 .closed(false)
                 .board(board)
-                .status("done before X")
+                .status(TRELLO_DONE + " before X")
                 .pos(1.0)
                 .bug(bug1.getBug())
                 .blocks(Collections.emptySet())
@@ -352,7 +357,7 @@ public class FactServiceTest {
         TrelloCard card1 = TrelloCard.builder()
                 .id("a")
                 .board(board)
-                .status("done before X")
+                .status(TRELLO_DONE + " before X")
                 .pos(1.0)
                 .bug(bug1.getBug())
                 .blocks(Collections.emptySet())
@@ -417,7 +422,7 @@ public class FactServiceTest {
 
         trigger();
 
-        verify(trelloActions).moveCard(card1, board, "done");
+        verify(trelloActions).moveCard(card1, board, TRELLO_DONE);
     }
 
     @Test
@@ -542,7 +547,7 @@ public class FactServiceTest {
                 .id("a")
                 .closed(false)
                 .board(board)
-                .status("done before 25th")
+                .status(TRELLO_DONE + " before 25th")
                 .pos(1.0)
                 .blocks(Collections.emptySet())
                 .assignedTo(new HashSet<>())
@@ -593,7 +598,7 @@ public class FactServiceTest {
                 .id("a")
                 .closed(false)
                 .board(board)
-                .status("documentation")
+                .status(TRELLO_DOCS)
                 .labels(singletonSet(label))
                 .pos(1.0)
                 .blocks(Collections.emptySet())
@@ -618,7 +623,7 @@ public class FactServiceTest {
                 .id("a")
                 .closed(false)
                 .board(board)
-                .status("done")
+                .status(TRELLO_DONE)
                 .labels(singletonSet(label))
                 .pos(1.0)
                 .blocks(Collections.emptySet())
@@ -1275,7 +1280,7 @@ public class FactServiceTest {
                 .id("b")
                 .closed(false)
                 .board(board)
-                .status("done")
+                .status(TRELLO_DONE)
                 .pos(2.0)
                 .score(100)
                 .blocks(singletonSet(bug))
@@ -1310,7 +1315,7 @@ public class FactServiceTest {
                 .id("b")
                 .closed(false)
                 .board(board)
-                .status("documentation")
+                .status(TRELLO_DOCS)
                 .pos(2.0)
                 .score(100)
                 .blocks(singletonSet(bug))
@@ -1348,7 +1353,7 @@ public class FactServiceTest {
                 .id("b")
                 .closed(false)
                 .board(board)
-                .status("done")
+                .status(TRELLO_DONE)
                 .pos(2.0)
                 .score(100)
                 .blocks(singletonSet(bug))
@@ -1386,7 +1391,7 @@ public class FactServiceTest {
                 .id("b")
                 .closed(false)
                 .board(board)
-                .status("documentation")
+                .status(TRELLO_DOCS)
                 .pos(2.0)
                 .score(100)
                 .blocks(singletonSet(bug))
@@ -1453,7 +1458,7 @@ public class FactServiceTest {
                 .build();
 
         TrelloCard card2 = cardForBug(bug2, 2.0)
-                .status("done")
+                .status(TRELLO_DONE)
                 .build();
 
         factService.addFact(bug2);
@@ -1486,7 +1491,7 @@ public class FactServiceTest {
                 .build();
 
         TrelloCard card2 = cardForBug(bug2, 2.0)
-                .status("documentation")
+                .status(TRELLO_DOCS)
                 .build();
 
         factService.addFact(bug2);
@@ -1522,7 +1527,7 @@ public class FactServiceTest {
                 .build();
 
         TrelloCard card2 = cardForBug(bug2, 2.0)
-                .status("done")
+                .status(TRELLO_DONE)
                 .build();
 
         factService.addFact(bug2);
@@ -1558,7 +1563,7 @@ public class FactServiceTest {
                 .build();
 
         TrelloCard card2 = cardForBug(bug2, 2.0)
-                .status("documentation")
+                .status(TRELLO_DOCS)
                 .build();
 
         factService.addFact(bug2);
@@ -1583,7 +1588,7 @@ public class FactServiceTest {
                 .build();
 
         TrelloCard card2 = cardForBug(bug2, 2.0)
-                .status("done")
+                .status(TRELLO_DONE)
                 .build();
 
         factService.addFact(bug1);
@@ -1635,7 +1640,7 @@ public class FactServiceTest {
                 .build();
 
         TrelloCard card2 = cardForBug(bug2, 2.0)
-                .status("documentation")
+                .status(TRELLO_DOCS)
                 .build();
 
         factService.addFact(bug1);
@@ -1664,7 +1669,7 @@ public class FactServiceTest {
                 .build();
 
         TrelloCard card2 = cardForBug(bug2, 2.0)
-                .status("done")
+                .status(TRELLO_DONE)
                 .build();
 
         factService.addFact(bug1);
@@ -1693,7 +1698,7 @@ public class FactServiceTest {
                 .build();
 
         TrelloCard card2 = cardForBug(bug2, 2.0)
-                .status("done")
+                .status(TRELLO_DONE)
                 .build();
 
         BugzillaBug bug3 = newBug(3, BugzillaStatus.ASSIGNED)
@@ -1761,7 +1766,7 @@ public class FactServiceTest {
                 .build();
 
         TrelloCard card2 = cardForBug(bug2, 2.0)
-                .status("documentation")
+                .status(TRELLO_DOCS)
                 .build();
 
         factService.addFact(bug1);
@@ -2060,7 +2065,7 @@ public class FactServiceTest {
                 .id("b")
                 .closed(false)
                 .board(board)
-                .status("documentation")
+                .status(TRELLO_DOCS)
                 .pos(2.0)
                 .score(100)
                 .blocks(singletonSet(bug))
