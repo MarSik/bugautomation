@@ -1,4 +1,4 @@
-FROM fedora:23
+FROM centos:centos7
 
 MAINTAINER "Martin Sivak" <msivak@redhat.com>
 
