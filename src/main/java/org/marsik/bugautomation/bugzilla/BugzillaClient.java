@@ -7,7 +7,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.google.common.collect.ArrayListMultimap;
@@ -49,7 +51,10 @@ public class BugzillaClient {
 
     private class Call {
         private final String method;
+
         private final Multimap<String,Object> arguments = ArrayListMultimap.create();
+        private final Set<String> privateKeys = new HashSet<>();
+
 
         public Call(String method) {
             this.method = method;
@@ -60,6 +65,12 @@ public class BugzillaClient {
             return this;
         }
 
+        public Call privateArgument(String key, Object value) {
+            arguments.put(key, value);
+            privateKeys.add(key);
+            return this;
+        }
+
         public Call arguments(Multimap<String, Object> values) {
             arguments.putAll(values);
             return this;
@@ -67,6 +78,8 @@ public class BugzillaClient {
 
         public Map<String, Object> call() {
             Map<String, Object> flatArgs = new HashMap<>();
+            Map<String, Object> logArgs = new HashMap<>();
+
             for (String key: arguments.keySet()) {
                 Collection<Object> values = arguments.get(key);
                 if (values.size() == 1) {
@@ -74,14 +87,21 @@ public class BugzillaClient {
                 } else {
                     flatArgs.put(key, values);
                 }
+
+                if (privateKeys.contains(key)) {
+                    logArgs.put(key, "********");
+                } else {
+                    logArgs.put(key, flatArgs.get(key));
+                }
             }
 
             if (token != null) {
                 flatArgs.put("Bugzilla_token", token);
+                logArgs.put("Bugzilla_token", "********");
             }
 
             Object[] callArgs = new Object[] {flatArgs};
-            logger.info("Calling bugzilla method {} with args {}", method, callArgs);
+            logger.info("Calling bugzilla method {} with args {}", method, new Object[] {logArgs});
             try {
                 return (Map<String,Object>)client.execute(method, callArgs);
             } catch (XmlRpcException e) {
@@ -99,7 +119,7 @@ public class BugzillaClient {
             Map<String, Object> ret = null;
             ret = new Call("User.login")
                     .argument("login", authorizationCallback.getName())
-                    .argument("password", authorizationCallback.getPassword())
+                    .privateArgument("password", authorizationCallback.getPassword())
                     .call();
             token = (String)ret.get("token");
         }
